@@ -1,0 +1,21 @@
+{
+  "name": "classic.et — Developer-Grade URL Shortener & Click Telemetry",
+  "short_name": "classic.et",
+  "description": "Fast, reliable URL shortening with real-time clickstream telemetry and custom branded slugs.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c0d0e",
+  "theme_color": "#0c0d0e",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/apple-icon",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}

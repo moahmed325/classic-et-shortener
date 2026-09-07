@@ -1,21 +1,19 @@
-'use client';
+import type { Metadata } from 'next';
+import { DashboardShell } from '@/components/dashboard-shell';
 
-import { DashboardHeader } from '@/components/dashboard-header';
-import { ProtectedRoute } from '@/components/protected-route';
+export const metadata: Metadata = {
+  title: 'Dashboard',
+  description: 'Command center for your short URLs, click analytics, and custom domain routing.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <ProtectedRoute>
-      <div className="min-h-[100dvh] bg-canvas text-text-primary flex flex-col selection:bg-[#ff6363]/20">
-        <DashboardHeader />
-        <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-6 sm:py-8">
-          {children}
-        </main>
-      </div>
-    </ProtectedRoute>
-  );
+  return <DashboardShell>{children}</DashboardShell>;
 }
