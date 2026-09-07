@@ -1,0 +1,70 @@
+# Node modules
+front-end/node_modules/
+back-end/node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Dependency directories
+jspm_packages/
+
+# Build output
+build/
+dist/
+.next/
+.next/cache/
+coverage/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Env and Secrets files
+.env
+.env.*
+.dev.vars*
+front-end/.env*
+back-end/.env*
+back-end/.dev.vars*
+
+# Platform deployment folders
+.vercel/
+.wrangler/
+
+# Scratch & test scripts with credentials
+back-end/test-e2e.js
+back-end/test-prod.js
+
+# IDE files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Test output
+coverage/
+
+# Misc
+*.tgz
+*.bak
+*.backup
+
+# Others
+*.pid
+*.seed
+*.pid.lock
+
+# Ignore backup files
+*.orig
+*.rej
+
+# Ignore migrations backup
+back-end/migrations/*.bak

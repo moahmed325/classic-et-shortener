@@ -1,0 +1,3 @@
+-- Migration number: 0003 	 2025-08-07T23:17:58.383Z
+-- This migration is deprecated - refresh_tokens table was removed as it's not used
+-- JWT authentication is handled through admin_sessions for admin users
