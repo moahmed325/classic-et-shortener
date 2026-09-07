@@ -18,7 +18,7 @@ export default function AdminLayout({
   if (isLoginPage) {
     return (
       <AdminAuthProvider>
-        <div className="min-h-[100dvh] bg-[#0c0d0e]">
+        <div className="min-h-[100dvh] bg-canvas">
           {children}
         </div>
       </AdminAuthProvider>
@@ -28,7 +28,7 @@ export default function AdminLayout({
   return (
     <AdminAuthProvider>
       <AdminManagementProvider>
-        <div className="min-h-[100dvh] bg-[#0c0d0e] text-[#ededed]">
+        <div className="min-h-[100dvh] bg-canvas text-text-primary">
           <div className="flex min-h-[100dvh]">
             <AdminSidebar />
             <div className="flex-1 flex flex-col min-w-0">

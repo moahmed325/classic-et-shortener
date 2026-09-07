@@ -55,22 +55,22 @@ export default function ForgotPasswordPage() {
       <div className="min-h-[100dvh] bg-canvas flex flex-col justify-center items-center px-4 py-8 selection:bg-[#ff6363]/20">
         <div className="w-full max-w-sm space-y-4">
           <div className="text-center space-y-1.5">
-            <Link href="/" className="inline-flex items-center space-x-2 text-sm font-semibold tracking-tight text-[#ededed]">
-              <div className="h-6 w-6 rounded bg-[#1c1d20] border border-[#27282b] flex items-center justify-center text-[#ff6363]">
+            <Link href="/" className="inline-flex items-center space-x-2 text-sm font-semibold tracking-tight text-text-primary">
+              <div className="h-6 w-6 rounded bg-surface-2 border border-border-subtle flex items-center justify-center text-[#ff6363]">
                 <Zap className="h-3.5 w-3.5 fill-current" />
               </div>
               <span className="font-mono font-bold text-base tracking-tight">classic.et</span>
             </Link>
           </div>
 
-          <Card className="rounded-lg border border-[#27282b] bg-[#141517] shadow-none">
+          <Card className="rounded-lg border border-border-subtle bg-surface-1 shadow-none">
             <CardHeader className="p-5 pb-3">
               <div className="h-8 w-8 rounded bg-[#5fc992]/10 border border-[#5fc992]/25 flex items-center justify-center text-[#5fc992] mb-2">
                 <CheckCircle2 className="h-4 w-4" />
               </div>
-              <CardTitle className="text-lg font-semibold text-[#ededed]">Check your email</CardTitle>
-              <CardDescription className="text-xs text-[#8c8d91]">
-                We sent reset instructions to <span className="text-[#ededed] font-medium">{email}</span>
+              <CardTitle className="text-lg font-semibold text-text-primary">Check your email</CardTitle>
+              <CardDescription className="text-xs text-text-muted">
+                We sent reset instructions to <span className="text-text-primary font-medium">{email}</span>
               </CardDescription>
             </CardHeader>
 
@@ -81,17 +81,17 @@ export default function ForgotPasswordPage() {
               </Alert>
 
               {debugInfo?.resetUrl && (
-                <div className="p-3 rounded border border-[#27282b] bg-[#1c1d20] space-y-2">
+                <div className="p-3 rounded border border-border-subtle bg-surface-2 space-y-2">
                   <div className="flex items-center text-xs font-semibold text-[#56c2ff]">
                     <Zap className="h-3.5 w-3.5 mr-1.5" />
                     Direct Reset Link (Sandbox Mode)
                   </div>
-                  <p className="text-[11px] text-[#8c8d91]">
+                  <p className="text-[11px] text-text-muted">
                     You can proceed directly using the link below:
                   </p>
                   <a
                     href={debugInfo.resetUrl}
-                    className="inline-flex items-center justify-center w-full bg-[#141517] hover:bg-[#27282b] text-[#ededed] border border-[#27282b] font-medium py-2 px-3 rounded text-xs transition-colors"
+                    className="inline-flex items-center justify-center w-full bg-surface-1 hover:bg-surface-2 text-text-primary border border-border-subtle font-medium py-2 px-3 rounded text-xs transition-colors"
                   >
                     <Lock className="mr-1.5 h-3.5 w-3.5" />
                     Proceed to Reset Password
@@ -102,7 +102,7 @@ export default function ForgotPasswordPage() {
               <div className="pt-2 text-center">
                 <Link
                   href="/login"
-                  className="inline-flex items-center text-xs text-[#8c8d91] hover:text-[#ededed] transition-colors"
+                  className="inline-flex items-center text-xs text-text-muted hover:text-text-primary transition-colors"
                 >
                   <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
                   Back to Sign In
@@ -120,8 +120,8 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-sm space-y-4">
         {/* Brand Header */}
         <div className="text-center space-y-1.5">
-          <Link href="/" className="inline-flex items-center space-x-2 text-sm font-semibold tracking-tight text-[#ededed]">
-            <div className="h-6 w-6 rounded bg-[#1c1d20] border border-[#27282b] flex items-center justify-center text-[#ff6363]">
+          <Link href="/" className="inline-flex items-center space-x-2 text-sm font-semibold tracking-tight text-text-primary">
+            <div className="h-6 w-6 rounded bg-surface-2 border border-border-subtle flex items-center justify-center text-[#ff6363]">
               <Zap className="h-3.5 w-3.5 fill-current" />
             </div>
             <span className="font-mono font-bold text-base tracking-tight">classic.et</span>
@@ -129,10 +129,10 @@ export default function ForgotPasswordPage() {
         </div>
 
         {/* Tactical Auth Card */}
-        <Card className="rounded-lg border border-[#27282b] bg-[#141517] shadow-none">
+        <Card className="rounded-lg border border-border-subtle bg-surface-1 shadow-none">
           <CardHeader className="p-5 pb-3">
-            <CardTitle className="text-lg font-semibold text-[#ededed]">Reset password</CardTitle>
-            <CardDescription className="text-xs text-[#8c8d91]">
+            <CardTitle className="text-lg font-semibold text-text-primary">Reset password</CardTitle>
+            <CardDescription className="text-xs text-text-muted">
               Enter your account email to receive a password reset link.
             </CardDescription>
           </CardHeader>
@@ -147,7 +147,7 @@ export default function ForgotPasswordPage() {
               )}
 
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-xs font-medium text-[#8c8d91]">
+                <Label htmlFor="email" className="text-xs font-medium text-text-muted">
                   Email address
                 </Label>
                 <Input
@@ -158,7 +158,7 @@ export default function ForgotPasswordPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="bg-[#1c1d20] border-[#27282b] text-[#ededed] text-sm h-10 focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                  className="bg-surface-2 border-border-subtle text-text-primary placeholder:text-text-muted text-sm h-10 focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
                 />
               </div>
 
@@ -178,10 +178,10 @@ export default function ForgotPasswordPage() {
               </Button>
             </form>
 
-            <div className="mt-4 pt-4 border-t border-[#27282b]/60 text-center">
+            <div className="mt-4 pt-4 border-t border-border-subtle text-center">
               <Link
                 href="/login"
-                className="inline-flex items-center text-xs text-[#8c8d91] hover:text-[#ededed] transition-colors"
+                className="inline-flex items-center text-xs text-text-muted hover:text-text-primary transition-colors"
               >
                 <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
                 Back to Sign In

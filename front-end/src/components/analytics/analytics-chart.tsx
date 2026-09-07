@@ -66,7 +66,7 @@ export function AnalyticsChart({
 
   const isDark = mounted ? theme === 'dark' : true;
   const gridStroke = isDark ? '#27282b' : '#e5e7eb';
-  const tickStroke = isDark ? '#8c8d91' : '#6b7280';
+  const tickStroke = isDark ? '#8c8d91' : '#71717a';
 
   // Format dates for X-Axis tick labels (e.g. "Sep 5")
   const chartData = useMemo(() => {

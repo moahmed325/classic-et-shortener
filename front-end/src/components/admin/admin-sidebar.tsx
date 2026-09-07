@@ -77,15 +77,15 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
 
   return (
     <aside
-      className={`flex flex-col bg-[#141517] border-r border-[#27282b] transition-all duration-200 z-30 ${
+      className={`flex flex-col bg-surface-1 border-r border-border-subtle transition-all duration-200 z-30 ${
         collapsed ? 'w-16' : 'w-60'
       } ${className || ''}`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-3.5 border-b border-[#27282b] h-14">
+      <div className="flex items-center justify-between p-3.5 border-b border-border-subtle h-14">
         {!collapsed && (
           <Link href="/admin/dashboard" className="flex items-center gap-2">
-            <span className="font-mono text-sm font-bold tracking-tight text-[#ededed]">
+            <span className="font-mono text-sm font-bold tracking-tight text-text-primary">
               classic<span className="text-[#ff6363]">.admin</span>
             </span>
           </Link>
@@ -94,7 +94,7 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
           variant="ghost"
           size="sm"
           onClick={() => setCollapsed(!collapsed)}
-          className="h-8 w-8 p-0 text-[#8c8d91] hover:text-[#ededed] hover:bg-[#1c1d20]"
+          className="h-8 w-8 p-0 text-text-muted hover:text-text-primary hover:bg-surface-2"
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -113,11 +113,11 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
               title={collapsed ? item.name : undefined}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-md min-h-[44px] text-xs font-mono transition-colors ${
                 isActive
-                  ? 'bg-[#1c1d20] text-[#ededed] border border-[#27282b]'
-                  : 'text-[#8c8d91] hover:text-[#ededed] hover:bg-[#1c1d20]/50 border border-transparent'
+                  ? 'bg-surface-2 text-text-primary border border-border-subtle'
+                  : 'text-text-muted hover:text-text-primary hover:bg-surface-2/50 border border-transparent'
               }`}
             >
-              <Icon className={`h-4 w-4 flex-shrink-0 ${isActive ? 'text-[#ff6363]' : 'text-[#8c8d91]'}`} />
+              <Icon className={`h-4 w-4 flex-shrink-0 ${isActive ? 'text-[#ff6363]' : 'text-text-muted'}`} />
               {!collapsed && <span>{item.name}</span>}
             </Link>
           );
@@ -125,10 +125,10 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
       </nav>
 
       {/* Footer Return Link */}
-      <div className="p-3 border-t border-[#27282b]">
+      <div className="p-3 border-t border-border-subtle">
         <Link
           href="/dashboard"
-          className="flex items-center gap-2 px-2 py-2 text-xs font-mono text-[#8c8d91] hover:text-[#ededed] transition-colors"
+          className="flex items-center gap-2 px-2 py-2 text-xs font-mono text-text-muted hover:text-text-primary transition-colors"
         >
           {!collapsed && <span>← App Dashboard</span>}
         </Link>

@@ -11,7 +11,7 @@ const badgeVariants = cva(
         default:
           "border-[#5fc992]/25 bg-[#5fc992]/10 text-[#5fc992]",
         secondary:
-          "border-[#27282b] bg-[#1c1d20] text-[#ededed]",
+          "border-border-subtle bg-surface-2 text-text-primary",
         destructive:
           "border-[#ff6363]/25 bg-[#ff6363]/10 text-[#ff6363]",
         warning:
@@ -19,7 +19,7 @@ const badgeVariants = cva(
         cyan:
           "border-[#56c2ff]/25 bg-[#56c2ff]/10 text-[#56c2ff]",
         outline:
-          "border-[#27282b] text-[#8c8d91] bg-transparent",
+          "border-border-subtle text-text-muted bg-transparent",
       },
     },
     defaultVariants: {

@@ -187,23 +187,23 @@ export default function SubscriptionPage() {
       {/* Header & Cycle Switch */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-[#ededed] font-sans">
+          <h1 className="text-xl sm:text-2xl font-bold text-text-primary font-sans">
             Subscription Plans
           </h1>
-          <p className="text-xs sm:text-sm text-[#8c8d91] font-sans mt-0.5">
+          <p className="text-xs sm:text-sm text-text-muted font-sans mt-0.5">
             Transparent, quota-based tiers for creators, developers, and growing teams.
           </p>
         </div>
 
         {/* Monthly / Yearly Switch */}
-        <div className="inline-flex items-center rounded-md border border-[#27282b] bg-[#141517] p-1 gap-1">
+        <div className="inline-flex items-center rounded-md border border-border-subtle bg-surface-1 p-1 gap-1">
           <button
             type="button"
             onClick={() => setBillingCycle('monthly')}
             className={`min-h-[34px] px-3 text-xs font-mono rounded transition-colors ${
               billingCycle === 'monthly'
-                ? 'bg-[#1c1d20] text-[#ededed] border border-[#27282b]'
-                : 'text-[#8c8d91] hover:text-[#ededed]'
+                ? 'bg-surface-2 text-text-primary border border-border-subtle'
+                : 'text-text-muted hover:text-text-primary'
             }`}
           >
             Monthly
@@ -213,8 +213,8 @@ export default function SubscriptionPage() {
             onClick={() => setBillingCycle('yearly')}
             className={`min-h-[34px] px-3 text-xs font-mono rounded transition-colors flex items-center gap-1.5 ${
               billingCycle === 'yearly'
-                ? 'bg-[#1c1d20] text-[#ededed] border border-[#27282b]'
-                : 'text-[#8c8d91] hover:text-[#ededed]'
+                ? 'bg-surface-2 text-text-primary border border-border-subtle'
+                : 'text-text-muted hover:text-text-primary'
             }`}
           >
             <span>Annual</span>
@@ -236,23 +236,23 @@ export default function SubscriptionPage() {
           return (
             <div
               key={plan.id || plan.tier}
-              className={`relative rounded-md border p-5 sm:p-6 flex flex-col justify-between transition-colors bg-[#141517] ${
+              className={`relative rounded-md border p-5 sm:p-6 flex flex-col justify-between transition-colors bg-surface-1 ${
                 isCurrent
                   ? 'border-[#5fc992]/50'
                   : isPremium
                   ? 'border-[#ff6363]/40'
-                  : 'border-[#27282b] hover:border-[#383a3f]'
+                  : 'border-border-subtle hover:border-border-strong'
               }`}
             >
               <div>
                 {/* Header Row: Tier + Current Badge */}
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-base font-semibold text-[#ededed] font-sans">
+                  <h3 className="text-base font-semibold text-text-primary font-sans">
                     {plan.name}
                   </h3>
 
                   {isCurrent ? (
-                    <Kbd className="bg-[#1c1d20] border-[#5fc992]/40 text-[#5fc992] text-[10px] uppercase font-mono px-2 py-0.5">
+                    <Kbd className="bg-surface-2 border-[#5fc992]/40 text-[#5fc992] text-[10px] uppercase font-mono px-2 py-0.5">
                       Current Plan
                     </Kbd>
                   ) : isPremium ? (
@@ -265,26 +265,26 @@ export default function SubscriptionPage() {
                 {/* Price Display */}
                 <div className="mb-4">
                   <div className="flex items-baseline gap-1 font-mono">
-                    <span className="text-2xl sm:text-3xl font-bold text-[#ededed] tabular-nums">
+                    <span className="text-2xl sm:text-3xl font-bold text-text-primary tabular-nums">
                       {price === 0 ? 'Free' : `${price} ETB`}
                     </span>
                     {price > 0 && (
-                      <span className="text-xs text-[#8c8d91]">/ month</span>
+                      <span className="text-xs text-text-muted">/ month</span>
                     )}
                   </div>
                   {billingCycle === 'yearly' && price > 0 && (
-                    <p className="text-[11px] font-mono text-[#8c8d91] mt-0.5">
+                    <p className="text-[11px] font-mono text-text-muted mt-0.5">
                       Billed annually ({plan.priceYearly} ETB/yr)
                     </p>
                   )}
                 </div>
 
                 {/* Feature List */}
-                <div className="space-y-2.5 pt-3 border-t border-[#27282b] mb-6">
+                <div className="space-y-2.5 pt-3 border-t border-border-subtle mb-6">
                   {plan.features.map((feat, idx) => (
                     <div key={idx} className="flex items-start gap-2 text-xs">
                       <Check className="h-3.5 w-3.5 text-[#5fc992] flex-shrink-0 mt-0.5" />
-                      <span className="text-[#8c8d91] font-sans">{feat}</span>
+                      <span className="text-text-muted font-sans">{feat}</span>
                     </div>
                   ))}
                 </div>
@@ -296,7 +296,7 @@ export default function SubscriptionPage() {
                   <Button
                     disabled
                     variant="outline"
-                    className="w-full min-h-[44px] border-[#27282b] bg-[#1c1d20] text-[#8c8d91] text-xs font-mono cursor-default"
+                    className="w-full min-h-[44px] border-border-subtle bg-surface-2 text-text-muted text-xs font-mono cursor-default"
                   >
                     Current Plan
                   </Button>
@@ -306,7 +306,7 @@ export default function SubscriptionPage() {
                     className={`w-full min-h-[44px] text-xs font-mono font-medium transition-transform active:scale-[0.99] ${
                       isPremium
                         ? 'bg-[#ff6363] hover:bg-[#ff4d4d] text-white'
-                        : 'bg-[#ededed] hover:bg-white text-black'
+                        : 'bg-text-primary hover:opacity-90 text-surface-1'
                     }`}
                   >
                     <span>Upgrade to {plan.name}</span>
@@ -321,19 +321,19 @@ export default function SubscriptionPage() {
 
       {/* Chapa Phone Checkout Modal */}
       <Dialog open={showPhoneModal} onOpenChange={setShowPhoneModal}>
-        <DialogContent className="border border-[#27282b] bg-[#141517] text-[#ededed] max-w-sm p-6 overscroll-contain">
+        <DialogContent className="border border-border-subtle bg-surface-1 text-text-primary max-w-sm p-6 overscroll-contain">
           <DialogHeader>
-            <DialogTitle className="text-base font-semibold text-[#ededed]">
+            <DialogTitle className="text-base font-semibold text-text-primary">
               Complete with Chapa
             </DialogTitle>
-            <DialogDescription className="text-xs text-[#8c8d91] font-mono">
+            <DialogDescription className="text-xs text-text-muted font-mono">
               Upgrading to {selectedPlan?.name} ({billingCycle === 'monthly' ? selectedPlan?.priceMonthly : selectedPlan?.priceYearly} ETB)
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleProceedCheckout} className="space-y-4 pt-2">
             <div className="space-y-1.5">
-              <Label htmlFor="chapa-phone" className="text-xs font-mono text-[#8c8d91] flex items-center gap-1.5">
+              <Label htmlFor="chapa-phone" className="text-xs font-mono text-text-muted flex items-center gap-1.5">
                 <Phone className="h-3.5 w-3.5" />
                 <span>Mobile Number (Telebirr / CBE)</span>
               </Label>
@@ -344,9 +344,9 @@ export default function SubscriptionPage() {
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 placeholder="0912345678"
-                className="min-h-[44px] bg-[#1c1d20] border-[#27282b] text-base sm:text-sm text-[#ededed] font-mono focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                className="min-h-[44px] bg-surface-2 border-border-subtle text-base sm:text-sm text-text-primary placeholder:text-text-muted font-mono focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
               />
-              <p className="text-[11px] text-[#8c8d91]">
+              <p className="text-[11px] text-text-muted">
                 Payment will be processed securely via Chapa Financial Technologies.
               </p>
             </div>
@@ -356,7 +356,7 @@ export default function SubscriptionPage() {
                 type="button"
                 variant="outline"
                 onClick={() => setShowPhoneModal(false)}
-                className="min-h-[44px] border-[#27282b] bg-[#141517] hover:bg-[#1c1d20] text-[#ededed] text-xs font-mono px-4"
+                className="min-h-[44px] border-border-subtle bg-surface-1 hover:bg-surface-2 text-text-primary text-xs font-mono px-4"
               >
                 Cancel
               </Button>

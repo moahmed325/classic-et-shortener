@@ -59,7 +59,7 @@ export function AdminHeader() {
         );
       default:
         return (
-          <Kbd className="bg-[#1c1d20] border-[#27282b] text-[#8c8d91] text-[10px] uppercase font-mono">
+          <Kbd className="bg-surface-2 border-border-subtle text-text-muted text-[10px] uppercase font-mono">
             {role}
           </Kbd>
         );
@@ -68,48 +68,48 @@ export function AdminHeader() {
 
   if (isLoading) {
     return (
-      <header className="border-b border-[#27282b] bg-[#141517] px-4 sm:px-6 py-3 h-14 flex items-center justify-between">
-        <div className="h-4 w-32 bg-[#1c1d20] rounded animate-pulse" />
-        <div className="h-8 w-8 bg-[#1c1d20] rounded-full animate-pulse" />
+      <header className="border-b border-border-subtle bg-surface-1 px-4 sm:px-6 py-3 h-14 flex items-center justify-between">
+        <div className="h-4 w-32 bg-surface-2 rounded animate-pulse" />
+        <div className="h-8 w-8 bg-surface-2 rounded-full animate-pulse" />
       </header>
     );
   }
 
   return (
-    <header className="border-b border-[#27282b] bg-[#141517] px-4 sm:px-6 py-3 h-14 flex items-center justify-between">
+    <header className="border-b border-border-subtle bg-surface-1 px-4 sm:px-6 py-3 h-14 flex items-center justify-between">
       <div className="flex items-center gap-2">
         <Shield className="h-4 w-4 text-[#ff6363]" />
-        <span className="text-xs font-mono text-[#8c8d91]">Console v2.4</span>
+        <span className="text-xs font-mono text-text-muted">Console v2.4</span>
       </div>
 
       {admin && (
         <div className="flex items-center gap-3">
           <div className="text-right hidden sm:block">
             <div className="flex items-center gap-2 justify-end">
-              <span className="text-xs font-semibold text-[#ededed] font-mono">
+              <span className="text-xs font-semibold text-text-primary font-mono">
                 {admin.name}
               </span>
               {getRoleBadge(admin.role)}
             </div>
-            <p className="text-[11px] text-[#8c8d91] font-mono">{admin.email}</p>
+            <p className="text-[11px] text-text-muted font-mono">{admin.email}</p>
           </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="h-9 w-9 rounded-md p-0 border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#ededed] font-mono text-xs"
+                className="h-9 w-9 rounded-md p-0 border-border-subtle bg-surface-2 hover:bg-surface-2/80 text-text-primary font-mono text-xs"
               >
                 {admin.name.charAt(0).toUpperCase()}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-52 bg-[#141517] border border-[#27282b] text-[#ededed] p-1 shadow-none"
+              className="w-52 bg-surface-1 border border-border-subtle text-text-primary p-1 shadow-none"
             >
-              <div className="px-3 py-2 border-b border-[#27282b] sm:hidden">
-                <p className="text-xs font-semibold font-mono text-[#ededed]">{admin.name}</p>
-                <p className="text-[10px] text-[#8c8d91] font-mono">{admin.email}</p>
+              <div className="px-3 py-2 border-b border-border-subtle sm:hidden">
+                <p className="text-xs font-semibold font-mono text-text-primary">{admin.name}</p>
+                <p className="text-[10px] text-text-muted font-mono">{admin.email}</p>
                 <div className="mt-1">{getRoleBadge(admin.role)}</div>
               </div>
 

@@ -76,13 +76,13 @@ function ResetPasswordForm() {
 
   if (success) {
     return (
-      <Card className="rounded-lg border border-[#27282b] bg-[#141517] shadow-none">
+      <Card className="rounded-lg border border-border-subtle bg-surface-1 shadow-none">
         <CardHeader className="p-5 pb-3">
           <div className="h-8 w-8 rounded bg-[#5fc992]/10 border border-[#5fc992]/25 flex items-center justify-center text-[#5fc992] mb-2">
             <CheckCircle2 className="h-4 w-4" />
           </div>
-          <CardTitle className="text-lg font-semibold text-[#ededed]">Password updated</CardTitle>
-          <CardDescription className="text-xs text-[#8c8d91]">
+          <CardTitle className="text-lg font-semibold text-text-primary">Password updated</CardTitle>
+          <CardDescription className="text-xs text-text-muted">
             Your password has been successfully reset. Redirecting to sign in...
           </CardDescription>
         </CardHeader>
@@ -98,10 +98,10 @@ function ResetPasswordForm() {
   }
 
   return (
-    <Card className="rounded-lg border border-[#27282b] bg-[#141517] shadow-none">
+    <Card className="rounded-lg border border-border-subtle bg-surface-1 shadow-none">
       <CardHeader className="p-5 pb-3">
-        <CardTitle className="text-lg font-semibold text-[#ededed]">Set new password</CardTitle>
-        <CardDescription className="text-xs text-[#8c8d91]">
+        <CardTitle className="text-lg font-semibold text-text-primary">Set new password</CardTitle>
+        <CardDescription className="text-xs text-text-muted">
           Choose a secure password of at least 8 characters.
         </CardDescription>
       </CardHeader>
@@ -116,7 +116,7 @@ function ResetPasswordForm() {
           )}
 
           <div className="space-y-1.5">
-            <Label htmlFor="password" className="text-xs font-medium text-[#8c8d91]">
+            <Label htmlFor="password" className="text-xs font-medium text-text-muted">
               New password
             </Label>
             <div className="relative">
@@ -128,12 +128,12 @@ function ResetPasswordForm() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
-                className="bg-[#1c1d20] border-[#27282b] text-[#ededed] text-sm h-10 pr-10 focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                className="bg-surface-2 border-border-subtle text-text-primary placeholder:text-text-muted text-sm h-10 pr-10 focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8c8d91] hover:text-[#ededed]"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
                 tabIndex={-1}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -142,7 +142,7 @@ function ResetPasswordForm() {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="confirmPassword" className="text-xs font-medium text-[#8c8d91]">
+            <Label htmlFor="confirmPassword" className="text-xs font-medium text-text-muted">
               Confirm new password
             </Label>
             <Input
@@ -153,7 +153,7 @@ function ResetPasswordForm() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               disabled={isLoading}
-              className="bg-[#1c1d20] border-[#27282b] text-[#ededed] text-sm h-10 focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+              className="bg-surface-2 border-border-subtle text-text-primary placeholder:text-text-muted text-sm h-10 focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
             />
           </div>
 
@@ -173,8 +173,8 @@ function ResetPasswordForm() {
           </Button>
         </form>
 
-        <div className="mt-4 pt-4 border-t border-[#27282b]/60 text-center">
-          <Link href="/login" className="text-xs text-[#8c8d91] hover:text-[#ededed] transition-colors">
+        <div className="mt-4 pt-4 border-t border-border-subtle text-center">
+          <Link href="/login" className="text-xs text-text-muted hover:text-text-primary transition-colors">
             Back to Sign In
           </Link>
         </div>
@@ -188,8 +188,8 @@ export default function ResetPasswordPage() {
     <div className="min-h-[100dvh] bg-canvas flex flex-col justify-center items-center px-4 py-8 selection:bg-[#ff6363]/20">
       <div className="w-full max-w-sm space-y-4">
         <div className="text-center space-y-1.5">
-          <Link href="/" className="inline-flex items-center space-x-2 text-sm font-semibold tracking-tight text-[#ededed]">
-            <div className="h-6 w-6 rounded bg-[#1c1d20] border border-[#27282b] flex items-center justify-center text-[#ff6363]">
+          <Link href="/" className="inline-flex items-center space-x-2 text-sm font-semibold tracking-tight text-text-primary">
+            <div className="h-6 w-6 rounded bg-surface-2 border border-border-subtle flex items-center justify-center text-[#ff6363]">
               <Zap className="h-3.5 w-3.5 fill-current" />
             </div>
             <span className="font-mono font-bold text-base tracking-tight">classic.et</span>
@@ -198,7 +198,7 @@ export default function ResetPasswordPage() {
 
         <Suspense
           fallback={
-            <div className="p-8 text-center text-xs font-mono text-[#8c8d91]">
+            <div className="p-8 text-center text-xs font-mono text-text-muted">
               <Loader2 className="h-5 w-5 animate-spin mx-auto mb-2 text-[#56c2ff]" />
               LOADING TOKEN...
             </div>

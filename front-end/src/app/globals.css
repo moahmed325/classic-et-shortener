@@ -10,11 +10,11 @@
     --surface-2: #f3f4f6;
     --border-subtle: #e5e7eb;
     --border-strong: #d1d5db;
-    --text-primary: #111827;
-    --text-muted: #6b7280;
-    --kbd-bg: #f3f4f6;
-    --kbd-border: #e5e7eb;
-    --kbd-text: #1f2937;
+    --text-primary: #09090b;
+    --text-muted: #71717a;
+    --kbd-bg: #f4f4f5;
+    --kbd-border: #e4e4e7;
+    --kbd-text: #18181b;
 
     /* Shadcn base variables mapped cleanly for light mode */
     --background: 210 20% 98%;

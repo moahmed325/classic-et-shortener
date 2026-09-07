@@ -91,7 +91,7 @@ export default function HomePage() {
   if (loading) {
     return (
       <div className="min-h-[100dvh] bg-canvas flex items-center justify-center">
-        <div className="flex items-center space-x-2 text-[#8c8d91] font-mono text-xs">
+        <div className="flex items-center space-x-2 text-text-muted font-mono text-xs">
           <span className="h-2 w-2 rounded-full bg-[#5fc992] animate-ping" />
           <span>INITIALIZING CORE...</span>
         </div>

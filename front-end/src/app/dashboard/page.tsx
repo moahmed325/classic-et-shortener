@@ -18,10 +18,10 @@ export default function DashboardPage() {
     <div className="space-y-6 sm:space-y-8">
       {/* Page Header */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-[#ededed] font-sans">
+        <h1 className="text-xl sm:text-2xl font-bold text-text-primary font-sans">
           Command Center
         </h1>
-        <p className="text-xs sm:text-sm text-[#8c8d91] font-sans mt-0.5">
+        <p className="text-xs sm:text-sm text-text-muted font-sans mt-0.5">
           Generate short links, monitor real-time traffic, and analyze engagement.
         </p>
       </div>

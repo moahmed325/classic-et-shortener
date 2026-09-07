@@ -16,7 +16,7 @@ export default function VerifyEmailPage() {
     <Suspense
       fallback={
         <div className="min-h-[100dvh] bg-canvas flex items-center justify-center p-4">
-          <span className="text-xs font-mono text-[#8c8d91]">LOADING VERIFICATION...</span>
+          <span className="text-xs font-mono text-text-muted">LOADING VERIFICATION...</span>
         </div>
       }
     >
@@ -131,18 +131,18 @@ function VerifyEmailContent() {
       <div className="min-h-[100dvh] bg-canvas flex flex-col justify-center items-center px-4 py-8 selection:bg-[#ff6363]/20">
         <div className="w-full max-w-sm space-y-4">
           <div className="text-center space-y-1.5">
-            <Link href="/" className="inline-flex items-center space-x-2 text-sm font-semibold tracking-tight text-[#ededed]">
-              <div className="h-6 w-6 rounded bg-[#1c1d20] border border-[#27282b] flex items-center justify-center text-[#ff6363]">
+            <Link href="/" className="inline-flex items-center space-x-2 text-sm font-semibold tracking-tight text-text-primary">
+              <div className="h-6 w-6 rounded bg-surface-2 border border-border-subtle flex items-center justify-center text-[#ff6363]">
                 <Zap className="h-3.5 w-3.5 fill-current" />
               </div>
               <span className="font-mono font-bold text-base tracking-tight">classic.et</span>
             </Link>
           </div>
 
-          <Card className="rounded-lg border border-[#27282b] bg-[#141517] shadow-none">
+          <Card className="rounded-lg border border-border-subtle bg-surface-1 shadow-none">
             <CardHeader className="p-5 pb-3">
-              <CardTitle className="text-lg font-semibold text-[#ededed]">Email required</CardTitle>
-              <CardDescription className="text-xs text-[#8c8d91]">
+              <CardTitle className="text-lg font-semibold text-text-primary">Email required</CardTitle>
+              <CardDescription className="text-xs text-text-muted">
                 Please sign up or specify an email address to verify.
               </CardDescription>
             </CardHeader>
@@ -164,8 +164,8 @@ function VerifyEmailContent() {
       <div className="w-full max-w-sm space-y-4">
         {/* Brand Header */}
         <div className="text-center space-y-1.5">
-          <Link href="/" className="inline-flex items-center space-x-2 text-sm font-semibold tracking-tight text-[#ededed]">
-            <div className="h-6 w-6 rounded bg-[#1c1d20] border border-[#27282b] flex items-center justify-center text-[#ff6363]">
+          <Link href="/" className="inline-flex items-center space-x-2 text-sm font-semibold tracking-tight text-text-primary">
+            <div className="h-6 w-6 rounded bg-surface-2 border border-border-subtle flex items-center justify-center text-[#ff6363]">
               <Zap className="h-3.5 w-3.5 fill-current" />
             </div>
             <span className="font-mono font-bold text-base tracking-tight">classic.et</span>
@@ -173,14 +173,14 @@ function VerifyEmailContent() {
         </div>
 
         {/* Tactical Auth Card */}
-        <Card className="rounded-lg border border-[#27282b] bg-[#141517] shadow-none">
+        <Card className="rounded-lg border border-border-subtle bg-surface-1 shadow-none">
           <CardHeader className="p-5 pb-3 text-center">
             <div className="mx-auto h-9 w-9 rounded bg-[#56c2ff]/10 border border-[#56c2ff]/25 flex items-center justify-center text-[#56c2ff] mb-2">
               <Mail className="h-4 w-4" />
             </div>
-            <CardTitle className="text-lg font-semibold text-[#ededed]">Verify email</CardTitle>
-            <CardDescription className="text-xs text-[#8c8d91]">
-              Enter the 6-digit code sent to <span className="text-[#ededed] font-medium">{email}</span>
+            <CardTitle className="text-lg font-semibold text-text-primary">Verify email</CardTitle>
+            <CardDescription className="text-xs text-text-muted">
+              Enter the 6-digit code sent to <span className="text-text-primary font-medium">{email}</span>
             </CardDescription>
           </CardHeader>
 
@@ -208,12 +208,12 @@ function VerifyEmailContent() {
                 disabled={isVerifying}
               >
                 <InputOTPGroup className="gap-1.5">
-                  <InputOTPSlot index={0} className="h-11 w-10 sm:h-12 sm:w-11 bg-[#1c1d20] border-[#27282b] text-base font-mono text-[#ededed] rounded-md" />
-                  <InputOTPSlot index={1} className="h-11 w-10 sm:h-12 sm:w-11 bg-[#1c1d20] border-[#27282b] text-base font-mono text-[#ededed] rounded-md" />
-                  <InputOTPSlot index={2} className="h-11 w-10 sm:h-12 sm:w-11 bg-[#1c1d20] border-[#27282b] text-base font-mono text-[#ededed] rounded-md" />
-                  <InputOTPSlot index={3} className="h-11 w-10 sm:h-12 sm:w-11 bg-[#1c1d20] border-[#27282b] text-base font-mono text-[#ededed] rounded-md" />
-                  <InputOTPSlot index={4} className="h-11 w-10 sm:h-12 sm:w-11 bg-[#1c1d20] border-[#27282b] text-base font-mono text-[#ededed] rounded-md" />
-                  <InputOTPSlot index={5} className="h-11 w-10 sm:h-12 sm:w-11 bg-[#1c1d20] border-[#27282b] text-base font-mono text-[#ededed] rounded-md" />
+                  <InputOTPSlot index={0} className="h-11 w-10 sm:h-12 sm:w-11 bg-surface-2 border-border-subtle text-base font-mono text-text-primary rounded-md" />
+                  <InputOTPSlot index={1} className="h-11 w-10 sm:h-12 sm:w-11 bg-surface-2 border-border-subtle text-base font-mono text-text-primary rounded-md" />
+                  <InputOTPSlot index={2} className="h-11 w-10 sm:h-12 sm:w-11 bg-surface-2 border-border-subtle text-base font-mono text-text-primary rounded-md" />
+                  <InputOTPSlot index={3} className="h-11 w-10 sm:h-12 sm:w-11 bg-surface-2 border-border-subtle text-base font-mono text-text-primary rounded-md" />
+                  <InputOTPSlot index={4} className="h-11 w-10 sm:h-12 sm:w-11 bg-surface-2 border-border-subtle text-base font-mono text-text-primary rounded-md" />
+                  <InputOTPSlot index={5} className="h-11 w-10 sm:h-12 sm:w-11 bg-surface-2 border-border-subtle text-base font-mono text-text-primary rounded-md" />
                 </InputOTPGroup>
               </InputOTP>
             </div>
@@ -238,14 +238,14 @@ function VerifyEmailContent() {
                 type="button"
                 onClick={handleResendCode}
                 disabled={isResending || resendCooldown > 0}
-                className="text-xs text-[#8c8d91] hover:text-[#ededed] disabled:opacity-50 transition-colors font-mono"
+                className="text-xs text-text-muted hover:text-text-primary disabled:opacity-50 transition-colors font-mono"
               >
                 {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : 'Resend verification code'}
               </button>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-[#27282b]/60 text-center">
-              <Link href="/login" className="text-xs text-[#8c8d91] hover:text-[#ededed] transition-colors">
+            <div className="mt-4 pt-3 border-t border-border-subtle text-center">
+              <Link href="/login" className="text-xs text-text-muted hover:text-text-primary transition-colors">
                 Back to Sign In
               </Link>
             </div>

@@ -83,7 +83,7 @@ export default function ReceiptPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
         <Loader2 className="h-6 w-6 animate-spin text-[#ff6363]" />
-        <p className="text-xs font-mono text-[#8c8d91]">
+        <p className="text-xs font-mono text-text-muted">
           Verifying payment transaction status with Chapa...
         </p>
       </div>
@@ -92,13 +92,13 @@ export default function ReceiptPage() {
 
   if (error || !transactionData) {
     return (
-      <div className="max-w-md mx-auto my-12 rounded-md border border-[#ff6363]/40 bg-[#141517] p-6 text-center space-y-4">
+      <div className="max-w-md mx-auto my-12 rounded-md border border-[#ff6363]/40 bg-surface-1 p-6 text-center space-y-4">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#ff6363]/10 text-[#ff6363] mx-auto">
           <AlertCircle className="h-5 w-5" />
         </div>
         <div>
-          <h2 className="text-base font-semibold text-[#ededed]">Payment Incomplete</h2>
-          <p className="text-xs text-[#8c8d91] font-mono mt-1">
+          <h2 className="text-base font-semibold text-text-primary">Payment Incomplete</h2>
+          <p className="text-xs text-text-muted font-mono mt-1">
             {error || 'Could not verify transaction with the payment gateway.'}
           </p>
         </div>
@@ -114,32 +114,32 @@ export default function ReceiptPage() {
   return (
     <div className="max-w-lg mx-auto space-y-6 my-6">
       {/* Minimalist Transaction Slip */}
-      <div className="rounded-md border border-[#27282b] bg-[#141517] p-6 sm:p-8 space-y-6">
+      <div className="rounded-md border border-border-subtle bg-surface-1 p-6 sm:p-8 space-y-6">
         {/* Slip Header */}
-        <div className="flex items-start justify-between border-b border-[#27282b] pb-4">
+        <div className="flex items-start justify-between border-b border-border-subtle pb-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-mono text-base font-bold text-[#ededed]">
+              <span className="font-mono text-base font-bold text-text-primary">
                 classic.et
               </span>
               <Badge className="bg-[#5fc992]/10 border border-[#5fc992]/30 text-[#5fc992] text-[10px] font-mono uppercase">
                 Paid
               </Badge>
             </div>
-            <p className="text-xs text-[#8c8d91] font-mono mt-0.5">
+            <p className="text-xs text-text-muted font-mono mt-0.5">
               Official Electronic Receipt
             </p>
           </div>
 
           <div className="text-right">
-            <span className="text-xs font-mono text-[#8c8d91] block">
+            <span className="text-xs font-mono text-text-muted block">
               {new Date().toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
                 year: 'numeric',
               })}
             </span>
-            <span className="text-[10px] font-mono text-[#8c8d91] block">
+            <span className="text-[10px] font-mono text-text-muted block">
               {new Date().toLocaleTimeString('en-US', {
                 hour: '2-digit',
                 minute: '2-digit',
@@ -150,29 +150,29 @@ export default function ReceiptPage() {
 
         {/* Transaction Details Table */}
         <div className="space-y-3 font-mono text-xs">
-          <div className="flex items-center justify-between py-1 border-b border-[#27282b]/60">
-            <span className="text-[#8c8d91]">Transaction Ref</span>
-            <span className="text-[#ededed] select-all font-semibold">
+          <div className="flex items-center justify-between py-1 border-b border-border-subtle">
+            <span className="text-text-muted">Transaction Ref</span>
+            <span className="text-text-primary select-all font-semibold">
               {transactionData.reference}
             </span>
           </div>
 
-          <div className="flex items-center justify-between py-1 border-b border-[#27282b]/60">
-            <span className="text-[#8c8d91]">Plan Subscription</span>
-            <span className="text-[#ededed]">
+          <div className="flex items-center justify-between py-1 border-b border-border-subtle">
+            <span className="text-text-muted">Plan Subscription</span>
+            <span className="text-text-primary">
               {transactionData.plan}
             </span>
           </div>
 
-          <div className="flex items-center justify-between py-1 border-b border-[#27282b]/60">
-            <span className="text-[#8c8d91]">Payment Gateway</span>
-            <span className="text-[#ededed]">
+          <div className="flex items-center justify-between py-1 border-b border-border-subtle">
+            <span className="text-text-muted">Payment Gateway</span>
+            <span className="text-text-primary">
               Chapa (Telebirr / CBE)
             </span>
           </div>
 
-          <div className="flex items-center justify-between py-1 border-b border-[#27282b]/60">
-            <span className="text-[#8c8d91]">Status</span>
+          <div className="flex items-center justify-between py-1 border-b border-border-subtle">
+            <span className="text-text-muted">Status</span>
             <span className="text-[#5fc992] font-semibold">
               {transactionData.status}
             </span>
@@ -180,21 +180,21 @@ export default function ReceiptPage() {
 
           {/* Amount Row */}
           <div className="flex items-center justify-between pt-2">
-            <span className="text-sm font-bold text-[#ededed]">Total Paid</span>
-            <span className="text-base sm:text-lg font-bold text-[#ededed] tabular-nums">
+            <span className="text-sm font-bold text-text-primary">Total Paid</span>
+            <span className="text-base sm:text-lg font-bold text-text-primary tabular-nums">
               {transactionData.amount} {transactionData.currency}
             </span>
           </div>
         </div>
 
         {/* Action Controls */}
-        <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-[#27282b]">
+        <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-border-subtle">
           <Button
             onClick={handlePrint}
             variant="outline"
-            className="flex-1 min-h-[44px] border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#ededed] text-xs font-mono"
+            className="flex-1 min-h-[44px] border-border-subtle bg-surface-2 hover:bg-surface-2/80 text-text-primary text-xs font-mono"
           >
-            <Printer className="mr-1.5 h-3.5 w-3.5 text-[#8c8d91]" />
+            <Printer className="mr-1.5 h-3.5 w-3.5 text-text-muted" />
             Print Receipt
           </Button>
 

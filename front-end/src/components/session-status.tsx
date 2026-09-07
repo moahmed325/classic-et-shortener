@@ -41,7 +41,7 @@ export function SessionStatus() {
   const isExpiringSoon = timeLeft.includes('m') && parseInt(timeLeft) < 30;
 
   return (
-    <div className="flex items-center space-x-2 text-xs text-gray-600 dark:text-gray-400">
+    <div className="flex items-center space-x-2 text-xs text-text-muted">
       {isExpiringSoon ? (
         <AlertCircle className="h-3 w-3 text-orange-500" />
       ) : (
