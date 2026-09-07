@@ -1,34 +1,33 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
 import { 
-  Crown, 
-  Zap, 
   Check, 
-  X, 
   ArrowUpRight, 
-  Calendar, 
   CreditCard, 
-  BarChart3,
-  Globe,
-  Code,
-  Users,
-  Clock,
-  Loader2,
+  Loader2, 
+  Sparkles, 
+  ShieldCheck,
+  Phone,
   AlertCircle
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Kbd } from '@/components/ui/kbd';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { subscriptionApi } from '@/lib/api';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-interface SubscriptionPlan {
+interface Plan {
   id: string;
   name: string;
   tier: 'free' | 'pro' | 'premium';
@@ -41,766 +40,344 @@ interface SubscriptionPlan {
     team_members: number;
   };
 }
- 
-interface UsageSummary {
-  current: {
-    id: string;
-    user_id: string;
-    month: string;
-    links_created: number;
-    analytics_events: number;
-    created_at: string;
-    updated_at: string;
-  };
-  plan: {
-    id: string;
-    name: string;
-    tier: 'free' | 'pro' | 'premium';
-    priceMonthly: number;
-    priceYearly: number;
-    features: string[];
-    limits: {
-      links_per_month: number;
-      analytics_retention_days: number;
-      team_members: number;
-    };
-  };
-  limits: {
-    links: { current: number; limit: number; percentage: number };
-    visitors: { current: number; limit: number | null; percentage: number };
-  };
-}
-
-interface CurrentSubscription {
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    tier: 'free' | 'pro' | 'premium';
-    subscriptionStatus: 'active' | 'canceled' | 'past_due' | 'unpaid';
-    subscriptionId?: string;
-    currentPeriodStart?: string;
-    currentPeriodEnd?: string;
-    cancelAtPeriodEnd: boolean;
-    createdAt: string;
-    updatedAt: string;
-  };
-  plan: {
-    id: string;
-    name: string;
-    tier: 'free' | 'pro' | 'premium';
-    priceMonthly: number;
-    priceYearly: number;
-    features: string[];
-    limits: {
-      links_per_month: number;
-      analytics_retention_days: number;
-      team_members: number;
-    };
-  };
-}
 
 export default function SubscriptionPage() {
-  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
-  const [currentSubscription, setCurrentSubscription] = useState<CurrentSubscription | null>(null);
-  const [usageSummary, setUsageSummary] = useState<UsageSummary | null>(null);
+  const [plans, setPlans] = useState<Plan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [isUpgrading, setIsUpgrading] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState('');
   const [showPhoneModal, setShowPhoneModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [selectedBillingCycle, setSelectedBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState('');
+
   const { user } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchSubscriptionData();
-    
-    // Check for payment success/failure in URL params
+    fetchPlans();
+
+    // Check URL parameters for Chapa redirect returns
     const urlParams = new URLSearchParams(window.location.search);
     const success = urlParams.get('success');
     const status = urlParams.get('status');
-    const txRef = urlParams.get('tx_ref') || urlParams.get('txRef') || urlParams.get('reference');
-    
+    const txRef = urlParams.get('tx_ref') || urlParams.get('txRef');
+
     if ((success === 'true' || status === 'success') && txRef) {
-      // Verify the transaction
       verifyTransaction(txRef);
     }
   }, []);
 
-  const verifyTransaction = async (txRef: string) => {
-    try {
-      const result = await subscriptionApi.verifyTransaction(txRef);
-      
-      if (result.status === 'success') {
-        toast({
-          title: "Payment Successful!",
-          description: "Your subscription has been activated. Welcome to the premium plan!",
-          variant: "default",
-        });
-        
-        // Refresh subscription data
-        fetchSubscriptionData();
-        
-        // Clean up URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-      } else {
-        toast({
-          title: "Payment Verification Failed",
-          description: "Please contact support if you believe this is an error.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Verification Error",
-        description: "Failed to verify payment. Please contact support.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const fetchSubscriptionData = async () => {
+  const fetchPlans = async () => {
     setIsLoading(true);
     try {
-      // Fetch plans
-      const plansData = await subscriptionApi.getPlans();
-      setPlans(plansData.plans);
-      console.log(plansData)
-
-      // Fetch current subscription
-      const currentData = await subscriptionApi.getCurrent();
-      setCurrentSubscription(currentData);
-      console.log(currentData)
-
-      // Fetch usage summary
-      const usageData = await subscriptionApi.getUsage();
-      console.log(usageData)
-      setUsageSummary(usageData);
-    } catch (error) {
+      const res = await subscriptionApi.getPlans();
+      setPlans(res.plans);
+    } catch (error: any) {
       toast({
-        title: "Error",
-        description: "Failed to load subscription data.",
-        variant: "destructive",
+        title: 'Error loading plans',
+        description: error.message || 'Could not fetch subscription plans',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleUpgrade = async (planId: string, billingCycle: 'monthly' | 'yearly' = 'monthly') => {
-    setSelectedPlan(planId);
-    setSelectedBillingCycle(billingCycle);
+  const verifyTransaction = async (txRef: string) => {
+    try {
+      const result = await subscriptionApi.verifyTransaction(txRef);
+      if (result.status === 'success') {
+        toast({
+          title: 'Subscription Activated',
+          description: 'Your account has been upgraded successfully.',
+        });
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    } catch {
+      // Verification handled on receipt page
+    }
+  };
+
+  const handleUpgradeClick = (plan: Plan) => {
+    if (plan.tier === user?.tier) return;
+    setSelectedPlan(plan);
     setShowPhoneModal(true);
   };
 
-  const handlePayment = async () => {
-    if (!phoneNumber || !selectedPlan) return;
-    
+  const handleProceedCheckout = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPlan) return;
+
+    const trimmedPhone = phoneNumber.trim();
+    if (!trimmedPhone) {
+      toast({
+        title: 'Phone number required',
+        description: 'Please enter your Ethiopian phone number (e.g., 0912345678).',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsUpgrading(true);
     try {
-      const response = await subscriptionApi.initializePayment({
-        planId: selectedPlan,
-        billingCycle: selectedBillingCycle,
-        phoneNumber: phoneNumber,
+      const res = await subscriptionApi.initializePayment({
+        planId: selectedPlan.id,
+        billingCycle,
+        phoneNumber: trimmedPhone,
       });
 
-      console.log('Chapa init response:', response);
-      // Redirect to Chapa checkout
-      window.location.href = response.url;
-    } catch (error) {
+      const checkoutUrl = res.url || (res as any).checkoutUrl;
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
+      } else {
+        toast({
+          title: 'Checkout initialization failed',
+          description: 'Could not generate payment gateway URL.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error: any) {
       toast({
-        title: "Error",
-        description: "Failed to process payment. Please try again.",
-        variant: "destructive",
+        title: 'Upgrade error',
+        description: error.message || 'Failed to initialize Chapa payment.',
+        variant: 'destructive',
       });
     } finally {
       setIsUpgrading(false);
-      setShowPhoneModal(false);
-      setPhoneNumber('');
-      setSelectedPlan(null);
     }
   };
 
-  const handleBillingPortal = async () => {
-    try {
-      const response = await fetch('/api/subscription/billing-portal', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
+  const currentTier = user?.tier || 'free';
 
-      if (!response.ok) {
-        throw new Error('Failed to create billing portal session');
-      }
+  // Fallback plans if API is booting
+  const defaultPlans: Plan[] = [
+    {
+      id: 'free',
+      name: 'Free',
+      tier: 'free',
+      priceMonthly: 0,
+      priceYearly: 0,
+      features: ['50 links/month', '7-day analytics retention', 'Standard redirect velocity', 'Basic QR codes'],
+      limits: { links_per_month: 50, analytics_retention_days: 7, team_members: 1 },
+    },
+    {
+      id: 'pro',
+      name: 'Pro',
+      tier: 'pro',
+      priceMonthly: 199,
+      priceYearly: 1990,
+      features: ['1,000 links/month', '90-day analytics retention', 'Custom link slugs', 'Link expiration scheduling', 'Priority routing'],
+      limits: { links_per_month: 1000, analytics_retention_days: 90, team_members: 3 },
+    },
+    {
+      id: 'premium',
+      name: 'Premium',
+      tier: 'premium',
+      priceMonthly: 499,
+      priceYearly: 4990,
+      features: ['Unlimited short links', '365-day raw telemetry retention', 'Custom branded shortcodes', 'Hourly click breakdown', 'Dedicated API key quotas'],
+      limits: { links_per_month: -1, analytics_retention_days: 365, team_members: 10 },
+    },
+  ];
 
-      const { url } = await response.json();
-      
-      // Redirect to Stripe billing portal
-      window.location.href = url;
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to open billing portal. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const getTierIcon = (tier: string) => {
-    switch (tier) {
-      case 'free':
-        return <Zap className="h-5 w-5" />;
-      case 'pro':
-        return <Crown className="h-5 w-5" />;
-      case 'premium':
-        return <Crown className="h-5 w-5 text-yellow-500" />;
-      default:
-        return <Zap className="h-5 w-5" />;
-    }
-  };
-
-  const getTierColor = (tier: string) => {
-    switch (tier) {
-      case 'free':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
-      case 'pro':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'premium':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
-    }
-  };
-
-  const formatPrice = (price: number) => {
-    return `${(price / 100).toFixed(0)} ETB`;
-  };
-
-  const formatLimit = (limit: number | null) => {
-    if (limit === null || limit === -1) return 'Unlimited';
-    return limit.toLocaleString();
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
+  const displayPlans = plans.length > 0 ? plans : defaultPlans;
 
   return (
-    <div className="space-y-8">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Subscription</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Manage your subscription and view usage
-        </p>
+    <div className="space-y-6 sm:space-y-8">
+      {/* Header & Cycle Switch */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-[#ededed] font-sans">
+            Subscription Plans
+          </h1>
+          <p className="text-xs sm:text-sm text-[#8c8d91] font-sans mt-0.5">
+            Transparent, quota-based tiers for creators, developers, and growing teams.
+          </p>
+        </div>
+
+        {/* Monthly / Yearly Switch */}
+        <div className="inline-flex items-center rounded-md border border-[#27282b] bg-[#141517] p-1 gap-1">
+          <button
+            type="button"
+            onClick={() => setBillingCycle('monthly')}
+            className={`min-h-[34px] px-3 text-xs font-mono rounded transition-colors ${
+              billingCycle === 'monthly'
+                ? 'bg-[#1c1d20] text-[#ededed] border border-[#27282b]'
+                : 'text-[#8c8d91] hover:text-[#ededed]'
+            }`}
+          >
+            Monthly
+          </button>
+          <button
+            type="button"
+            onClick={() => setBillingCycle('yearly')}
+            className={`min-h-[34px] px-3 text-xs font-mono rounded transition-colors flex items-center gap-1.5 ${
+              billingCycle === 'yearly'
+                ? 'bg-[#1c1d20] text-[#ededed] border border-[#27282b]'
+                : 'text-[#8c8d91] hover:text-[#ededed]'
+            }`}
+          >
+            <span>Annual</span>
+            <span className="text-[10px] text-[#5fc992] bg-[#5fc992]/10 px-1 py-0.2 rounded border border-[#5fc992]/20">
+              Save 17%
+            </span>
+          </button>
+        </div>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="plans">Plans & Pricing</TabsTrigger>
-          <TabsTrigger value="usage">Usage</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
-        </TabsList>
+      {/* Plan Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+        {displayPlans.map((plan) => {
+          const isCurrent = plan.tier === currentTier;
+          const price = billingCycle === 'monthly' ? plan.priceMonthly : Math.round(plan.priceYearly / 12);
+          const isPremium = plan.tier === 'premium';
+          const isPro = plan.tier === 'pro';
 
-        <TabsContent value="overview" className="space-y-6">
-          {/* Current Plan */}
-          {currentSubscription && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      {getTierIcon(currentSubscription.user.tier)}
-                      {currentSubscription.plan.name} Plan
-                    </CardTitle>
-                    <CardDescription>
-                      Your current subscription details
-                    </CardDescription>
-                  </div>
-                  <Badge className={getTierColor(currentSubscription.user.tier)}>
-                    {currentSubscription.user.subscriptionStatus}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      {currentSubscription.user.currentPeriodEnd 
-                        ? `Renews ${new Date(currentSubscription.user.currentPeriodEnd).toLocaleDateString()}`
-                        : 'No active subscription'
-                      }
+          return (
+            <div
+              key={plan.id || plan.tier}
+              className={`relative rounded-md border p-5 sm:p-6 flex flex-col justify-between transition-colors bg-[#141517] ${
+                isCurrent
+                  ? 'border-[#5fc992]/50'
+                  : isPremium
+                  ? 'border-[#ff6363]/40'
+                  : 'border-[#27282b] hover:border-[#383a3f]'
+              }`}
+            >
+              <div>
+                {/* Header Row: Tier + Current Badge */}
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-base font-semibold text-[#ededed] font-sans">
+                    {plan.name}
+                  </h3>
+
+                  {isCurrent ? (
+                    <Kbd className="bg-[#1c1d20] border-[#5fc992]/40 text-[#5fc992] text-[10px] uppercase font-mono px-2 py-0.5">
+                      Current Plan
+                    </Kbd>
+                  ) : isPremium ? (
+                    <span className="text-[10px] font-mono text-[#ff6363] uppercase tracking-wider">
+                      Popular
                     </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      {currentSubscription.plan.priceMonthly > 0 
-                        ? `${formatPrice(currentSubscription.plan.priceMonthly)}/month`
-                        : 'Free'
-                      }
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      {formatLimit(currentSubscription.plan.limits.team_members)} team member{currentSubscription.plan.limits.team_members !== 1 ? 's' : ''}
-                    </span>
-                  </div>
+                  ) : null}
                 </div>
 
-                {currentSubscription.user.tier === 'free' ? (
-                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                    <div className="flex items-start gap-3">
-                      <ArrowUpRight className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
-                      <div>
-                        <h4 className="font-medium text-blue-900 dark:text-blue-100">
-                          Ready to upgrade?
-                        </h4>
-                        <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                          Get more links, advanced analytics, and custom domains with our Pro plans.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                    <div className="flex items-start gap-3">
-                      <CreditCard className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
-                      <div className="flex-1">
-                        <h4 className="font-medium text-green-900 dark:text-green-100">
-                          Manage Subscription
-                        </h4>
-                        <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                          Update payment methods, view invoices, or cancel your subscription.
-                        </p>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={handleBillingPortal}
-                        className="text-green-700 border-green-300 hover:bg-green-100 dark:text-green-300 dark:border-green-700 dark:hover:bg-green-900/30"
-                      >
-                        Manage Billing
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Quick Stats */}
-          {usageSummary && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Links Created</CardTitle>
-                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {usageSummary.limits.links.current} / {formatLimit(usageSummary.limits.links.limit)}
-                  </div>
-                  <Progress value={usageSummary.limits.links.percentage} className="mt-2" />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {usageSummary.limits.links.percentage}% of monthly limit
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Analytics Retention</CardTitle>
-                  <Code className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {currentSubscription?.plan.limits.analytics_retention_days || 7} days
-                  </div>
-                  <Progress value={100} className="mt-2" />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Data retention period
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Visitor Cap</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {usageSummary.limits.visitors.current.toLocaleString()} / {formatLimit(usageSummary.limits.visitors.limit)}
-                  </div>
-                  <Progress value={usageSummary.limits.visitors.limit === null ? 100 : usageSummary.limits.visitors.percentage} className="mt-2" />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {usageSummary.limits.visitors.limit === null ? 'Unlimited' : `${usageSummary.limits.visitors.percentage}% of monthly limit`}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="plans" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {plans.map((plan) => (
-              <Card key={plan.id} className={`relative ${currentSubscription?.user.tier === plan.tier ? 'ring-2 ring-blue-500' : ''}`}>
-                {currentSubscription?.user.tier === plan.tier && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-blue-500 text-white">Current Plan</Badge>
-                  </div>
-                )}
-                
-                <CardHeader>
-                  <div className="flex items-center gap-2 mb-2">
-                    {getTierIcon(plan.tier)}
-                    <CardTitle>{plan.name}</CardTitle>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="text-3xl font-bold">
-                      {plan.priceMonthly === 0 ? 'Free' : formatPrice(plan.priceMonthly)}
-                      {plan.priceMonthly > 0 && <span className="text-lg font-normal text-gray-500">/month</span>}
-                    </div>
-                    {plan.priceYearly > 0 && (
-                      <p className="text-sm text-gray-500">
-                        {formatPrice(plan.priceYearly)}/year (save 17%)
-                      </p>
+                {/* Price Display */}
+                <div className="mb-4">
+                  <div className="flex items-baseline gap-1 font-mono">
+                    <span className="text-2xl sm:text-3xl font-bold text-[#ededed] tabular-nums">
+                      {price === 0 ? 'Free' : `${price} ETB`}
+                    </span>
+                    {price > 0 && (
+                      <span className="text-xs text-[#8c8d91]">/ month</span>
                     )}
                   </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    {[
-                      {
-                        key: 'basic_links',
-                        label: 'Basic link shortening',
-                        available: true,
-                        info: 'Create and manage shortened URLs for easy sharing.'
-                      },
-                      {
-                        key: 'analytics',
-                        label: 'Basic analytics',
-                        available: true,
-                        info: 'Track clicks and basic visitor information.'
-                      },
-                      {
-                        key: 'graphical_analytics',
-                        label: 'Graphical analytics',
-                        available: plan.tier === 'premium',
-                        info: 'Visualize your data with charts and graphs for better insights.',
-                        upsell: 'Available on the Premium plan.'
-                      },
-
-                      {
-                        key: 'hourly_breakdown',
-                        label: 'Hourly time breakdown',
-                        available: plan.tier === 'premium',
-                        info: 'Analyze visitor patterns by hour to optimize your content timing.',
-                        upsell: 'Available on the Premium plan.'
-                      },
-                      {
-                        key: 'custom_short_codes',
-                        label: 'Custom short codes',
-                        available: plan.tier === 'pro' || plan.tier === 'premium',
-                        info: 'Create memorable, branded short codes for your links.',
-                        upsell: 'Available on Pro and Premium plans.'
-                      },
-                      {
-                        key: 'advanced_retention',
-                        label: 'Extended analytics retention',
-                        available: plan.tier === 'pro' || plan.tier === 'premium',
-                        info: 'Keep your analytics data for longer periods.',
-                        upsell: 'Available on Pro and Premium plans.'
-                      },
-                      {
-                        key: 'qr_codes',
-                        label: 'QR code generation',
-                        available: plan.tier === 'pro' || plan.tier === 'premium',
-                        info: 'Generate QR codes for your shortened links for easy sharing.',
-                        upsell: 'Available on Pro and Premium plans.'
-                      }
-                    ].map((feature) => (
-                      <div key={feature.key} className="flex items-center gap-2">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center gap-2 cursor-help">
-                                {feature.available ? '✅' : '❌'}
-                                <span className={`text-sm ${feature.available ? '' : 'text-gray-400'}`}>
-                                  {feature.label}
-                                </span>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="max-w-xs">{feature.info} {feature.upsell || ''}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <Separator />
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span>Links per month:</span>
-                      <span className="font-medium">{formatLimit(plan.limits.links_per_month)}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span>Analytics retention:</span>
-                      <span className="font-medium">{plan.limits.analytics_retention_days} days</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span>Team members:</span>
-                      <span className="font-medium">{formatLimit(plan.limits.team_members)}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Button 
-                      className="w-full" 
-                      variant={currentSubscription?.user.tier === plan.tier ? "outline" : "default"}
-                      disabled={currentSubscription?.user.tier === plan.tier || isUpgrading}
-                      onClick={() => handleUpgrade(plan.id, 'monthly')}
-                    >
-                      {isUpgrading ? (
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      ) : currentSubscription?.user.tier === plan.tier ? (
-                        'Current Plan'
-                      ) : (
-                        'Monthly'
-                      )}
-                    </Button>
-                    {plan.priceYearly > 0 && (
-                      <Button 
-                        className="w-full" 
-                        variant="outline"
-                        disabled={currentSubscription?.user.tier === plan.tier || isUpgrading}
-                        onClick={() => handleUpgrade(plan.id, 'yearly')}
-                      >
-                        {isUpgrading ? (
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        ) : currentSubscription?.user.tier === plan.tier ? (
-                          'Current Plan'
-                        ) : (
-                          'Yearly (Save 17%)'
-                        )}
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="usage" className="space-y-6">
-          {usageSummary && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Detailed Usage</CardTitle>
-                <CardDescription>
-                  Your usage for {usageSummary.current.month}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Links Created</span>
-                      <span className="text-sm text-gray-500">
-                        {usageSummary.limits.links.current} / {formatLimit(usageSummary.limits.links.limit)}
-                      </span>
-                    </div>
-                    <Progress value={usageSummary.limits.links.percentage} className="h-2" />
-                    {usageSummary.limits.links.percentage >= 80 && (
-                      <p className="text-xs text-orange-600 mt-1 flex items-center gap-1">
-                        <AlertCircle className="h-3 w-3" />
-                        Approaching limit
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Analytics Events</span>
-                      <span className="text-sm text-gray-500">
-                        {usageSummary.current.analytics_events.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full">
-                      <div className="h-2 bg-green-500 rounded-full" style={{ width: '100%' }}></div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">Unlimited</p>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Visitor Cap</span>
-                      <span className="text-sm text-gray-500">
-                        Unlimited
-                      </span>
-                    </div>
-                    <Progress value={100} className="h-2" />
-                  </div>
+                  {billingCycle === 'yearly' && price > 0 && (
+                    <p className="text-[11px] font-mono text-[#8c8d91] mt-0.5">
+                      Billed annually ({plan.priceYearly} ETB/yr)
+                    </p>
+                  )}
                 </div>
 
-                <Separator />
+                {/* Feature List */}
+                <div className="space-y-2.5 pt-3 border-t border-[#27282b] mb-6">
+                  {plan.features.map((feat, idx) => (
+                    <div key={idx} className="flex items-start gap-2 text-xs">
+                      <Check className="h-3.5 w-3.5 text-[#5fc992] flex-shrink-0 mt-0.5" />
+                      <span className="text-[#8c8d91] font-sans">{feat}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-                <div className="text-center">
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                    Need more resources?
-                  </p>
-                  <Button onClick={() => handleUpgrade('pro')}>
-                    Upgrade Plan
+              {/* Action Button */}
+              <div>
+                {isCurrent ? (
+                  <Button
+                    disabled
+                    variant="outline"
+                    className="w-full min-h-[44px] border-[#27282b] bg-[#1c1d20] text-[#8c8d91] text-xs font-mono cursor-default"
+                  >
+                    Current Plan
                   </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
+                ) : (
+                  <Button
+                    onClick={() => handleUpgradeClick(plan)}
+                    className={`w-full min-h-[44px] text-xs font-mono font-medium transition-transform active:scale-[0.99] ${
+                      isPremium
+                        ? 'bg-[#ff6363] hover:bg-[#ff4d4d] text-white'
+                        : 'bg-[#ededed] hover:bg-white text-black'
+                    }`}
+                  >
+                    <span>Upgrade to {plan.name}</span>
+                    <ArrowUpRight className="ml-1.5 h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
-        <TabsContent value="history" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment History</CardTitle>
-              <CardDescription>All your subscription payments and references</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <SubscriptionHistoryTable />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {/* Chapa Phone Checkout Modal */}
+      <Dialog open={showPhoneModal} onOpenChange={setShowPhoneModal}>
+        <DialogContent className="border border-[#27282b] bg-[#141517] text-[#ededed] max-w-sm p-6 overscroll-contain">
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold text-[#ededed]">
+              Complete with Chapa
+            </DialogTitle>
+            <DialogDescription className="text-xs text-[#8c8d91] font-mono">
+              Upgrading to {selectedPlan?.name} ({billingCycle === 'monthly' ? selectedPlan?.priceMonthly : selectedPlan?.priceYearly} ETB)
+            </DialogDescription>
+          </DialogHeader>
 
-      {/* Phone Number Modal */}
-      {showPhoneModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4">Enter Phone Number</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              Please enter your phone number to continue with the payment.
-            </p>
-            <input
-              type="tel"
-              placeholder="Phone Number (e.g., +251912345678)"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-            />
-            <div className="flex gap-3 mt-6">
+          <form onSubmit={handleProceedCheckout} className="space-y-4 pt-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="chapa-phone" className="text-xs font-mono text-[#8c8d91] flex items-center gap-1.5">
+                <Phone className="h-3.5 w-3.5" />
+                <span>Mobile Number (Telebirr / CBE)</span>
+              </Label>
+              <Input
+                id="chapa-phone"
+                type="tel"
+                required
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="0912345678"
+                className="min-h-[44px] bg-[#1c1d20] border-[#27282b] text-base sm:text-sm text-[#ededed] font-mono focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+              />
+              <p className="text-[11px] text-[#8c8d91]">
+                Payment will be processed securely via Chapa Financial Technologies.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
               <Button
-                onClick={() => {
-                  setShowPhoneModal(false);
-                  setPhoneNumber('');
-                  setSelectedPlan(null);
-                }}
+                type="button"
                 variant="outline"
-                className="flex-1"
+                onClick={() => setShowPhoneModal(false)}
+                className="min-h-[44px] border-[#27282b] bg-[#141517] hover:bg-[#1c1d20] text-[#ededed] text-xs font-mono px-4"
               >
                 Cancel
               </Button>
               <Button
-                onClick={handlePayment}
-                disabled={!phoneNumber.trim() || isUpgrading}
-                className="flex-1"
+                type="submit"
+                disabled={isUpgrading}
+                className="min-h-[44px] bg-[#ff6363] hover:bg-[#ff4d4d] text-white text-xs font-mono px-5"
               >
                 {isUpgrading ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Redirecting...
+                  </>
                 ) : (
-                  'Continue to Payment'
+                  'Proceed to Payment'
                 )}
               </Button>
             </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SubscriptionHistoryTable() {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [rows, setRows] = useState<Array<{
-    txRef: string;
-    refId: string | null;
-    amount: number;
-    currency: string;
-    billingCycle: 'monthly' | 'yearly';
-    status: string;
-    createdAt: string;
-    updatedAt: string;
-    planName: string;
-    planTier: 'free' | 'pro' | 'premium';
-  }>>([]);
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await subscriptionApi.getHistory();
-        setRows(res.history);
-      } catch (e) {
-        setError('Failed to load payment history');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
-
-  if (loading) {
-    return <div className="text-sm text-muted-foreground">Loading history...</div>;
-  }
-  if (error) {
-    return <div className="text-sm text-destructive">{error}</div>;
-  }
-  if (!rows.length) {
-    return <div className="text-sm text-muted-foreground">No payments yet.</div>;
-  }
-
-  return (
-    <div className="overflow-x-auto border rounded-md">
-      <table className="w-full text-sm">
-        <thead className="bg-muted/50">
-          <tr>
-            <th className="text-left p-3">Date</th>
-            <th className="text-left p-3">Plan</th>
-            <th className="text-left p-3">Amount</th>
-            <th className="text-left p-3">Billing</th>
-            <th className="text-left p-3">Status</th>
-            <th className="text-left p-3">tx_ref</th>
-            <th className="text-left p-3">ref_id</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr key={`${r.txRef}-${r.createdAt}`} className="border-t">
-              <td className="p-3">{new Date(r.createdAt).toLocaleString()}</td>
-              <td className="p-3">{r.planName || r.planTier}</td>
-              <td className="p-3">{r.amount} {r.currency}</td>
-              <td className="p-3 capitalize">{r.billingCycle}</td>
-              <td className="p-3 uppercase">{r.status}</td>
-              <td className="p-3 font-mono text-xs break-all">{r.txRef}</td>
-              <td className="p-3 font-mono text-xs break-all">{r.refId || '-'}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

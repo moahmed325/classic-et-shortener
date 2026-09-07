@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   Dialog,
   DialogContent,
@@ -22,24 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Checkbox } from "@/components/ui/checkbox"
-import {
-  Search,
-  MoreHorizontal,
-  Edit,
-  Trash2,
-  ExternalLink,
-  BarChart3,
-  Copy,
-  Eye,
-  EyeOff,
-  Calendar,
-  RefreshCw,
-  Download,
-} from "lucide-react"
+import { Search, MoreHorizontal, Edit, Trash2, ExternalLink, Copy, Check, RefreshCw, BarChart3, LinkIcon } from "lucide-react"
 import { adminApi } from "@/lib/admin-api"
 
 interface AdminLink {
@@ -57,7 +39,6 @@ interface AdminLink {
   click_count: number
   created_at: string
   updated_at: string
-  last_clicked?: string
 }
 
 export default function LinksPage() {
@@ -66,12 +47,10 @@ export default function LinksPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [userFilter, setUserFilter] = useState<string>("all")
-  const [selectedLinks, setSelectedLinks] = useState<string[]>([])
   const [selectedLink, setSelectedLink] = useState<AdminLink | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [isAnalyticsDialogOpen, setIsAnalyticsDialogOpen] = useState(false)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchLinks()
@@ -79,7 +58,7 @@ export default function LinksPage() {
 
   useEffect(() => {
     filterLinks()
-  }, [links, searchTerm, statusFilter, userFilter])
+  }, [links, searchTerm, statusFilter])
 
   const fetchLinks = async () => {
     try {
@@ -96,505 +75,378 @@ export default function LinksPage() {
   const filterLinks = () => {
     let filtered = links
 
-    // Search filter
     if (searchTerm) {
+      const q = searchTerm.toLowerCase()
       filtered = filtered.filter(
         (link) =>
-          link.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          link.short_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          link.original_url.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          link.user_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          link.user_email.toLowerCase().includes(searchTerm.toLowerCase()),
+          link.short_code.toLowerCase().includes(q) ||
+          link.original_url.toLowerCase().includes(q) ||
+          (link.title && link.title.toLowerCase().includes(q)) ||
+          (link.user_email && link.user_email.toLowerCase().includes(q)),
       )
     }
 
-    // Status filter
-    if (statusFilter !== "all") {
-      if (statusFilter === "active") {
-        filtered = filtered.filter((link) => link.is_active)
-      } else if (statusFilter === "inactive") {
-        filtered = filtered.filter((link) => !link.is_active)
-      } else if (statusFilter === "expired") {
-        filtered = filtered.filter((link) => link.expires_at && new Date(link.expires_at) < new Date())
-      }
-    }
-
-    // User filter
-    if (userFilter !== "all") {
-      filtered = filtered.filter((link) => link.user_id === userFilter)
+    if (statusFilter === "active") {
+      filtered = filtered.filter((l) => l.is_active)
+    } else if (statusFilter === "inactive") {
+      filtered = filtered.filter((l) => !l.is_active)
     }
 
     setFilteredLinks(filtered)
   }
 
-  const handleToggleStatus = async (linkId: string) => {
-    try {
-      const link = links.find((l) => l.id === linkId)
-      if (!link) return
+  const handleCopy = (link: AdminLink) => {
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://classic.et"
+    const fullUrl = `${origin}/${link.short_code}`
+    navigator.clipboard.writeText(fullUrl)
+    setCopiedId(link.id)
+    setTimeout(() => setCopiedId(null), 2000)
+  }
 
-      await adminApi.updateLink(linkId, {
+  const handleToggleStatus = async (link: AdminLink) => {
+    try {
+      await adminApi.updateLink(link.id, {
         isActive: !link.is_active,
       })
+      await fetchLinks()
+    } catch (err) {
+      console.error("Failed to toggle link status:", err)
+    }
+  }
 
-      // Update local state
-      const updatedLinks = links.map((l) =>
-        l.id === linkId ? { ...l, is_active: !l.is_active, updated_at: new Date().toISOString() } : l,
-      )
-      setLinks(updatedLinks)
-    } catch (error) {
-      console.error("Failed to toggle link status:", error)
-      alert("Failed to update link status. Please try again.")
+  const handleUpdateLink = async () => {
+    if (!selectedLink) return
+    try {
+      await adminApi.updateLink(selectedLink.id, {
+        title: selectedLink.title,
+        isActive: selectedLink.is_active,
+      })
+      await fetchLinks()
+      setIsEditDialogOpen(false)
+      setSelectedLink(null)
+    } catch (err) {
+      console.error("Failed to update link:", err)
+      alert("Failed to update link.")
     }
   }
 
   const handleDeleteLink = async () => {
     if (!selectedLink) return
-
     try {
       await adminApi.deleteLink(selectedLink.id)
-      
-      // Update local state
-      const updatedLinks = links.filter((link) => link.id !== selectedLink.id)
-      setLinks(updatedLinks)
+      await fetchLinks()
       setIsDeleteDialogOpen(false)
       setSelectedLink(null)
-    } catch (error) {
-      console.error("Failed to delete link:", error)
-      alert("Failed to delete link. Please try again.")
+    } catch (err) {
+      console.error("Failed to delete link:", err)
+      alert("Failed to delete link.")
     }
   }
 
-  const handleBulkDelete = async () => {
-    try {
-      // Delete each selected link
-      for (const linkId of selectedLinks) {
-        await adminApi.deleteLink(linkId)
-      }
-      
-      // Update local state
-      const updatedLinks = links.filter((link) => !selectedLinks.includes(link.id))
-      setLinks(updatedLinks)
-      setSelectedLinks([])
-    } catch (error) {
-      console.error("Failed to delete links:", error)
-      alert("Failed to delete some links. Please try again.")
-    }
-  }
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedLinks(filteredLinks.map((link) => link.id))
-    } else {
-      setSelectedLinks([])
-    }
-  }
-
-  const handleSelectLink = (linkId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedLinks([...selectedLinks, linkId])
-    } else {
-      setSelectedLinks(selectedLinks.filter((id) => id !== linkId))
-    }
-  }
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-  }
-
-  const getShortUrl = (link: AdminLink) => {
-    const domain = link.custom_domain || "short.ly"
-    return `https://${domain}/${link.short_code}`
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  }
-
-  const uniqueUsers = Array.from(new Set(links.map((link) => link.user_id))).map((userId) => {
-    const link = links.find((l) => l.user_id === userId)
-    return { id: userId, name: link?.user_name || "", email: link?.user_email || "" }
-  })
-
-  const handleExport = () => {
-    const exportData = {
-      links: filteredLinks.map(link => ({
-        id: link.id,
-        title: link.title || 'Untitled',
-        shortCode: link.short_code,
-        originalUrl: link.original_url,
-        user: link.user_name,
-        userEmail: link.user_email,
-        status: link.is_active ? 'Active' : 'Inactive',
-        clicks: link.click_count,
-        createdAt: link.created_at,
-        expiresAt: link.expires_at
-      })),
-      exportDate: new Date().toISOString(),
-      totalLinks: filteredLinks.length,
-      activeLinks: filteredLinks.filter(l => l.is_active).length,
-      totalClicks: filteredLinks.reduce((sum, link) => sum + link.click_count, 0)
-    }
-
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `links-export-${new Date().toISOString().split('T')[0]}.json`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
+  const totalClicks = links.reduce((sum, l) => sum + (l.click_count || 0), 0)
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-[#27282b] pb-5">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Link Management</h2>
-          <p className="text-sm sm:text-base text-muted-foreground">Manage all shortened links across users</p>
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#ededed]">Link Management</h1>
+          <p className="text-xs sm:text-sm text-[#8c8d91] mt-0.5">Audit short codes, redirect destinations, and manage link lifecycles.</p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2">
-          {selectedLinks.length > 0 && (
-            <Button variant="destructive" onClick={handleBulkDelete} className="w-full sm:w-auto">
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete Selected ({selectedLinks.length})
-            </Button>
-          )}
-          <Button variant="outline" onClick={handleExport} className="w-full sm:w-auto">
-            <Download className="mr-2 h-4 w-4" />
-            Export
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={fetchLinks}
+            disabled={isLoading}
+            className="bg-[#141517] border-[#27282b] hover:bg-[#1c1d20] text-[#ededed] text-xs font-mono h-10 min-h-[44px] min-w-[44px] px-3"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isLoading ? "animate-spin" : ""}`} />
+            Refresh
           </Button>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Total Links</CardTitle>
-            <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg sm:text-2xl font-bold">{links.length}</div>
-            <p className="text-xs text-muted-foreground">All shortened links</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Active Links</CardTitle>
-            <Eye className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg sm:text-2xl font-bold">{links.filter((l) => l.is_active).length}</div>
-            <p className="text-xs text-muted-foreground">Currently active</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Total Clicks</CardTitle>
-            <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg sm:text-2xl font-bold">{links.reduce((sum, link) => sum + link.click_count, 0)}</div>
-            <p className="text-xs text-muted-foreground">All time clicks</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Unique Users</CardTitle>
-            <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg sm:text-2xl font-bold">{uniqueUsers.length}</div>
-            <p className="text-xs text-muted-foreground">Link creators</p>
-          </CardContent>
-        </Card>
+      {/* Metrics */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-[#141517] border border-[#27282b] rounded-lg p-3.5">
+          <div className="text-xs font-mono text-[#8c8d91]">Total Links</div>
+          <div className="text-xl sm:text-2xl font-semibold font-mono tabular-nums text-[#ededed] mt-1">
+            {links.length}
+          </div>
+        </div>
+        <div className="bg-[#141517] border border-[#27282b] rounded-lg p-3.5">
+          <div className="text-xs font-mono text-[#8c8d91]">Active Links</div>
+          <div className="text-xl sm:text-2xl font-semibold font-mono tabular-nums text-[#5fc992] mt-1">
+            {links.filter((l) => l.is_active).length}
+          </div>
+        </div>
+        <div className="bg-[#141517] border border-[#27282b] rounded-lg p-3.5">
+          <div className="text-xs font-mono text-[#8c8d91]">Inactive / Expired</div>
+          <div className="text-xl sm:text-2xl font-semibold font-mono tabular-nums text-[#f59e0b] mt-1">
+            {links.filter((l) => !l.is_active).length}
+          </div>
+        </div>
+        <div className="bg-[#141517] border border-[#27282b] rounded-lg p-3.5">
+          <div className="text-xs font-mono text-[#8c8d91]">Aggregated Clicks</div>
+          <div className="text-xl sm:text-2xl font-semibold font-mono tabular-nums text-[#56c2ff] mt-1">
+            {totalClicks.toLocaleString()}
+          </div>
+        </div>
       </div>
 
-      {/* Filters Section */}
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-lg sm:text-xl">Filters</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search links, titles, or users..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8"
-                  />
-                </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={userFilter} onValueChange={setUserFilter}>
-                  <SelectTrigger className="w-full sm:w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Users</SelectItem>
-                    {uniqueUsers.map((user) => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {user.name || user.email}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Search & Filter Bar */}
+      <div className="bg-[#141517] border border-[#27282b] rounded-lg p-3.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="relative flex-1 min-w-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8c8d91]" />
+          <Input
+            placeholder="Search by slug, title, destination URL, or user..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 bg-[#1c1d20] border-[#27282b] text-base sm:text-sm text-[#ededed] focus:border-[#56c2ff] min-h-[44px]"
+          />
+        </div>
+        <div className="flex items-center gap-1 bg-[#1c1d20] p-1 rounded-md border border-[#27282b]">
+          {(["all", "active", "inactive"] as const).map((st) => (
+            <button
+              key={st}
+              onClick={() => setStatusFilter(st)}
+              className={`px-3 py-1 text-xs font-mono uppercase rounded transition-colors min-h-[32px] ${
+                statusFilter === st
+                  ? "bg-[#27282b] text-[#ededed] font-medium"
+                  : "text-[#8c8d91] hover:text-[#ededed]"
+              }`}
+            >
+              {st}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Links List Section */}
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-lg sm:text-xl">Links ({filteredLinks.length})</CardTitle>
-            <CardDescription className="text-sm">Manage and monitor all shortened links</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <RefreshCw className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 animate-spin" />
-                <p className="text-sm">Loading links...</p>
-              </div>
-            ) : filteredLinks.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <ExternalLink className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2" />
-                <p className="text-sm">No links found.</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {filteredLinks.map((link) => (
-                  <div key={link.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium flex-shrink-0">
-                        {link.title?.charAt(0).toUpperCase() || "L"}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="font-medium truncate">{link.title || "Untitled Link"}</div>
-                        <div className="text-sm text-muted-foreground truncate">{getShortUrl(link)}</div>
-                      </div>
-                    </div>
-                    <div className="text-right ml-2">
+      {/* Horizontal Scroll Data Table */}
+      <div className="bg-[#141517] border border-[#27282b] rounded-lg overflow-hidden">
+        <div className="px-4 py-3 border-b border-[#27282b] flex items-center justify-between text-xs font-mono text-[#8c8d91]">
+          <span>Displaying {filteredLinks.length} links</span>
+          <span>Sticky Column: Short Slug</span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm border-collapse min-w-[780px]">
+            <thead>
+              <tr className="border-b border-[#27282b] bg-[#0c0d0e] text-[11px] font-mono uppercase text-[#8c8d91]">
+                <th className="sticky left-0 bg-[#0c0d0e] z-10 px-4 py-3 font-medium min-w-[180px]">
+                  Slug / Shortcode
+                </th>
+                <th className="px-4 py-3 font-medium min-w-[240px]">Destination URL</th>
+                <th className="px-4 py-3 font-medium">Owner</th>
+                <th className="px-4 py-3 font-medium text-right">Clicks</th>
+                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium">Created</th>
+                <th className="px-4 py-3 font-medium text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#27282b]">
+              {isLoading ? (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-xs font-mono text-[#8c8d91]">
+                    <RefreshCw className="w-4 h-4 mx-auto mb-2 animate-spin text-[#56c2ff]" />
+                    Loading links...
+                  </td>
+                </tr>
+              ) : filteredLinks.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-xs font-mono text-[#8c8d91]">
+                    No links found matching criteria.
+                  </td>
+                </tr>
+              ) : (
+                filteredLinks.map((link) => (
+                  <tr key={link.id} className="hover:bg-[#1c1d20]/50 transition-colors">
+                    {/* Sticky Left Column: Shortcode */}
+                    <td className="sticky left-0 bg-[#141517] z-10 px-4 py-3.5 whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        <Badge variant={link.is_active ? "default" : "secondary"}>
-                          {link.is_active ? "Active" : "Inactive"}
-                        </Badge>
-                        <div className="text-sm font-medium">{link.click_count} clicks</div>
+                        <span className="font-mono text-xs font-medium text-[#ededed] bg-[#1c1d20] px-2 py-1 rounded border border-[#27282b]">
+                          /{link.short_code}
+                        </span>
+                        <button
+                          onClick={() => handleCopy(link)}
+                          className="p-1 rounded hover:bg-[#1c1d20] text-[#8c8d91] hover:text-[#ededed] transition-colors min-h-[32px] min-w-[32px] inline-flex items-center justify-center"
+                          title="Copy short link"
+                        >
+                          {copiedId === link.id ? (
+                            <Check className="w-3.5 h-3.5 text-[#5fc992]" />
+                          ) : (
+                            <Copy className="w-3.5 h-3.5" />
+                          )}
+                        </button>
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1">{link.user_name}</div>
+                    </td>
+
+                    {/* Destination */}
+                    <td className="px-4 py-3.5">
+                      <div className="max-w-[260px] min-w-0">
+                        {link.title && (
+                          <div className="text-xs font-medium text-[#ededed] truncate">{link.title}</div>
+                        )}
+                        <a
+                          href={link.original_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[11px] font-mono text-[#8c8d91] hover:text-[#56c2ff] truncate flex items-center gap-1 block"
+                        >
+                          <span className="truncate">{link.original_url}</span>
+                          <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                        </a>
+                      </div>
+                    </td>
+
+                    {/* Owner */}
+                    <td className="px-4 py-3.5 whitespace-nowrap">
+                      <div className="text-xs text-[#ededed]">{link.user_name || "User"}</div>
+                      <div className="text-[10px] font-mono text-[#8c8d91]">{link.user_email}</div>
+                    </td>
+
+                    {/* Clicks */}
+                    <td className="px-4 py-3.5 whitespace-nowrap text-right font-mono tabular-nums text-xs font-semibold text-[#ededed]">
+                      {link.click_count?.toLocaleString() || 0}
+                    </td>
+
+                    {/* Status with Toggle Button (Min 44px touch target) */}
+                    <td className="px-4 py-3.5 whitespace-nowrap">
+                      <button
+                        onClick={() => handleToggleStatus(link)}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-mono uppercase min-h-[36px] transition-colors ${
+                          link.is_active
+                            ? "bg-[#5fc992]/10 text-[#5fc992] border border-[#5fc992]/20 hover:bg-[#5fc992]/20"
+                            : "bg-[#27282b] text-[#8c8d91] border border-[#27282b] hover:text-[#ededed]"
+                        }`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${link.is_active ? "bg-[#5fc992]" : "bg-[#8c8d91]"}`} />
+                        {link.is_active ? "Active" : "Inactive"}
+                      </button>
+                    </td>
+
+                    {/* Created */}
+                    <td className="px-4 py-3.5 whitespace-nowrap text-xs font-mono text-[#8c8d91]">
+                      {link.created_at ? new Date(link.created_at).toLocaleDateString() : "—"}
+                    </td>
+
+                    {/* Actions */}
+                    <td className="px-4 py-3.5 text-right whitespace-nowrap">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
+                          <button className="p-2 rounded-md hover:bg-[#1c1d20] text-[#8c8d91] hover:text-[#ededed] transition-colors min-h-[44px] min-w-[44px] inline-flex items-center justify-center">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => copyToClipboard(getShortUrl(link))}>
-                            <Copy className="mr-2 h-4 w-4" />
-                            Copy Link
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => window.open(getShortUrl(link), "_blank")}>
-                            <ExternalLink className="mr-2 h-4 w-4" />
-                            Open Link
-                          </DropdownMenuItem>
+                        <DropdownMenuContent align="end" className="bg-[#141517] border-[#27282b] text-[#ededed]">
+                          <DropdownMenuLabel className="text-xs text-[#8c8d91]">Link Options</DropdownMenuLabel>
                           <DropdownMenuItem
                             onClick={() => {
                               setSelectedLink(link)
                               setIsEditDialogOpen(true)
                             }}
+                            className="text-xs min-h-[40px] cursor-pointer hover:bg-[#1c1d20]"
                           >
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit Link
+                            <Edit className="w-3.5 h-3.5 mr-2 text-[#56c2ff]" />
+                            Edit Destination
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
+                          <DropdownMenuSeparator className="bg-[#27282b]" />
                           <DropdownMenuItem
-                            className="text-destructive"
                             onClick={() => {
                               setSelectedLink(link)
                               setIsDeleteDialogOpen(true)
                             }}
+                            className="text-xs text-[#ff6363] min-h-[40px] cursor-pointer hover:bg-[#1c1d20]"
                           >
-                            <Trash2 className="mr-2 h-4 w-4" />
+                            <Trash2 className="w-3.5 h-3.5 mr-2" />
                             Delete Link
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Edit Link Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit Link</DialogTitle>
-            <DialogDescription>Update link information and settings</DialogDescription>
-          </DialogHeader>
-          {selectedLink && (
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="edit-title">Title</Label>
+      {selectedLink && (
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="bg-[#141517] border-[#27282b] text-[#ededed] max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-base font-semibold">Edit Link: /{selectedLink.short_code}</DialogTitle>
+              <DialogDescription className="text-xs text-[#8c8d91]">Modify destination URL and active redirect status.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3.5 py-2">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-[#8c8d91]">Title (Optional)</Label>
                 <Input
-                  id="edit-title"
                   value={selectedLink.title || ""}
                   onChange={(e) => setSelectedLink({ ...selectedLink, title: e.target.value })}
-                  placeholder="Link title"
+                  placeholder="Campaign Title"
+                  className="bg-[#1c1d20] border-[#27282b] text-base sm:text-sm text-[#ededed] min-h-[44px]"
                 />
               </div>
-              <div>
-                <Label htmlFor="edit-description">Description</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-[#8c8d91]">Destination URL</Label>
                 <Input
-                  id="edit-description"
-                  value={selectedLink.description || ""}
-                  onChange={(e) => setSelectedLink({ ...selectedLink, description: e.target.value })}
-                  placeholder="Link description"
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-original-url">Original URL</Label>
-                <Input
-                  id="edit-original-url"
                   value={selectedLink.original_url}
                   onChange={(e) => setSelectedLink({ ...selectedLink, original_url: e.target.value })}
+                  placeholder="https://example.com/target"
+                  className="bg-[#1c1d20] border-[#27282b] text-base sm:text-sm text-[#ededed] min-h-[44px]"
                 />
               </div>
-              <div>
-                <Label htmlFor="edit-short-code">Short Code</Label>
-                <Input
-                  id="edit-short-code"
-                  value={selectedLink.short_code}
-                  onChange={(e) => setSelectedLink({ ...selectedLink, short_code: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-expires-at">Expiration Date (Optional)</Label>
-                <Input
-                  id="edit-expires-at"
-                  type="datetime-local"
-                  value={selectedLink.expires_at ? selectedLink.expires_at.slice(0, 16) : ""}
-                  onChange={(e) =>
-                    setSelectedLink({
-                      ...selectedLink,
-                      expires_at: e.target.value ? e.target.value + ":00Z" : undefined,
-                    })
-                  }
-                />
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedLink({ ...selectedLink, is_active: !selectedLink.is_active })}
+                  className={`px-3 py-2 rounded text-xs font-mono min-h-[44px] flex items-center gap-2 border ${
+                    selectedLink.is_active
+                      ? "bg-[#5fc992]/10 text-[#5fc992] border-[#5fc992]/30"
+                      : "bg-[#1c1d20] text-[#8c8d91] border-[#27282b]"
+                  }`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${selectedLink.is_active ? "bg-[#5fc992]" : "bg-[#8c8d91]"}`} />
+                  {selectedLink.is_active ? "Active Redirect" : "Disabled Redirect"}
+                </button>
               </div>
             </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={() => setIsEditDialogOpen(false)}>Save Changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="bg-[#1c1d20] border-[#27282b] text-[#ededed] min-h-[44px]">
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateLink} className="bg-[#56c2ff] hover:bg-[#56c2ff]/90 text-black font-medium min-h-[44px]">
+                Save Changes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Delete Link Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Link</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this link? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          {selectedLink && (
-            <Alert>
-              <AlertDescription>
-                <strong>{selectedLink.title || "Untitled Link"}</strong> ({getShortUrl(selectedLink)}) and all
-                associated analytics data will be permanently deleted.
-              </AlertDescription>
-            </Alert>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteLink}>
-              Delete Link
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Analytics Dialog */}
-      <Dialog open={isAnalyticsDialogOpen} onOpenChange={setIsAnalyticsDialogOpen}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Link Analytics</DialogTitle>
-            <DialogDescription>Detailed analytics for {selectedLink?.title || "this link"}</DialogDescription>
-          </DialogHeader>
-          {selectedLink && (
-            <div className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-3">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">Total Clicks</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{selectedLink.click_count}</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">Created</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-sm">{formatDate(selectedLink.created_at)}</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">Last Clicked</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-sm">
-                      {selectedLink.last_clicked ? formatDate(selectedLink.last_clicked) : "Never"}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-              <div className="text-center py-8 text-muted-foreground">
-                <BarChart3 className="mx-auto h-12 w-12 mb-2" />
-                <p>Detailed analytics charts would be displayed here</p>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button onClick={() => setIsAnalyticsDialogOpen(false)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {selectedLink && (
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogContent className="bg-[#141517] border-[#27282b] text-[#ededed] max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="text-base font-semibold text-[#ff6363]">Delete Link /{selectedLink.short_code}?</DialogTitle>
+              <DialogDescription className="text-xs text-[#8c8d91]">
+                This will delete the shortcode and prevent any further redirection. Historical click records will be unlinked.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2 mt-4">
+              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} className="bg-[#1c1d20] border-[#27282b] text-[#ededed] min-h-[44px]">
+                Cancel
+              </Button>
+              <Button onClick={handleDeleteLink} className="bg-[#ff6363] hover:bg-[#ff6363]/90 text-white min-h-[44px]">
+                Confirm Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }

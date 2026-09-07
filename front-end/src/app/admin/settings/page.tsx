@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { adminApi } from "@/lib/admin-api"
-import { AdminHeader } from "@/components/admin-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -146,14 +145,9 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <>
-        <AdminHeader title="Settings" subtitle="Configure system settings and preferences" />
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="flex items-center justify-center h-64">
-            <RefreshCw className="h-8 w-8 animate-spin" />
-          </div>
-        </main>
-      </>
+      <div className="flex items-center justify-center h-64">
+        <RefreshCw className="h-6 w-6 animate-spin text-[#56c2ff]" />
+      </div>
     )
   }
 
@@ -187,13 +181,13 @@ export default function SettingsPage() {
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`w-full flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                      className={`w-full flex items-center px-4 py-2.5 text-xs font-mono uppercase rounded-md transition-colors min-h-[44px] ${
                         activeTab === tab.id
-                          ? "bg-purple-100 text-purple-900 dark:bg-purple-900 dark:text-purple-100"
-                          : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                          ? "bg-[#1c1d20] text-[#ededed] border border-[#27282b] font-medium"
+                          : "text-[#8c8d91] hover:bg-[#1c1d20]/50 hover:text-[#ededed]"
                       }`}
                     >
-                      <Icon className="h-4 w-4 mr-3" />
+                      <Icon className="h-4 w-4 mr-3 text-[#56c2ff]" />
                       {tab.name}
                     </button>
                   )

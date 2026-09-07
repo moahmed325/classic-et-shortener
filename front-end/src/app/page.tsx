@@ -102,7 +102,7 @@ export default function HomePage() {
   return (
     <div className="min-h-[100dvh] bg-canvas text-[#ededed] flex flex-col selection:bg-[#ff6363]/20 selection:text-white">
       {/* Tactical Top Navbar */}
-      <header className="sticky top-0 z-40 w-full border-b border-[#27282b] bg-[#0c0d0e]/95 backdrop-blur-none">
+      <header className="sticky top-0 z-40 w-full border-b border-[#27282b] bg-[#0c0d0e]">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Link href="/" className="flex items-center space-x-2 text-sm font-semibold tracking-tight text-[#ededed]">

@@ -2,15 +2,25 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { adminApi } from "@/lib/admin-api"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Download, MoreHorizontal, RefreshCw, Search, XCircle, CheckCircle, Clock, AlertTriangle } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Download, MoreHorizontal, RefreshCw, Search, XCircle, CheckCircle, Clock, AlertTriangle, ShieldCheck } from "lucide-react"
 
 interface Txn {
   id: string
@@ -36,6 +46,8 @@ export default function PaymentsPage() {
   const [verifyRef, setVerifyRef] = useState("")
   const [verifyResult, setVerifyResult] = useState<any | null>(null)
   const [verifying, setVerifying] = useState(false)
+  const [selectedTxn, setSelectedTxn] = useState<Txn | null>(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
 
   useEffect(() => {
     load()
@@ -45,7 +57,9 @@ export default function PaymentsPage() {
     setLoading(true)
     try {
       const res = await adminApi.getTransactions()
-      setTransactions(res.transactions as any)
+      setTransactions((res.transactions as any) || [])
+    } catch (err) {
+      console.error("Failed to fetch transactions:", err)
     } finally {
       setLoading(false)
     }
@@ -55,7 +69,8 @@ export default function PaymentsPage() {
     return transactions.filter((t) => {
       const matchesStatus = statusFilter === "all" || t.status === statusFilter
       const q = search.toLowerCase()
-      const matchesSearch = !q ||
+      const matchesSearch =
+        !q ||
         t.user_name?.toLowerCase().includes(q) ||
         t.user_email?.toLowerCase().includes(q) ||
         t.tx_ref?.toLowerCase().includes(q) ||
@@ -65,278 +80,380 @@ export default function PaymentsPage() {
   }, [transactions, statusFilter, search])
 
   const exportCsv = () => {
-    const header = ["tx_ref","user_name","user_email","plan_name","amount","currency","status","date"]
-    const rows = filtered.map(t => [t.tx_ref, t.user_name, t.user_email, t.plan_name, String(t.amount), t.currency, t.status, t.created_at])
-    const csv = [header, ...rows].map(r => r.map(v => `"${(v||"").toString().replace(/"/g,'""')}` + '"').join(",")).join("\n")
+    const header = ["tx_ref", "user_name", "user_email", "plan_name", "amount", "currency", "status", "date"]
+    const rows = filtered.map((t) => [
+      t.tx_ref,
+      t.user_name,
+      t.user_email,
+      t.plan_name,
+      String(t.amount),
+      t.currency,
+      t.status,
+      t.created_at,
+    ])
+    const csv = [header, ...rows].map((r) => r.map((v) => `"${(v || "").toString().replace(/"/g, '""')}"`).join(",")).join("\n")
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `transactions.csv`
+    a.download = `classic-et-transactions-${new Date().toISOString().split("T")[0]}.csv`
     a.click()
     URL.revokeObjectURL(url)
   }
 
   const refund = async (id: string) => {
+    if (!confirm("Are you sure you want to mark this transaction as refunded?")) return
     try {
       await adminApi.refundTransaction(id)
       await load()
-    } catch (e) {}
+    } catch (err) {
+      console.error("Refund failed:", err)
+      alert("Failed to refund transaction.")
+    }
   }
 
-  const verify = async (txRef: string) => {
-    try {
-      if (!txRef) {
-        setVerifyResult({ error: 'This transaction has no tx_ref to verify.' })
-        return
-      }
-      await adminApi.verifyTransaction(txRef)
-      await load()
-    } catch (e) {}
-  }
-
-  const handleManualVerify = async () => {
-    if (!verifyRef) return
+  const handleVerify = async () => {
+    if (!verifyRef.trim()) return
     setVerifying(true)
     setVerifyResult(null)
     try {
-      const res = await adminApi.verifyTransaction(verifyRef)
+      const res = await adminApi.verifyTransaction(verifyRef.trim())
       setVerifyResult(res)
-      await load()
-    } catch (e: any) {
-      console.error('Verification error:', e)
-      let errorMessage = "Verification failed"
-      if (e?.details?.error) {
-        errorMessage = e.details.error
-      } else if (e?.details?.message) {
-        errorMessage = e.details.message
-      } else if (e?.message) {
-        errorMessage = e.message
-      }
-      setVerifyResult({ 
-        error: errorMessage,
-        details: e?.details || e
-      })
+    } catch (err: any) {
+      setVerifyResult({ error: err.message || "Failed to verify payment with Chapa" })
     } finally {
       setVerifying(false)
     }
   }
 
-  const statusBadge = (s: string) => {
-    const cls = s === 'success' ? 'bg-green-100 text-green-800' : s === 'pending' ? 'bg-yellow-100 text-yellow-800' : s === 'failed' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
-    const Icon = s === 'success' ? CheckCircle : s === 'pending' ? Clock : s === 'failed' ? XCircle : AlertTriangle
-    return <Badge className={cls}><span className="flex items-center gap-1"><Icon className="h-3 w-3" />{s.toUpperCase()}</span></Badge>
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "success":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-mono uppercase bg-[#5fc992]/10 text-[#5fc992] border border-[#5fc992]/20">
+            <CheckCircle className="w-3 h-3" />
+            Success
+          </span>
+        )
+      case "pending":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-mono uppercase bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20">
+            <Clock className="w-3 h-3" />
+            Pending
+          </span>
+        )
+      case "failed":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-mono uppercase bg-[#ff6363]/10 text-[#ff6363] border border-[#ff6363]/20">
+            <XCircle className="w-3 h-3" />
+            Failed
+          </span>
+        )
+      default:
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-mono uppercase bg-[#1c1d20] text-[#8c8d91] border border-[#27282b]">
+            <AlertTriangle className="w-3 h-3" />
+            {status}
+          </span>
+        )
+    }
   }
 
-  const formatCurrency = (amount: number, currency: string) => `${amount.toLocaleString()} ${currency}`
-
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-[#27282b] pb-5">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Payments</h2>
-          <p className="text-sm sm:text-base text-muted-foreground">View and manage payment transactions</p>
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#ededed]">Payments & Ledger</h1>
+          <p className="text-xs sm:text-sm text-[#8c8d91] mt-0.5">Chapa transaction logs, payment verifications, and settlement accounting.</p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Button variant="outline" onClick={exportCsv} className="w-full sm:w-auto">
-            <Download className="h-4 w-4 mr-2" />
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={exportCsv}
+            className="bg-[#141517] border-[#27282b] hover:bg-[#1c1d20] text-[#ededed] text-xs font-mono h-10 min-h-[44px] px-3"
+          >
+            <Download className="w-3.5 h-3.5 mr-1.5" />
             Export CSV
           </Button>
-          <Button variant="outline" onClick={load} className="w-full sm:w-auto">
-            <RefreshCw className="h-4 w-4 mr-2" />
+          <Button
+            variant="outline"
+            onClick={load}
+            disabled={loading}
+            className="bg-[#141517] border-[#27282b] hover:bg-[#1c1d20] text-[#ededed] text-xs font-mono h-10 min-h-[44px] min-w-[44px] px-3"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
             Refresh
           </Button>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Total Transactions</CardTitle>
-            <Download className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg sm:text-2xl font-bold">{transactions.length}</div>
-            <p className="text-xs text-muted-foreground">All transactions</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Successful</CardTitle>
-            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg sm:text-2xl font-bold">{transactions.filter(t => t.status === 'success').length}</div>
-            <p className="text-xs text-muted-foreground">Completed payments</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Pending</CardTitle>
-            <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg sm:text-2xl font-bold">{transactions.filter(t => t.status === 'pending').length}</div>
-            <p className="text-xs text-muted-foreground">Awaiting confirmation</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Failed</CardTitle>
-            <XCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg sm:text-2xl font-bold">{transactions.filter(t => t.status === 'failed').length}</div>
-            <p className="text-xs text-muted-foreground">Failed transactions</p>
-          </CardContent>
-        </Card>
+      {/* Metrics */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-[#141517] border border-[#27282b] rounded-lg p-3.5">
+          <div className="text-xs font-mono text-[#8c8d91]">Total Transactions</div>
+          <div className="text-xl sm:text-2xl font-semibold font-mono tabular-nums text-[#ededed] mt-1">
+            {transactions.length}
+          </div>
+        </div>
+        <div className="bg-[#141517] border border-[#27282b] rounded-lg p-3.5">
+          <div className="text-xs font-mono text-[#8c8d91]">Successful Settlements</div>
+          <div className="text-xl sm:text-2xl font-semibold font-mono tabular-nums text-[#5fc992] mt-1">
+            {transactions.filter((t) => t.status === "success").length}
+          </div>
+        </div>
+        <div className="bg-[#141517] border border-[#27282b] rounded-lg p-3.5">
+          <div className="text-xs font-mono text-[#8c8d91]">Pending Confirmation</div>
+          <div className="text-xl sm:text-2xl font-semibold font-mono tabular-nums text-[#f59e0b] mt-1">
+            {transactions.filter((t) => t.status === "pending").length}
+          </div>
+        </div>
+        <div className="bg-[#141517] border border-[#27282b] rounded-lg p-3.5">
+          <div className="text-xs font-mono text-[#8c8d91]">Failed / Expired</div>
+          <div className="text-xl sm:text-2xl font-semibold font-mono tabular-nums text-[#ff6363] mt-1">
+            {transactions.filter((t) => t.status === "failed" || t.status === "cancelled").length}
+          </div>
+        </div>
       </div>
 
-      <Tabs defaultValue="list" className="space-y-4 sm:space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="list" className="text-xs sm:text-sm">Transactions</TabsTrigger>
-          <TabsTrigger value="verify" className="text-xs sm:text-sm">Verify Payment</TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue="list" className="space-y-4">
+        <div className="border-b border-[#27282b]">
+          <TabsList className="bg-transparent p-0 gap-4 h-11">
+            <TabsTrigger
+              value="list"
+              className="bg-transparent rounded-none border-b-2 border-transparent data-[state=active]:border-[#ff6363] data-[state=active]:bg-transparent text-xs font-mono uppercase text-[#8c8d91] data-[state=active]:text-[#ededed] px-2 py-2 min-h-[44px]"
+            >
+              Transactions Ledger
+            </TabsTrigger>
+            <TabsTrigger
+              value="verify"
+              className="bg-transparent rounded-none border-b-2 border-transparent data-[state=active]:border-[#ff6363] data-[state=active]:bg-transparent text-xs font-mono uppercase text-[#8c8d91] data-[state=active]:text-[#ededed] px-2 py-2 min-h-[44px]"
+            >
+              Verify Tx Ref
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-        <TabsContent value="list" className="space-y-4 sm:space-y-6">
-          <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-            <Card className="lg:col-span-2">
-            <CardHeader>
-                <CardTitle className="text-lg sm:text-xl">Filters</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="space-y-4">
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="relative flex-1">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input className="pl-8" placeholder="Search by user, email, tx ref, plan..." value={search} onChange={(e)=>setSearch(e.target.value)} />
-                </div>
-                <div>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="w-full sm:w-[160px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="success">Success</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="failed">Failed</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                    </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Tab 1: Ledger */}
+        <TabsContent value="list" className="space-y-4">
+          {/* Search & Status Filters */}
+          <div className="bg-[#141517] border border-[#27282b] rounded-lg p-3.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="relative flex-1 min-w-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8c8d91]" />
+              <Input
+                placeholder="Search by user, email, tx_ref, plan..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 bg-[#1c1d20] border-[#27282b] text-base sm:text-sm text-[#ededed] focus:border-[#56c2ff] min-h-[44px]"
+              />
+            </div>
+            <div className="flex items-center gap-1 bg-[#1c1d20] p-1 rounded-md border border-[#27282b]">
+              {(["all", "success", "pending", "failed", "cancelled"] as const).map((st) => (
+                <button
+                  key={st}
+                  onClick={() => setStatusFilter(st)}
+                  className={`px-2.5 py-1 text-xs font-mono uppercase rounded transition-colors min-h-[32px] ${
+                    statusFilter === st
+                      ? "bg-[#27282b] text-[#ededed] font-medium"
+                      : "text-[#8c8d91] hover:text-[#ededed]"
+                  }`}
+                >
+                  {st}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-            <Card className="lg:col-span-2">
-            <CardHeader>
-                <CardTitle className="text-lg sm:text-xl">Transactions ({filtered.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <RefreshCw className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 animate-spin" />
-                    <p className="text-sm">Loading transactions...</p>
-                  </div>
-              ) : filtered.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Search className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2" />
-                    <p className="text-sm">No transactions found.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {filtered.map((transaction) => (
-                      <div key={transaction.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium flex-shrink-0">
-                            {transaction.user_name.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="font-medium truncate">{transaction.user_name}</div>
-                            <div className="text-sm text-muted-foreground truncate">{transaction.user_email}</div>
-                          </div>
-                        </div>
-                        <div className="text-right ml-2">
-                          <div className="flex items-center gap-2">
-                            {statusBadge(transaction.status)}
-                            <div className="text-sm font-medium">{formatCurrency(transaction.amount, transaction.currency)}</div>
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">{transaction.tx_ref}</div>
+          {/* Table Container */}
+          <div className="bg-[#141517] border border-[#27282b] rounded-lg overflow-hidden">
+            <div className="px-4 py-3 border-b border-[#27282b] flex items-center justify-between text-xs font-mono text-[#8c8d91]">
+              <span>Showing {filtered.length} transactions</span>
+              <span>Sticky Column: Reference (tx_ref)</span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm border-collapse min-w-[780px]">
+                <thead>
+                  <tr className="border-b border-[#27282b] bg-[#0c0d0e] text-[11px] font-mono uppercase text-[#8c8d91]">
+                    <th className="sticky left-0 bg-[#0c0d0e] z-10 px-4 py-3 font-medium min-w-[200px]">
+                      Tx Ref
+                    </th>
+                    <th className="px-4 py-3 font-medium">Customer</th>
+                    <th className="px-4 py-3 font-medium">Tier / Plan</th>
+                    <th className="px-4 py-3 font-medium text-right">Amount (ETB)</th>
+                    <th className="px-4 py-3 font-medium">Status</th>
+                    <th className="px-4 py-3 font-medium">Date</th>
+                    <th className="px-4 py-3 font-medium text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#27282b]">
+                  {loading ? (
+                    <tr>
+                      <td colSpan={7} className="p-8 text-center text-xs font-mono text-[#8c8d91]">
+                        <RefreshCw className="w-4 h-4 mx-auto mb-2 animate-spin text-[#56c2ff]" />
+                        Loading transaction ledger...
+                      </td>
+                    </tr>
+                  ) : filtered.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="p-8 text-center text-xs font-mono text-[#8c8d91]">
+                        No transactions found.
+                      </td>
+                    </tr>
+                  ) : (
+                    filtered.map((t) => (
+                      <tr key={t.id} className="hover:bg-[#1c1d20]/50 transition-colors">
+                        {/* Sticky Column: tx_ref */}
+                        <td className="sticky left-0 bg-[#141517] z-10 px-4 py-3.5 whitespace-nowrap">
+                          <span className="font-mono text-xs text-[#ededed] bg-[#1c1d20] px-2 py-1 rounded border border-[#27282b]">
+                            {t.tx_ref}
+                          </span>
+                        </td>
+
+                        {/* Customer */}
+                        <td className="px-4 py-3.5 whitespace-nowrap">
+                          <div className="text-xs text-[#ededed] font-medium">{t.user_name || "Anonymous"}</div>
+                          <div className="text-[11px] font-mono text-[#8c8d91]">{t.user_email}</div>
+                        </td>
+
+                        {/* Plan */}
+                        <td className="px-4 py-3.5 whitespace-nowrap">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono uppercase bg-[#1c1d20] text-[#ededed] border border-[#27282b]">
+                            {t.plan_name} ({t.billing_cycle || "monthly"})
+                          </span>
+                        </td>
+
+                        {/* Amount */}
+                        <td className="px-4 py-3.5 whitespace-nowrap text-right font-mono tabular-nums text-xs font-semibold text-[#ededed]">
+                          {t.amount?.toLocaleString()} {t.currency || "ETB"}
+                        </td>
+
+                        {/* Status */}
+                        <td className="px-4 py-3.5 whitespace-nowrap">
+                          {getStatusBadge(t.status)}
+                        </td>
+
+                        {/* Date */}
+                        <td className="px-4 py-3.5 whitespace-nowrap text-xs font-mono text-[#8c8d91]">
+                          {t.created_at ? new Date(t.created_at).toLocaleDateString() : "—"}
+                        </td>
+
+                        {/* Actions */}
+                        <td className="px-4 py-3.5 text-right whitespace-nowrap">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
+                              <button className="p-2 rounded-md hover:bg-[#1c1d20] text-[#8c8d91] hover:text-[#ededed] transition-colors min-h-[44px] min-w-[44px] inline-flex items-center justify-center">
+                                <MoreHorizontal className="w-4 h-4" />
+                              </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem>View Details</DropdownMenuItem>
-                              {transaction.status === "success" && (
-                                <DropdownMenuItem
-                                  onClick={() => refund(transaction.id)}
-                                  className="text-destructive"
-                                >
-                                  Issue Refund
+                            <DropdownMenuContent align="end" className="bg-[#141517] border-[#27282b] text-[#ededed]">
+                              <DropdownMenuLabel className="text-xs text-[#8c8d91]">Txn Options</DropdownMenuLabel>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedTxn(t)
+                                  setIsDetailOpen(true)
+                                }}
+                                className="text-xs min-h-[40px] cursor-pointer hover:bg-[#1c1d20]"
+                              >
+                                View Details
                               </DropdownMenuItem>
+                              {t.status === "success" && (
+                                <DropdownMenuItem
+                                  onClick={() => refund(t.id)}
+                                  className="text-xs text-[#ff6363] min-h-[40px] cursor-pointer hover:bg-[#1c1d20]"
+                                >
+                                  Mark Refunded
+                                </DropdownMenuItem>
                               )}
                             </DropdownMenuContent>
                           </DropdownMenu>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-              )}
-            </CardContent>
-          </Card>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </TabsContent>
 
+        {/* Tab 2: Verify Tool */}
         <TabsContent value="verify">
-          <Card>
-            <CardHeader>
-              <CardTitle>Verify Payment by Reference</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Input placeholder="Enter tx_ref to verify" value={verifyRef} onChange={(e)=>setVerifyRef(e.target.value)} />
-                <Button onClick={handleManualVerify} disabled={!verifyRef || verifying}>{verifying ? 'Verifying…' : 'Verify'}</Button>
+          <div className="bg-[#141517] border border-[#27282b] rounded-lg p-5 max-w-xl space-y-4">
+            <div>
+              <h2 className="text-sm font-semibold text-[#ededed]">Direct Chapa Gateway Verification</h2>
+              <p className="text-xs text-[#8c8d91] mt-0.5">
+                Query the Chapa API directly to verify the status and settlement of a transaction reference.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                placeholder="tx_ref (e.g., tx-classic-1718000000)"
+                value={verifyRef}
+                onChange={(e) => setVerifyRef(e.target.value)}
+                className="bg-[#1c1d20] border-[#27282b] text-base sm:text-sm font-mono text-[#ededed] focus:border-[#56c2ff] min-h-[44px]"
+              />
+              <Button
+                onClick={handleVerify}
+                disabled={verifying || !verifyRef.trim()}
+                className="bg-[#ff6363] hover:bg-[#ff6363]/90 text-white min-h-[44px] px-4 font-mono text-xs"
+              >
+                {verifying ? "Querying..." : "Verify"}
+              </Button>
+            </div>
+
+            {verifyResult && (
+              <div className="p-4 bg-[#0c0d0e] border border-[#27282b] rounded-md font-mono text-xs text-[#ededed] space-y-2 overflow-x-auto">
+                <div className="text-[#8c8d91] text-[10px] uppercase tracking-wider">Gateway Response:</div>
+                <pre>{JSON.stringify(verifyResult, null, 2)}</pre>
               </div>
-              {verifyResult && (
-                <div className="text-sm">
-                  {verifyResult.error ? (
-                    <div className="space-y-2">
-                      <div className="text-red-600 font-medium">{String(verifyResult.error)}</div>
-                      {verifyResult.details && (
-                        <div className="text-xs text-muted-foreground bg-gray-50 p-2 rounded">
-                          <pre className="whitespace-pre-wrap">{JSON.stringify(verifyResult.details, null, 2)}</pre>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="space-y-1">
-                      <div>Updated Status: <Badge>{verifyResult.transaction?.status?.toUpperCase() || 'UNKNOWN'}</Badge></div>
-                      <div className="text-muted-foreground">Chapa response received.</div>
-                      {verifyResult.chapa && (
-                        <div className="text-xs text-muted-foreground bg-green-50 p-2 rounded">
-                          <pre className="whitespace-pre-wrap">{JSON.stringify(verifyResult.chapa, null, 2)}</pre>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
+
+      {/* Details Dialog */}
+      {selectedTxn && (
+        <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+          <DialogContent className="bg-[#141517] border-[#27282b] text-[#ededed] max-w-md font-mono text-xs">
+            <DialogHeader>
+              <DialogTitle className="text-sm font-sans font-semibold">Transaction Details</DialogTitle>
+              <DialogDescription className="text-xs text-[#8c8d91]">{selectedTxn.tx_ref}</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2.5 py-3 border-t border-b border-[#27282b]">
+              <div className="flex justify-between">
+                <span className="text-[#8c8d91]">Customer:</span>
+                <span className="text-[#ededed]">{selectedTxn.user_name} ({selectedTxn.user_email})</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#8c8d91]">Plan:</span>
+                <span className="text-[#ededed]">{selectedTxn.plan_name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#8c8d91]">Amount:</span>
+                <span className="text-[#ededed] font-semibold">{selectedTxn.amount} {selectedTxn.currency}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#8c8d91]">Status:</span>
+                <span>{selectedTxn.status.toUpperCase()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#8c8d91]">Reference ID:</span>
+                <span className="text-[#ededed]">{selectedTxn.ref_id || "—"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#8c8d91]">Created:</span>
+                <span className="text-[#ededed]">{new Date(selectedTxn.created_at).toLocaleString()}</span>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={() => setIsDetailOpen(false)} className="bg-[#1c1d20] border-[#27282b] text-[#ededed] min-h-[44px] w-full">
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }
-
-

@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   Dialog,
   DialogContent,
@@ -23,10 +22,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Search, Plus, MoreHorizontal, Edit, Trash2, Mail, Calendar, RefreshCw } from "lucide-react"
+import { Kbd } from "@/components/ui/kbd"
+import { Search, Plus, MoreHorizontal, Edit, Trash2, RefreshCw, UserCheck, Shield, ExternalLink } from "lucide-react"
 import { adminApi } from "@/lib/admin-api"
 
 interface AdminUser {
@@ -85,7 +82,6 @@ export default function UsersPage() {
   const filterUsers = () => {
     let filtered = users
 
-    // Search filter
     if (searchTerm) {
       filtered = filtered.filter(
         (user) =>
@@ -94,12 +90,10 @@ export default function UsersPage() {
       )
     }
 
-    // Tier filter
     if (tierFilter !== "all") {
       filtered = filtered.filter((user) => user.tier === tierFilter)
     }
 
-    // Status filter
     if (statusFilter !== "all") {
       filtered = filtered.filter((user) => user.subscription_status === statusFilter)
     }
@@ -121,7 +115,6 @@ export default function UsersPage() {
         tier: newUser.tier,
       })
 
-      // Reset form
       setNewUser({
         email: "",
         name: "",
@@ -129,7 +122,6 @@ export default function UsersPage() {
         tier: "free",
       })
 
-      // Refresh the list
       await fetchUsers()
       setIsCreateDialogOpen(false)
     } catch (error) {
@@ -148,7 +140,7 @@ export default function UsersPage() {
         tier: selectedUser.tier,
         subscriptionStatus: selectedUser.subscription_status,
       })
-      await fetchUsers() // Refresh the list
+      await fetchUsers()
       setIsEditDialogOpen(false)
       setSelectedUser(null)
     } catch (error) {
@@ -162,7 +154,7 @@ export default function UsersPage() {
 
     try {
       await adminApi.deleteUser(selectedUser.id)
-      await fetchUsers() // Refresh the list
+      await fetchUsers()
       setIsDeleteDialogOpen(false)
       setSelectedUser(null)
     } catch (error) {
@@ -174,407 +166,410 @@ export default function UsersPage() {
   const getTierBadge = (tier: string) => {
     switch (tier) {
       case "premium":
-        return <Badge className="bg-purple-500">Premium</Badge>
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono uppercase bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20">
+            Premium
+          </span>
+        )
       case "pro":
-        return <Badge className="bg-blue-500">Pro</Badge>
-      case "free":
-        return <Badge variant="secondary">Free</Badge>
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono uppercase bg-[#56c2ff]/10 text-[#56c2ff] border border-[#56c2ff]/20">
+            Pro
+          </span>
+        )
       default:
-        return <Badge variant="outline">{tier}</Badge>
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono uppercase bg-[#1c1d20] text-[#8c8d91] border border-[#27282b]">
+            Free
+          </span>
+        )
     }
   }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "active":
-        return <Badge className="bg-green-500">Active</Badge>
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono uppercase bg-[#5fc992]/10 text-[#5fc992] border border-[#5fc992]/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#5fc992]" />
+            Active
+          </span>
+        )
       case "past_due":
-        return <Badge className="bg-yellow-500">Past Due</Badge>
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono uppercase bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20">
+            Past Due
+          </span>
+        )
       case "canceled":
-        return <Badge variant="destructive">Canceled</Badge>
-      case "unpaid":
-        return <Badge variant="destructive">Unpaid</Badge>
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono uppercase bg-[#ff6363]/10 text-[#ff6363] border border-[#ff6363]/20">
+            Canceled
+          </span>
+        )
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono uppercase bg-[#1c1d20] text-[#8c8d91] border border-[#27282b]">
+            {status}
+          </span>
+        )
     }
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  }
-
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-[#27282b] pb-5">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-foreground">User Management</h2>
-          <p className="text-sm sm:text-base text-muted-foreground">Manage user accounts and subscriptions</p>
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#ededed]">User Directory</h1>
+          <p className="text-xs sm:text-sm text-[#8c8d91] mt-0.5">Inspect user accounts, manage subscription tiers, and control platform access.</p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto">
-              <Plus className="mr-2 h-4 w-4" />
-              Add User
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Create New User</DialogTitle>
-              <DialogDescription>Add a new user to the system</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={newUser.email}
-                  onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                  placeholder="user@example.com"
-                />
-              </div>
-              <div>
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={newUser.name}
-                  onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-                  placeholder="Full name"
-                />
-              </div>
-              <div>
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={newUser.password}
-                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                  placeholder="Temporary password"
-                />
-              </div>
-              <div>
-                <Label htmlFor="tier">Subscription Tier</Label>
-                <Select value={newUser.tier} onValueChange={(value: any) => setNewUser({ ...newUser, tier: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="free">Free</SelectItem>
-                    <SelectItem value="pro">Pro</SelectItem>
-                    <SelectItem value="premium">Premium</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row">
-              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="w-full sm:w-auto">
-                Cancel
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={fetchUsers}
+            disabled={isLoading}
+            className="bg-[#141517] border-[#27282b] hover:bg-[#1c1d20] text-[#ededed] text-xs font-mono h-10 min-h-[44px] min-w-[44px] px-3"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isLoading ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-[#ff6363] hover:bg-[#ff6363]/90 text-white text-xs font-medium h-10 min-h-[44px] px-4">
+                <Plus className="mr-1.5 h-4 w-4" />
+                Add User
               </Button>
-              <Button onClick={handleCreateUser} className="w-full sm:w-auto">Create User</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Total Users</CardTitle>
-            <Search className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg sm:text-2xl font-bold">{users.length}</div>
-            <p className="text-xs text-muted-foreground">All registered users</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Free Users</CardTitle>
-            <Search className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg sm:text-2xl font-bold">{users.filter((u) => u.tier === "free").length}</div>
-            <p className="text-xs text-muted-foreground">Free tier users</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Pro Users</CardTitle>
-            <Search className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg sm:text-2xl font-bold">{users.filter((u) => u.tier === "pro").length}</div>
-            <p className="text-xs text-muted-foreground">Pro tier users</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Premium Users</CardTitle>
-            <Search className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg sm:text-2xl font-bold">{users.filter((u) => u.tier === "premium").length}</div>
-            <p className="text-xs text-muted-foreground">Premium tier users</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg sm:text-xl">Filters</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="search">Search Users</Label>
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="search"
-                  placeholder="Search by name or email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8"
-                />
+            </DialogTrigger>
+            <DialogContent className="bg-[#141517] border-[#27282b] text-[#ededed] max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-base font-semibold">Create New User</DialogTitle>
+                <DialogDescription className="text-xs text-[#8c8d91]">Provision a new user account with credentials.</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3.5 py-2">
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-[#8c8d91]">Full Name</Label>
+                  <Input
+                    value={newUser.name}
+                    onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+                    placeholder="Jane Doe"
+                    className="bg-[#1c1d20] border-[#27282b] text-base sm:text-sm text-[#ededed] focus:border-[#56c2ff] min-h-[44px]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-[#8c8d91]">Email Address</Label>
+                  <Input
+                    type="email"
+                    value={newUser.email}
+                    onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                    placeholder="user@example.com"
+                    className="bg-[#1c1d20] border-[#27282b] text-base sm:text-sm text-[#ededed] focus:border-[#56c2ff] min-h-[44px]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-[#8c8d91]">Temporary Password</Label>
+                  <Input
+                    type="password"
+                    value={newUser.password}
+                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                    placeholder="••••••••"
+                    className="bg-[#1c1d20] border-[#27282b] text-base sm:text-sm text-[#ededed] focus:border-[#56c2ff] min-h-[44px]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-[#8c8d91]">Subscription Tier</Label>
+                  <Select value={newUser.tier} onValueChange={(val: any) => setNewUser({ ...newUser, tier: val })}>
+                    <SelectTrigger className="bg-[#1c1d20] border-[#27282b] text-[#ededed] min-h-[44px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#141517] border-[#27282b] text-[#ededed]">
+                      <SelectItem value="free">Free</SelectItem>
+                      <SelectItem value="pro">Pro</SelectItem>
+                      <SelectItem value="premium">Premium</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </div>
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
-              <div>
-                <Label htmlFor="tier-filter">Tier</Label>
-                <Select value={tierFilter} onValueChange={setTierFilter}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Tiers</SelectItem>
-                    <SelectItem value="free">Free</SelectItem>
-                    <SelectItem value="pro">Pro</SelectItem>
-                    <SelectItem value="premium">Premium</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="status-filter">Status</Label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="past_due">Past Due</SelectItem>
-                    <SelectItem value="canceled">Canceled</SelectItem>
-                    <SelectItem value="unpaid">Unpaid</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-end">
-                <Button variant="outline" onClick={fetchUsers} className="w-full">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh
+              <DialogFooter className="gap-2">
+                <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="bg-[#1c1d20] border-[#27282b] text-[#ededed] min-h-[44px]">
+                  Cancel
                 </Button>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+                <Button onClick={handleCreateUser} className="bg-[#ff6363] hover:bg-[#ff6363]/90 text-white min-h-[44px]">
+                  Create Account
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
 
-      {/* Users List Section */}
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-lg sm:text-xl">Users ({filteredUsers.length})</CardTitle>
-            <CardDescription className="text-sm">Manage user accounts and their subscription details</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-3">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="flex items-center space-x-4">
-                    <div className="h-4 w-4 bg-muted animate-pulse rounded" />
-                    <div className="h-4 w-32 sm:w-48 bg-muted animate-pulse rounded" />
-                    <div className="h-4 w-24 sm:w-32 bg-muted animate-pulse rounded" />
-                    <div className="h-4 w-16 sm:w-20 bg-muted animate-pulse rounded" />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {filteredUsers.map((user) => (
-                  <div key={user.id} className="flex items-center justify-between">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium flex-shrink-0">
-                          {user.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium truncate">{user.name}</p>
-                          <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                        </div>
+      {/* Metric Counters */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-[#141517] border border-[#27282b] rounded-lg p-3.5">
+          <div className="text-xs font-mono text-[#8c8d91]">Total Users</div>
+          <div className="text-xl sm:text-2xl font-semibold font-mono tabular-nums text-[#ededed] mt-1">
+            {users.length}
+          </div>
+        </div>
+        <div className="bg-[#141517] border border-[#27282b] rounded-lg p-3.5">
+          <div className="text-xs font-mono text-[#8c8d91]">Free Tier</div>
+          <div className="text-xl sm:text-2xl font-semibold font-mono tabular-nums text-[#ededed] mt-1">
+            {users.filter((u) => u.tier === "free").length}
+          </div>
+        </div>
+        <div className="bg-[#141517] border border-[#27282b] rounded-lg p-3.5">
+          <div className="text-xs font-mono text-[#8c8d91]">Pro Tier</div>
+          <div className="text-xl sm:text-2xl font-semibold font-mono tabular-nums text-[#56c2ff] mt-1">
+            {users.filter((u) => u.tier === "pro").length}
+          </div>
+        </div>
+        <div className="bg-[#141517] border border-[#27282b] rounded-lg p-3.5">
+          <div className="text-xs font-mono text-[#8c8d91]">Premium Tier</div>
+          <div className="text-xl sm:text-2xl font-semibold font-mono tabular-nums text-[#f59e0b] mt-1">
+            {users.filter((u) => u.tier === "premium").length}
+          </div>
+        </div>
+      </div>
+
+      {/* Search & Filter Bar with Kbd Chips */}
+      <div className="bg-[#141517] border border-[#27282b] rounded-lg p-3.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="relative flex-1 min-w-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8c8d91]" />
+          <Input
+            placeholder="Search by user name or email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 bg-[#1c1d20] border-[#27282b] text-base sm:text-sm text-[#ededed] focus:border-[#56c2ff] min-h-[44px]"
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Status chips */}
+          <div className="flex items-center gap-1 bg-[#1c1d20] p-1 rounded-md border border-[#27282b]">
+            {(["all", "free", "pro", "premium"] as const).map((tier) => (
+              <button
+                key={tier}
+                onClick={() => setTierFilter(tier)}
+                className={`px-2.5 py-1 text-xs font-mono uppercase rounded transition-colors min-h-[32px] ${
+                  tierFilter === tier
+                    ? "bg-[#27282b] text-[#ededed] font-medium"
+                    : "text-[#8c8d91] hover:text-[#ededed]"
+                }`}
+              >
+                {tier}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-1 bg-[#1c1d20] p-1 rounded-md border border-[#27282b]">
+            {(["all", "active", "canceled"] as const).map((st) => (
+              <button
+                key={st}
+                onClick={() => setStatusFilter(st)}
+                className={`px-2.5 py-1 text-xs font-mono uppercase rounded transition-colors min-h-[32px] ${
+                  statusFilter === st
+                    ? "bg-[#27282b] text-[#ededed] font-medium"
+                    : "text-[#8c8d91] hover:text-[#ededed]"
+                }`}
+              >
+                {st}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Horizontal Scroll Data Table Container */}
+      <div className="bg-[#141517] border border-[#27282b] rounded-lg overflow-hidden">
+        <div className="px-4 py-3 border-b border-[#27282b] flex items-center justify-between text-xs font-mono text-[#8c8d91]">
+          <span>Displaying {filteredUsers.length} users</span>
+          <span>Sticky Column: User / Email</span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm border-collapse min-w-[700px]">
+            <thead>
+              <tr className="border-b border-[#27282b] bg-[#0c0d0e] text-[11px] font-mono uppercase text-[#8c8d91]">
+                <th className="sticky left-0 bg-[#0c0d0e] z-10 px-4 py-3 font-medium min-w-[220px]">
+                  User
+                </th>
+                <th className="px-4 py-3 font-medium">Tier</th>
+                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium">Verified</th>
+                <th className="px-4 py-3 font-medium">Joined</th>
+                <th className="px-4 py-3 font-medium text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#27282b]">
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-xs font-mono text-[#8c8d91]">
+                    <RefreshCw className="w-4 h-4 mx-auto mb-2 animate-spin text-[#56c2ff]" />
+                    Querying user accounts...
+                  </td>
+                </tr>
+              ) : filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-xs font-mono text-[#8c8d91]">
+                    No users matching criteria found.
+                  </td>
+                </tr>
+              ) : (
+                filteredUsers.map((user) => (
+                  <tr key={user.id} className="hover:bg-[#1c1d20]/50 transition-colors">
+                    {/* Sticky Identifier Column */}
+                    <td className="sticky left-0 bg-[#141517] z-10 px-4 py-3.5">
+                      <div className="min-w-0 max-w-[200px] sm:max-w-[260px]">
+                        <div className="font-medium text-xs text-[#ededed] truncate">{user.name || "Unnamed"}</div>
+                        <div className="text-[11px] font-mono text-[#8c8d91] truncate">{user.email}</div>
                       </div>
-                    </div>
-                    <div className="text-right ml-2">
-                      <div className="flex items-center gap-2">
-                        {getTierBadge(user.tier)}
-                        {getStatusBadge(user.subscription_status)}
-                      </div>
+                    </td>
+                    <td className="px-4 py-3.5 whitespace-nowrap">
+                      {getTierBadge(user.tier)}
+                    </td>
+                    <td className="px-4 py-3.5 whitespace-nowrap">
+                      {getStatusBadge(user.subscription_status)}
+                    </td>
+                    <td className="px-4 py-3.5 whitespace-nowrap">
+                      {user.email_verified ? (
+                        <span className="text-[11px] font-mono text-[#5fc992] flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#5fc992]" />
+                          Verified
+                        </span>
+                      ) : (
+                        <span className="text-[11px] font-mono text-[#8c8d91]">Unverified</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3.5 whitespace-nowrap text-xs font-mono text-[#8c8d91]">
+                      {user.created_at ? new Date(user.created_at).toLocaleDateString() : "—"}
+                    </td>
+                    <td className="px-4 py-3.5 text-right whitespace-nowrap">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
+                          <button className="p-2 rounded-md hover:bg-[#1c1d20] text-[#8c8d91] hover:text-[#ededed] transition-colors min-h-[44px] min-w-[44px] inline-flex items-center justify-center">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuContent align="end" className="bg-[#141517] border-[#27282b] text-[#ededed]">
+                          <DropdownMenuLabel className="text-xs text-[#8c8d91]">User Options</DropdownMenuLabel>
                           <DropdownMenuItem
                             onClick={() => {
                               setSelectedUser(user)
                               setIsEditDialogOpen(true)
                             }}
+                            className="text-xs min-h-[40px] cursor-pointer hover:bg-[#1c1d20]"
                           >
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit User
+                            <Edit className="w-3.5 h-3.5 mr-2 text-[#56c2ff]" />
+                            Edit Account
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
+                          <DropdownMenuSeparator className="bg-[#27282b]" />
                           <DropdownMenuItem
-                            className="text-destructive"
                             onClick={() => {
                               setSelectedUser(user)
                               setIsDeleteDialogOpen(true)
                             }}
+                            className="text-xs text-[#ff6363] min-h-[40px] cursor-pointer hover:bg-[#1c1d20]"
                           >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete User
+                            <Trash2 className="w-3.5 h-3.5 mr-2" />
+                            Delete Account
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {!isLoading && filteredUsers.length === 0 && (
-              <div className="text-center py-4 text-muted-foreground">
-                <Search className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2" />
-                <p className="text-sm">No users found</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {searchTerm || tierFilter !== "all" || statusFilter !== "all"
-                    ? "Try adjusting your search or filter criteria."
-                    : "Get started by creating a new user."}
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Edit User Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
-            <DialogDescription>Update user information and subscription details</DialogDescription>
-          </DialogHeader>
-          {selectedUser && (
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="edit-name">Name</Label>
+      {selectedUser && (
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="bg-[#141517] border-[#27282b] text-[#ededed] max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-base font-semibold">Edit User: {selectedUser.email}</DialogTitle>
+              <DialogDescription className="text-xs text-[#8c8d91]">Update account profile and tier limits.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3.5 py-2">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-[#8c8d91]">Name</Label>
                 <Input
-                  id="edit-name"
                   value={selectedUser.name}
                   onChange={(e) => setSelectedUser({ ...selectedUser, name: e.target.value })}
+                  className="bg-[#1c1d20] border-[#27282b] text-base sm:text-sm text-[#ededed] min-h-[44px]"
                 />
               </div>
-              <div>
-                <Label htmlFor="edit-email">Email</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-[#8c8d91]">Email</Label>
                 <Input
-                  id="edit-email"
-                  type="email"
                   value={selectedUser.email}
                   onChange={(e) => setSelectedUser({ ...selectedUser, email: e.target.value })}
+                  className="bg-[#1c1d20] border-[#27282b] text-base sm:text-sm text-[#ededed] min-h-[44px]"
                 />
               </div>
-              <div>
-                <Label htmlFor="edit-tier">Subscription Tier</Label>
-                <Select
-                  value={selectedUser.tier}
-                  onValueChange={(value: any) => setSelectedUser({ ...selectedUser, tier: value })}
-                >
-                  <SelectTrigger>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-[#8c8d91]">Tier</Label>
+                <Select value={selectedUser.tier} onValueChange={(val: any) => setSelectedUser({ ...selectedUser, tier: val })}>
+                  <SelectTrigger className="bg-[#1c1d20] border-[#27282b] text-[#ededed] min-h-[44px]">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-[#141517] border-[#27282b] text-[#ededed]">
                     <SelectItem value="free">Free</SelectItem>
                     <SelectItem value="pro">Pro</SelectItem>
                     <SelectItem value="premium">Premium</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="edit-status">Subscription Status</Label>
-                <Select
-                  value={selectedUser.subscription_status}
-                  onValueChange={(value: any) => setSelectedUser({ ...selectedUser, subscription_status: value })}
-                >
-                  <SelectTrigger>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-[#8c8d91]">Subscription Status</Label>
+                <Select value={selectedUser.subscription_status} onValueChange={(val: any) => setSelectedUser({ ...selectedUser, subscription_status: val })}>
+                  <SelectTrigger className="bg-[#1c1d20] border-[#27282b] text-[#ededed] min-h-[44px]">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-[#141517] border-[#27282b] text-[#ededed]">
                     <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="past_due">Past Due</SelectItem>
                     <SelectItem value="canceled">Canceled</SelectItem>
+                    <SelectItem value="past_due">Past Due</SelectItem>
                     <SelectItem value="unpaid">Unpaid</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
-          )}
-          <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row">
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="w-full sm:w-auto">
-              Cancel
-            </Button>
-            <Button onClick={handleUpdateUser} className="w-full sm:w-auto">Save Changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="bg-[#1c1d20] border-[#27282b] text-[#ededed] min-h-[44px]">
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateUser} className="bg-[#56c2ff] hover:bg-[#56c2ff]/90 text-black font-medium min-h-[44px]">
+                Save Changes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Delete User Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Delete User</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this user? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          {selectedUser && (
-            <Alert>
-              <AlertDescription>
-                <strong>{selectedUser.name}</strong> ({selectedUser.email}) and all associated data will be permanently
-                deleted.
-              </AlertDescription>
-            </Alert>
-          )}
-          <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row">
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} className="w-full sm:w-auto">
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteUser} className="w-full sm:w-auto">
-              Delete User
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {selectedUser && (
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogContent className="bg-[#141517] border-[#27282b] text-[#ededed] max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="text-base font-semibold text-[#ff6363]">Delete User Account?</DialogTitle>
+              <DialogDescription className="text-xs text-[#8c8d91]">
+                This will delete user <span className="font-mono text-[#ededed]">{selectedUser.email}</span> and cascade delete their links and analytics records. This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2 mt-4">
+              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} className="bg-[#1c1d20] border-[#27282b] text-[#ededed] min-h-[44px]">
+                Cancel
+              </Button>
+              <Button onClick={handleDeleteUser} className="bg-[#ff6363] hover:bg-[#ff6363]/90 text-white min-h-[44px]">
+                Confirm Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }

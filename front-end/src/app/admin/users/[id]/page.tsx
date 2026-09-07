@@ -2,13 +2,12 @@
 
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
-import { AdminHeader } from "@/components/admin-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { User, Mail, Activity, BarChart3, CreditCard, Settings, Ban, CheckCircle } from "lucide-react"
+import { User, Mail, Activity, BarChart3, CreditCard, Settings, Ban, CheckCircle, RefreshCw } from "lucide-react"
 
 interface UserDetails {
   id: string
@@ -60,32 +59,23 @@ export default function UserDetailsPage() {
       name: "John Doe",
       tier: "pro",
       created_at: "2024-01-15T10:30:00Z",
-      updated_at: "2024-01-20T14:22:00Z",
+      updated_at: "2024-02-01T15:45:00Z",
       is_active: true,
-      last_login: "2024-01-25T09:15:00Z",
-      link_count: 45,
-      total_clicks: 1250,
+      last_login: "2024-02-15T08:20:00Z",
+      link_count: 12,
+      total_clicks: 1450,
       subscription_status: "active",
-      payment_method: "visa_1234",
+      payment_method: "chapa",
     }
 
     const mockLinks: UserLink[] = [
       {
         id: "1",
-        original_url: "https://example.com/very-long-url-here",
-        short_code: "abc123",
-        title: "Example Website",
-        click_count: 234,
-        created_at: "2024-01-20T10:30:00Z",
-        is_active: true,
-      },
-      {
-        id: "2",
-        original_url: "https://another-example.com/page",
-        short_code: "def456",
-        title: "Another Page",
-        click_count: 89,
-        created_at: "2024-01-18T14:22:00Z",
+        original_url: "https://example.com/very-long-url-1",
+        short_code: "ex1",
+        title: "Marketing Campaign",
+        click_count: 450,
+        created_at: "2024-01-16T11:00:00Z",
         is_active: true,
       },
     ]
@@ -93,17 +83,10 @@ export default function UserDetailsPage() {
     const mockActivity: UserActivity[] = [
       {
         id: "1",
-        action: "link_created",
-        description: "Created new link: abc123",
-        timestamp: "2024-01-25T09:15:00Z",
-        ip_address: "192.168.1.1",
-      },
-      {
-        id: "2",
         action: "login",
-        description: "User logged in",
-        timestamp: "2024-01-25T09:10:00Z",
-        ip_address: "192.168.1.1",
+        description: "User logged in from Addis Ababa",
+        timestamp: "2024-02-15T08:20:00Z",
+        ip_address: "197.156.103.12",
       },
     ]
 
@@ -112,47 +95,44 @@ export default function UserDetailsPage() {
       setUserLinks(mockLinks)
       setUserActivity(mockActivity)
       setLoading(false)
-    }, 1000)
+    }, 500)
   }, [userId])
 
   const getTierColor = (tier: string) => {
     switch (tier) {
       case "premium":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+        return "bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20 font-mono text-[11px]"
       case "pro":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+        return "bg-[#56c2ff]/10 text-[#56c2ff] border border-[#56c2ff]/20 font-mono text-[11px]"
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
+        return "bg-[#1c1d20] text-[#8c8d91] border border-[#27282b] font-mono text-[11px]"
     }
   }
 
   if (loading) {
     return (
-      <>
-        <AdminHeader title="User Details" subtitle="Loading user information..." />
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="text-center py-8">Loading...</div>
-        </main>
-      </>
+      <div className="flex items-center justify-center h-64">
+        <RefreshCw className="h-6 w-6 animate-spin text-[#56c2ff]" />
+      </div>
     )
   }
 
   if (!user) {
     return (
-      <>
-        <AdminHeader title="User Details" subtitle="User not found" />
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="text-center py-8">User not found</div>
-        </main>
-      </>
+      <div className="text-center py-12 text-xs font-mono text-[#8c8d91]">
+        User account not found.
+      </div>
     )
   }
 
   return (
-    <>
-      <AdminHeader title={`${user.name || user.email}`} subtitle={`User ID: ${user.id}`} />
+    <div className="space-y-6">
+      <div className="border-b border-[#27282b] pb-4">
+        <h1 className="text-xl font-semibold text-[#ededed]">{user.name || user.email}</h1>
+        <p className="text-xs font-mono text-[#8c8d91] mt-0.5">User ID: {user.id}</p>
+      </div>
 
-      <main className="flex-1 overflow-y-auto p-6">
+      <div className="space-y-6">
         {/* User Overview */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <Card className="lg:col-span-2">
@@ -338,7 +318,7 @@ export default function UserDetailsPage() {
             </Tabs>
           </CardContent>
         </Card>
-      </main>
-    </>
+      </div>
+    </div>
   )
 }

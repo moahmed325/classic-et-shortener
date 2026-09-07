@@ -1,144 +1,129 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { adminAuthApi, type AdminUser } from "@/lib/admin-auth-api"
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { LogOut, Shield, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Kbd } from '@/components/ui/kbd';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { LogOut, User, Settings } from "lucide-react"
-
-// Use shared AdminUser type from admin-auth-api
+} from '@/components/ui/dropdown-menu';
+import { adminAuthApi, type AdminUser } from '@/lib/admin-auth-api';
 
 export function AdminHeader() {
-  const [admin, setAdmin] = useState<AdminUser | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const router = useRouter()
+  const [admin, setAdmin] = useState<AdminUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    fetchAdminUser()
-  }, [])
+    fetchAdminUser();
+  }, []);
 
   const fetchAdminUser = async () => {
     try {
-      const response = await adminAuthApi.getMe()
-      setAdmin(response.adminUser)
+      const response = await adminAuthApi.getMe();
+      setAdmin(response.adminUser);
     } catch (error) {
-      console.error("Failed to fetch admin user:", error)
-      router.push("/admin/login")
+      router.push('/admin/login');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleLogout = async () => {
     try {
-      await adminAuthApi.logout()
-      router.push("/admin/login")
+      await adminAuthApi.logout();
+      router.push('/admin/login');
     } catch (error) {
-      console.error("Logout error:", error)
+      console.error('Logout error:', error);
     }
-  }
+  };
 
-  const getRoleBadgeVariant = (role: string) => {
+  const getRoleBadge = (role: string) => {
     switch (role) {
-      case "super_admin":
-        return "destructive"
-      case "admin":
-        return "default"
-      case "moderator":
-        return "secondary"
+      case 'super_admin':
+        return (
+          <Kbd className="bg-[#ff6363]/10 border-[#ff6363]/30 text-[#ff6363] text-[10px] uppercase font-mono">
+            Super Admin
+          </Kbd>
+        );
+      case 'admin':
+        return (
+          <Kbd className="bg-[#56c2ff]/10 border-[#56c2ff]/30 text-[#56c2ff] text-[10px] uppercase font-mono">
+            Admin
+          </Kbd>
+        );
       default:
-        return "outline"
+        return (
+          <Kbd className="bg-[#1c1d20] border-[#27282b] text-[#8c8d91] text-[10px] uppercase font-mono">
+            {role}
+          </Kbd>
+        );
     }
-  }
-
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case "super_admin":
-        return "Super Admin"
-      case "admin":
-        return "Admin"
-      case "moderator":
-        return "Moderator"
-      default:
-        return role
-    }
-  }
+  };
 
   if (isLoading) {
     return (
-      <header className="border-b border-border bg-card px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="h-6 w-32 bg-muted animate-pulse rounded" />
-          <div className="h-8 w-8 bg-muted animate-pulse rounded-full" />
-        </div>
+      <header className="border-b border-[#27282b] bg-[#141517] px-4 sm:px-6 py-3 h-14 flex items-center justify-between">
+        <div className="h-4 w-32 bg-[#1c1d20] rounded animate-pulse" />
+        <div className="h-8 w-8 bg-[#1c1d20] rounded-full animate-pulse" />
       </header>
-    )
+    );
   }
 
   return (
-    <header className="border-b border-border bg-card px-6 py-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Manage your URL shortening service</p>
-        </div>
-
-        {admin && (
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-foreground">{admin.name}</span>
-                <Badge variant={getRoleBadgeVariant(admin.role)}>{getRoleLabel(admin.role)}</Badge>
-              </div>
-              <p className="text-xs text-muted-foreground">{admin.email}</p>
-            </div>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-primary text-primary-foreground">
-                      {admin.name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{admin.name}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{admin.email}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )}
+    <header className="border-b border-[#27282b] bg-[#141517] px-4 sm:px-6 py-3 h-14 flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <Shield className="h-4 w-4 text-[#ff6363]" />
+        <span className="text-xs font-mono text-[#8c8d91]">Console v2.4</span>
       </div>
+
+      {admin && (
+        <div className="flex items-center gap-3">
+          <div className="text-right hidden sm:block">
+            <div className="flex items-center gap-2 justify-end">
+              <span className="text-xs font-semibold text-[#ededed] font-mono">
+                {admin.name}
+              </span>
+              {getRoleBadge(admin.role)}
+            </div>
+            <p className="text-[11px] text-[#8c8d91] font-mono">{admin.email}</p>
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="h-9 w-9 rounded-md p-0 border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#ededed] font-mono text-xs"
+              >
+                {admin.name.charAt(0).toUpperCase()}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-52 bg-[#141517] border border-[#27282b] text-[#ededed] p-1 shadow-none"
+            >
+              <div className="px-3 py-2 border-b border-[#27282b] sm:hidden">
+                <p className="text-xs font-semibold font-mono text-[#ededed]">{admin.name}</p>
+                <p className="text-[10px] text-[#8c8d91] font-mono">{admin.email}</p>
+                <div className="mt-1">{getRoleBadge(admin.role)}</div>
+              </div>
+
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="min-h-[44px] cursor-pointer text-[#ff6363] hover:bg-[#ff6363]/10 focus:bg-[#ff6363]/10 text-xs font-mono px-3"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Sign Out Console</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
     </header>
-  )
+  );
 }

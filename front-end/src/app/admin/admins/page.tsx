@@ -95,15 +95,15 @@ export default function AdminUserManagement() {
   const getRoleColor = (role: string) => {
     switch (role) {
       case "super_admin":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+        return "bg-[#ff6363]/10 text-[#ff6363] border border-[#ff6363]/20 font-mono text-[11px]"
       case "admin":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+        return "bg-[#56c2ff]/10 text-[#56c2ff] border border-[#56c2ff]/20 font-mono text-[11px]"
       case "moderator":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+        return "bg-[#5fc992]/10 text-[#5fc992] border border-[#5fc992]/20 font-mono text-[11px]"
       case "analyst":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+        return "bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20 font-mono text-[11px]"
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
+        return "bg-[#1c1d20] text-[#8c8d91] border border-[#27282b] font-mono text-[11px]"
     }
   }
 
