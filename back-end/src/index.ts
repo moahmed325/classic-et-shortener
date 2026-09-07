@@ -3708,98 +3708,8 @@ const linkAnalyticsHandler = async (c: any) => {
   }
 };
 
-// Mount link analytics endpoints
-app.get('/api/links/:id/analytics', authMiddleware, linkAnalyticsHandler);
-app.get('/api/analytics/:id', authMiddleware, linkAnalyticsHandler);
-
-// Redirect route
-app.get('/:shortCode', async (c) => {
-  try {
-    const shortCode = c.req.param('shortCode');
-    const frontendUrl = c.env.FRONTEND_URL || 'https://front-end-silk-one.vercel.app';
-
-    // Find the link
-    const link = await c.env.DB.prepare(
-      'SELECT * FROM links WHERE short_code = ? AND is_active = true'
-    ).bind(shortCode).first() as any;
-
-    if (!link) {
-      return c.redirect(`${frontendUrl}/404`);
-    }
-
-    // Check if link is expired
-    if (link.expires_at && new Date(link.expires_at) < new Date()) {
-      return c.redirect(`${frontendUrl}/expired`);
-    }
-
-    // Check visitor cap for the link owner
-    const visitorCapCheck = await checkVisitorCap(c.env.DB, link.user_id);
-    
-    if (!visitorCapCheck.allowed) {
-      // Stop tracking analytics when visitor cap is reached
-      console.log(`Visitor cap reached for user ${link.user_id}: ${visitorCapCheck.current}/${visitorCapCheck.limit}`);
-      
-      // Still redirect but don't track analytics
-      return c.redirect(link.original_url);
-    }
-
-    // Track analytics
-    const userAgent = c.req.header('user-agent') || '';
-    const referer = c.req.header('referer') || '';
-    const ip = c.req.header('cf-connecting-ip') || '';
-    const country = c.req.header('cf-ipcountry') || '';
-
-    const { device_type, browser, os } = parseUserAgent(userAgent);
-
-    // Create click event (for admin analytics)
-    await c.env.DB.prepare(`
-      INSERT INTO click_events (id, link_id, user_id, country, device_type, browser, referrer)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).bind(
-      generateId(),
-      link.id,
-      link.user_id,
-      country || null,
-      device_type || null,
-      browser || null,
-      referer || null
-    ).run();
-
-    // Increment click count
-    await c.env.DB.prepare(
-      'UPDATE links SET click_count = click_count + 1 WHERE id = ?'
-    ).bind(link.id).run();
-
-    // Log user activity for link click
-    try {
-      await logUserActivity(
-        c.env.DB,
-        link.user_id,
-        'link_clicked',
-        'link',
-        link.id,
-        { shortCode: link.short_code, title: link.title, originalUrl: link.original_url },
-        c.req.header('CF-Connecting-IP'),
-        c.req.header('User-Agent')
-      );
-    } catch (logError) {
-      console.error('Activity logging error for link click:', logError);
-    }
-
-    // Track new visitor for the link owner
-    await trackNewVisitor(c.env.DB, link.user_id);
-
-    // Redirect to original URL
-    return c.redirect(link.original_url);
-
-  } catch (error) {
-    console.error('Redirect error:', error);
-    return c.redirect('http://localhost:3000/error');
-  }
-});
-
-// Global analytics endpoint
-app.get('/api/analytics/global', authMiddleware, async (c) => {
+// Global analytics handler
+const globalAnalyticsHandler = async (c: any) => {
   try {
     const payload = c.get('jwtPayload');
     const days = parseInt(c.req.query('days') || '30');
@@ -4131,9 +4041,103 @@ app.get('/api/analytics/global', authMiddleware, async (c) => {
       links: []
     }, 200);
   }
+};
+
+// Mount analytics endpoints (literal /api/analytics/global mounted BEFORE parameterized /:id)
+app.get('/api/analytics/global', authMiddleware, globalAnalyticsHandler);
+app.get('/api/links/:id/analytics', authMiddleware, linkAnalyticsHandler);
+app.get('/api/analytics/:id', authMiddleware, async (c, next) => {
+  if (c.req.param('id') === 'global') {
+    return globalAnalyticsHandler(c);
+  }
+  return linkAnalyticsHandler(c);
 });
 
+// Redirect route
+app.get('/:shortCode', async (c) => {
+  try {
+    const shortCode = c.req.param('shortCode');
+    const frontendUrl = c.env.FRONTEND_URL || 'https://front-end-silk-one.vercel.app';
 
+    // Find the link
+    const link = await c.env.DB.prepare(
+      'SELECT * FROM links WHERE short_code = ? AND is_active = true'
+    ).bind(shortCode).first() as any;
+
+    if (!link) {
+      return c.redirect(`${frontendUrl}/404`);
+    }
+
+    // Check if link is expired
+    if (link.expires_at && new Date(link.expires_at) < new Date()) {
+      return c.redirect(`${frontendUrl}/expired`);
+    }
+
+    // Check visitor cap for the link owner
+    const visitorCapCheck = await checkVisitorCap(c.env.DB, link.user_id);
+    
+    if (!visitorCapCheck.allowed) {
+      // Stop tracking analytics when visitor cap is reached
+      console.log(`Visitor cap reached for user ${link.user_id}: ${visitorCapCheck.current}/${visitorCapCheck.limit}`);
+      
+      // Still redirect but don't track analytics
+      return c.redirect(link.original_url);
+    }
+
+    // Track analytics
+    const userAgent = c.req.header('user-agent') || '';
+    const referer = c.req.header('referer') || '';
+    const ip = c.req.header('cf-connecting-ip') || '';
+    const country = c.req.header('cf-ipcountry') || '';
+
+    const { device_type, browser, os } = parseUserAgent(userAgent);
+
+    // Create click event (for admin analytics)
+    await c.env.DB.prepare(`
+      INSERT INTO click_events (id, link_id, user_id, country, device_type, browser, referrer)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      generateId(),
+      link.id,
+      link.user_id,
+      country || null,
+      device_type || null,
+      browser || null,
+      referer || null
+    ).run();
+
+    // Increment click count
+    await c.env.DB.prepare(
+      'UPDATE links SET click_count = click_count + 1 WHERE id = ?'
+    ).bind(link.id).run();
+
+    // Log user activity for link click
+    try {
+      await logUserActivity(
+        c.env.DB,
+        link.user_id,
+        'link_clicked',
+        'link',
+        link.id,
+        { shortCode: link.short_code, title: link.title, originalUrl: link.original_url },
+        c.req.header('CF-Connecting-IP'),
+        c.req.header('User-Agent')
+      );
+    } catch (logError) {
+      console.error('Activity logging error for link click:', logError);
+    }
+
+    // Track new visitor for the link owner
+    await trackNewVisitor(c.env.DB, link.user_id);
+
+    // Redirect to original URL
+    return c.redirect(link.original_url);
+
+  } catch (error) {
+    console.error('Redirect error:', error);
+    return c.redirect('http://localhost:3000/error');
+  }
+});
 
 // Subscription and billing routes
 app.get('/api/subscription/plans', async (c) => {
