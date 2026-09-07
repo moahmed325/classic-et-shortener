@@ -19,7 +19,7 @@ const RANGES: { label: string; value: TimeRangeValue; shortcut: string }[] = [
 
 export function TimeRangeSelector({ value, onChange, disabled = false }: TimeRangeSelectorProps) {
   return (
-    <div className="inline-flex items-center rounded-md border border-border-subtle bg-surface-1 p-1 gap-1">
+    <div className="inline-flex max-w-full items-center rounded-md border border-border-subtle bg-surface-1 p-1 gap-1 overflow-x-auto [webkit-overflow-scrolling:touch]">
       {RANGES.map((range) => {
         const active = value === range.value;
         return (
@@ -28,7 +28,7 @@ export function TimeRangeSelector({ value, onChange, disabled = false }: TimeRan
             type="button"
             disabled={disabled}
             onClick={() => onChange(range.value)}
-            className={`min-h-[36px] sm:min-h-[32px] px-2.5 py-1 text-xs font-mono rounded transition-colors flex items-center gap-1.5 focus:outline-none ${
+            className={`min-h-[44px] sm:min-h-[32px] px-3 sm:px-2.5 py-1.5 sm:py-1 text-xs font-mono rounded transition-colors flex items-center gap-1.5 focus:outline-none whitespace-nowrap ${
               active
                 ? 'bg-surface-2 text-text-primary border border-border-subtle shadow-xs'
                 : 'text-text-muted hover:text-text-primary hover:bg-surface-2/60 border border-transparent'

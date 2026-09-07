@@ -228,11 +228,11 @@ export default function SettingsPage() {
       </div>
 
       {/* Settings Navigation Tabs */}
-      <div className="flex items-center gap-1 border-b border-border-subtle pb-2">
+      <div className="flex items-center gap-1 border-b border-border-subtle pb-2 overflow-x-auto [webkit-overflow-scrolling:touch]">
         <button
           type="button"
           onClick={() => setActiveTab('profile')}
-          className={`min-h-[40px] px-4 text-xs font-mono rounded-md transition-colors flex items-center gap-2 ${
+          className={`min-h-[44px] sm:min-h-[40px] px-4 text-xs font-mono rounded-md transition-colors flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'profile'
               ? 'bg-surface-1 text-zinc-950 dark:text-zinc-50 border border-border-subtle shadow-sm font-semibold'
               : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-50 hover:bg-surface-2 font-medium'
@@ -245,7 +245,7 @@ export default function SettingsPage() {
         <button
           type="button"
           onClick={() => setActiveTab('security')}
-          className={`min-h-[40px] px-4 text-xs font-mono rounded-md transition-colors flex items-center gap-2 ${
+          className={`min-h-[44px] sm:min-h-[40px] px-4 text-xs font-mono rounded-md transition-colors flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'security'
               ? 'bg-surface-1 text-zinc-950 dark:text-zinc-50 border border-border-subtle shadow-sm font-semibold'
               : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-50 hover:bg-surface-2 font-medium'
@@ -258,7 +258,7 @@ export default function SettingsPage() {
         <button
           type="button"
           onClick={() => setActiveTab('api')}
-          className={`min-h-[40px] px-4 text-xs font-mono rounded-md transition-colors flex items-center gap-2 ${
+          className={`min-h-[44px] sm:min-h-[40px] px-4 text-xs font-mono rounded-md transition-colors flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'api'
               ? 'bg-surface-1 text-zinc-950 dark:text-zinc-50 border border-border-subtle shadow-sm font-semibold'
               : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-50 hover:bg-surface-2 font-medium'
@@ -371,12 +371,13 @@ export default function SettingsPage() {
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="min-h-[44px] pr-10 bg-surface-1 border border-border-subtle text-base sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus-visible:ring-1 focus-visible:ring-primary"
+                  className="min-h-[44px] pr-12 bg-surface-1 border border-border-subtle text-base sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus-visible:ring-1 focus-visible:ring-primary"
                 />
                 <button
                   type="button"
                   onClick={() => setShowCurrentPass(!showCurrentPass)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                  aria-label={showCurrentPass ? "Hide current password" : "Show current password"}
+                  className="absolute right-0 top-0 bottom-0 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                 >
                   {showCurrentPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -395,12 +396,13 @@ export default function SettingsPage() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="min-h-[44px] pr-10 bg-surface-1 border border-border-subtle text-base sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus-visible:ring-1 focus-visible:ring-primary"
+                  className="min-h-[44px] pr-12 bg-surface-1 border border-border-subtle text-base sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus-visible:ring-1 focus-visible:ring-primary"
                 />
                 <button
                   type="button"
                   onClick={() => setShowNewPass(!showNewPass)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                  aria-label={showNewPass ? "Hide new password" : "Show new password"}
+                  className="absolute right-0 top-0 bottom-0 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                 >
                   {showNewPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -462,12 +464,13 @@ export default function SettingsPage() {
                   type={isApiKeyRevealed ? 'text' : 'password'}
                   readOnly
                   value={apiKey}
-                  className="min-h-[44px] bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 font-mono text-xs text-zinc-900 dark:text-zinc-100 pr-10 select-all"
+                  className="min-h-[44px] bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 font-mono text-xs text-zinc-900 dark:text-zinc-100 pr-12 select-all"
                 />
                 <button
                   type="button"
                   onClick={() => setIsApiKeyRevealed(!isApiKeyRevealed)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                  aria-label={isApiKeyRevealed ? "Hide API key" : "Show API key"}
+                  className="absolute right-0 top-0 bottom-0 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                 >
                   {isApiKeyRevealed ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>

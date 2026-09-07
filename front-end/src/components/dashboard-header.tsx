@@ -74,7 +74,7 @@ export function DashboardHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border-subtle bg-canvas/95 backdrop-blur transition-colors">
+    <header className="sticky top-0 z-40 w-full pt-[env(safe-area-inset-top)] border-b border-border-subtle bg-canvas/95 backdrop-blur transition-colors">
       {/* Top Navbar Row */}
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
         {/* Brand & Workspace Pill */}
@@ -90,7 +90,7 @@ export function DashboardHeader() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs font-normal border-border-subtle bg-surface-1 hover:bg-surface-2 text-text-primary">
+              <Button variant="outline" size="sm" className="min-h-[44px] sm:min-h-0 h-11 sm:h-8 px-3 sm:px-2.5 text-xs font-normal border-border-subtle bg-surface-1 hover:bg-surface-2 text-text-primary">
                 <span className="truncate max-w-[120px] sm:max-w-[160px]">
                   {user?.name || user?.email?.split('@')[0] || 'Personal'}
                 </span>
@@ -122,7 +122,7 @@ export function DashboardHeader() {
           {/* User Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="h-8 w-8 rounded-md bg-surface-2 border border-border-subtle flex items-center justify-center text-xs font-mono font-semibold text-text-primary hover:border-border-strong transition-colors">
+              <button className="h-11 w-11 min-h-[44px] min-w-[44px] sm:h-8 sm:w-8 sm:min-h-0 sm:min-w-0 rounded-md bg-surface-2 border border-border-subtle flex items-center justify-center text-xs font-mono font-semibold text-text-primary hover:border-border-strong transition-colors" aria-label="User account menu">
                 {getUserInitials(user?.name, user?.email)}
               </button>
             </DropdownMenuTrigger>
@@ -158,13 +158,13 @@ export function DashboardHeader() {
           <div className="md:hidden">
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="h-8 w-8 min-h-0 bg-surface-1 border-border-subtle text-text-primary">
+                <Button variant="outline" size="icon" className="h-11 w-11 min-h-[44px] min-w-[44px] sm:h-8 sm:w-8 sm:min-h-0 sm:min-w-0 bg-surface-1 border-border-subtle text-text-primary" aria-label="Open mobile navigation">
                   <Menu className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
               <SheetContent
                 side="left"
-                className="w-72 bg-canvas border-r border-border-subtle text-text-primary p-0 flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] min-h-[100dvh]"
+                className="w-72 max-w-[calc(100vw-2rem)] bg-canvas border-r border-border-subtle text-text-primary p-0 flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] min-h-[100dvh] overscroll-contain"
               >
                 <SheetHeader className="p-4 border-b border-border-subtle">
                   <SheetTitle className="flex items-center space-x-2 text-sm text-text-primary">

@@ -250,7 +250,7 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Visit short URL"
-                  className="text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors p-0.5"
+                  className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors p-1 sm:p-0.5"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
@@ -394,7 +394,7 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
 
       {/* QR Code Modal with overscroll-contain */}
       <Dialog open={showQR} onOpenChange={setShowQR}>
-        <DialogContent className="border border-border-subtle bg-surface-1 text-text-primary max-w-sm p-6 overscroll-contain">
+        <DialogContent className="border border-border-subtle bg-surface-1 text-text-primary w-[calc(100vw-2rem)] max-w-sm p-6 overscroll-contain">
           <DialogHeader className="text-center sm:text-center">
             <DialogTitle className="text-base font-semibold text-text-primary">QR Code</DialogTitle>
             <DialogDescription className="font-mono text-xs text-text-muted truncate">
@@ -442,7 +442,7 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
 
       {/* Edit Link Modal with overscroll-contain and 44px touch targets */}
       <Dialog open={showEdit} onOpenChange={setShowEdit}>
-        <DialogContent className="border border-border-subtle bg-surface-1 text-text-primary max-w-md p-6 overscroll-contain">
+        <DialogContent className="border border-border-subtle bg-surface-1 text-text-primary w-[calc(100vw-2rem)] max-w-md p-6 overscroll-contain">
           <DialogHeader>
             <DialogTitle className="text-base font-semibold text-text-primary">Edit Short Link</DialogTitle>
             <DialogDescription className="font-mono text-xs text-text-muted">

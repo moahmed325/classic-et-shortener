@@ -230,7 +230,7 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
                   )}
                 </div>
                 <div className="flex items-center rounded-md border border-border-subtle bg-surface-1 overflow-hidden focus-within:ring-1 focus-within:ring-primary">
-                  <span className="px-2.5 py-2 text-xs font-mono text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 border-r border-border-subtle select-none font-medium">
+                  <span className="px-2.5 py-2 min-h-[44px] sm:min-h-0 flex items-center text-xs font-mono text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 border-r border-border-subtle select-none font-medium">
                     classic.et/
                   </span>
                   <Input
@@ -244,7 +244,7 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
                     placeholder="custom-slug"
                     maxLength={32}
                     disabled={isLoading || !isProOrPremium}
-                    className="border-0 bg-transparent text-xs font-mono text-zinc-950 dark:text-zinc-50 placeholder:text-zinc-400 h-9 focus-visible:ring-0 px-2.5"
+                    className="border-0 bg-transparent text-base sm:text-xs font-mono text-zinc-950 dark:text-zinc-50 placeholder:text-zinc-400 h-11 sm:h-9 min-h-[44px] sm:min-h-0 focus-visible:ring-0 px-2.5"
                   />
                 </div>
               </div>
@@ -261,7 +261,7 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Campaign or referral label"
                   disabled={isLoading}
-                  className="bg-surface-1 border border-border-subtle text-xs text-zinc-950 dark:text-zinc-50 placeholder:text-zinc-400 h-9 focus-visible:ring-1 focus-visible:ring-primary"
+                  className="bg-surface-1 border border-border-subtle text-base sm:text-xs text-zinc-950 dark:text-zinc-50 placeholder:text-zinc-400 h-11 sm:h-9 min-h-[44px] sm:min-h-0 focus-visible:ring-1 focus-visible:ring-primary"
                 />
               </div>
 
@@ -292,7 +292,7 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
                     onChange={(e) => setExpirationDate(e.target.value)}
                     min={new Date().toISOString().slice(0, 16)}
                     disabled={isLoading}
-                    className="bg-surface-1 border border-border-subtle text-xs text-zinc-950 dark:text-zinc-50 h-9 focus-visible:ring-1 focus-visible:ring-primary max-w-xs mt-1"
+                    className="bg-surface-1 border border-border-subtle text-base sm:text-xs text-zinc-950 dark:text-zinc-50 h-11 sm:h-9 min-h-[44px] sm:min-h-0 focus-visible:ring-1 focus-visible:ring-primary max-w-xs mt-1"
                   />
                 )}
               </div>
@@ -375,7 +375,7 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
       {/* QR Code Modal for newly created link */}
       {createdLink && (
         <Dialog open={showQR} onOpenChange={setShowQR}>
-          <DialogContent className="border border-border-subtle bg-surface-1 text-text-primary max-w-sm p-6 overscroll-contain">
+          <DialogContent className="border border-border-subtle bg-surface-1 text-text-primary w-[calc(100vw-2rem)] max-w-sm p-6 overscroll-contain">
             <DialogHeader className="text-center sm:text-center">
               <DialogTitle className="text-base font-semibold text-text-primary">QR Code</DialogTitle>
               <DialogDescription className="font-mono text-xs text-text-muted truncate">

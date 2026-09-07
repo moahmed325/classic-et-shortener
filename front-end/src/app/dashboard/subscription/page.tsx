@@ -196,11 +196,11 @@ export default function SubscriptionPage() {
         </div>
 
         {/* Monthly / Yearly Switch */}
-        <div className="inline-flex items-center bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg border border-zinc-200 dark:border-zinc-700 gap-1">
+        <div className="inline-flex items-center bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg border border-zinc-200 dark:border-zinc-700 gap-1 overflow-x-auto [webkit-overflow-scrolling:touch]">
           <button
             type="button"
             onClick={() => setBillingCycle('monthly')}
-            className={`min-h-[34px] px-3.5 text-xs font-mono rounded-md transition-all ${
+            className={`min-h-[44px] sm:min-h-[34px] px-3.5 text-xs font-mono rounded-md transition-all ${
               billingCycle === 'monthly'
                 ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-sm font-semibold'
                 : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium'
@@ -211,7 +211,7 @@ export default function SubscriptionPage() {
           <button
             type="button"
             onClick={() => setBillingCycle('yearly')}
-            className={`min-h-[34px] px-3.5 text-xs font-mono rounded-md transition-all flex items-center gap-1.5 ${
+            className={`min-h-[44px] sm:min-h-[34px] px-3.5 text-xs font-mono rounded-md transition-all flex items-center gap-1.5 ${
               billingCycle === 'yearly'
                 ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-sm font-semibold'
                 : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium'
@@ -321,7 +321,7 @@ export default function SubscriptionPage() {
 
       {/* Chapa Phone Checkout Modal */}
       <Dialog open={showPhoneModal} onOpenChange={setShowPhoneModal}>
-        <DialogContent className="border border-border-subtle bg-surface-1 text-zinc-900 dark:text-zinc-100 max-w-sm p-6 overscroll-contain shadow-lg">
+        <DialogContent className="border border-border-subtle bg-surface-1 text-zinc-900 dark:text-zinc-100 w-[calc(100vw-2rem)] max-w-sm p-6 overscroll-contain shadow-lg">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-zinc-900 dark:text-zinc-100">
               Complete with Chapa

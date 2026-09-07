@@ -339,7 +339,7 @@ export default function LinkDetailsPage() {
 
       {/* QR Code Modal */}
       <Dialog open={showQR} onOpenChange={setShowQR}>
-        <DialogContent className="border border-border-subtle bg-surface-1 text-text-primary max-w-sm p-6 overscroll-contain">
+        <DialogContent className="border border-border-subtle bg-surface-1 text-text-primary w-[calc(100vw-2rem)] max-w-sm p-6 overscroll-contain">
           <DialogHeader className="text-center sm:text-center">
             <DialogTitle className="text-base font-semibold text-text-primary">QR Code</DialogTitle>
             <DialogDescription className="font-mono text-xs text-text-muted truncate">
@@ -387,7 +387,7 @@ export default function LinkDetailsPage() {
 
       {/* Edit Link Modal */}
       <Dialog open={showEdit} onOpenChange={setShowEdit}>
-        <DialogContent className="border border-border-subtle bg-surface-1 text-text-primary max-w-md p-6 overscroll-contain">
+        <DialogContent className="border border-border-subtle bg-surface-1 text-text-primary w-[calc(100vw-2rem)] max-w-md p-6 overscroll-contain">
           <DialogHeader>
             <DialogTitle className="text-base font-semibold text-text-primary">Edit Link Details</DialogTitle>
             <DialogDescription className="font-mono text-xs text-text-muted">
