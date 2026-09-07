@@ -3380,7 +3380,7 @@ app.put('/api/links/:id', authMiddleware, async (c) => {
   try {
     const payload = c.get('jwtPayload');
     const linkId = c.req.param('id');
-    const { title, isActive, expiresAt, shortCode } = await c.req.json();
+    const { title, isActive, expiresAt, shortCode, originalUrl } = await c.req.json();
 
     // If shortCode is provided, require Premium and ensure uniqueness
     if (typeof shortCode === 'string' && shortCode.trim().length > 0) {
@@ -3409,6 +3409,7 @@ app.put('/api/links/:id', authMiddleware, async (c) => {
           is_active = ?,
           expires_at = ?,
           short_code = COALESCE(?, short_code),
+          original_url = COALESCE(?, original_url),
           updated_at = ?
       WHERE id = ? AND user_id = ?
     `).bind(
@@ -3416,6 +3417,7 @@ app.put('/api/links/:id', authMiddleware, async (c) => {
       isActive,
       expiresAt || null,
       (typeof shortCode === 'string' && shortCode.trim().length > 0) ? shortCode.trim() : null,
+      (typeof originalUrl === 'string' && originalUrl.trim().length > 0) ? originalUrl.trim() : null,
       new Date().toISOString(),
       linkId,
       payload.userId

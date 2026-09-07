@@ -1,17 +1,35 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { 
+  Link2, 
+  ArrowRight, 
+  Copy, 
+  Check, 
+  ExternalLink, 
+  Loader2, 
+  SlidersHorizontal, 
+  Calendar, 
+  Sparkles,
+  QrCode
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { Copy, ExternalLink, Loader2, Calendar } from 'lucide-react';
+import { Kbd } from '@/components/ui/kbd';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { linksApi } from '@/lib/api';
 
-interface ShortenedLink {
+export interface ShortenedLink {
   id: string;
   shortCode: string;
   originalUrl: string;
@@ -19,233 +37,374 @@ interface ShortenedLink {
   clickCount: number;
   createdAt: string;
   isActive: boolean;
+  expiresAt?: string | null;
 }
 
-export function LinkShortener() {
+interface LinkShortenerProps {
+  onLinkCreated?: (newLink: ShortenedLink) => void;
+}
+
+export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
   const [url, setUrl] = useState('');
   const [customCode, setCustomCode] = useState('');
   const [title, setTitle] = useState('');
+  const [showOptions, setShowOptions] = useState(false);
   const [useCustomCode, setUseCustomCode] = useState(false);
   const [useExpiration, setUseExpiration] = useState(false);
   const [expirationDate, setExpirationDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<ShortenedLink | null>(null);
+  const [createdLink, setCreatedLink] = useState<ShortenedLink | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+
+  const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const canUseCustomCode = user?.tier !== 'free';
-  const canUseExpiration = user?.tier === 'pro' || user?.tier === 'premium';
+  const isProOrPremium = user?.tier === 'pro' || user?.tier === 'premium';
+
+  // Auto-focus input on mount
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!url.trim()) {
+
+    const trimmedUrl = url.trim();
+    if (!trimmedUrl) {
       toast({
-        title: "Error",
-        description: "Please enter a URL",
-        variant: "destructive",
+        title: 'URL required',
+        description: 'Please paste or type a destination URL',
+        variant: 'destructive',
       });
+      inputRef.current?.focus();
       return;
     }
 
-    if (useCustomCode && !canUseCustomCode) {
+    if (useCustomCode && !isProOrPremium) {
       toast({
-        title: "Upgrade Required",
-        description: "Custom codes require Pro or Premium plan",
-        variant: "destructive",
+        title: 'Pro feature',
+        description: 'Custom short codes require a Pro or Premium plan',
+        variant: 'destructive',
       });
       return;
     }
 
     setIsLoading(true);
-    
+
     try {
-      const data = {
-        originalUrl: url.trim(),
-        ...(useCustomCode && customCode.trim() && { customCode: customCode.trim() }),
-        ...(title.trim() && { title: title.trim() }),
-        ...(useExpiration && expirationDate && { expiresAt: new Date(expirationDate).toISOString() }),
+      const payload: {
+        originalUrl: string;
+        customCode?: string;
+        title?: string;
+        expiresAt?: string;
+      } = {
+        originalUrl: trimmedUrl,
+        ...(useCustomCode && customCode.trim() ? { customCode: customCode.trim() } : {}),
+        ...(title.trim() ? { title: title.trim() } : {}),
+        ...(useExpiration && expirationDate ? { expiresAt: new Date(expirationDate).toISOString() } : {}),
       };
 
-      const result = await linksApi.create(data);
-      setResult(result);
-      
-      // Reset form
+      const result = await linksApi.create(payload);
+      setCreatedLink(result);
+      onLinkCreated?.(result);
+
+      // Reset input fields
       setUrl('');
       setCustomCode('');
       setTitle('');
       setUseCustomCode(false);
       setUseExpiration(false);
       setExpirationDate('');
-      
-      toast({
-        title: "Success!",
-        description: "Your link has been shortened",
-      });
+      setShowOptions(false);
 
+      toast({
+        title: 'Link created',
+        description: `classic.et/${result.shortCode}`,
+      });
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to shorten URL",
-        variant: "destructive",
+        title: 'Error creating link',
+        description: error.message || 'Could not shorten link. Please verify URL format.',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const copyToClipboard = async (text: string) => {
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8787';
+  const getFullShortUrl = (code: string) => `${baseUrl}/${code}`;
+  const getDisplayShortUrl = (code: string) => `classic.et/${code}`;
+
+  const handleCopy = async (code: string) => {
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(getFullShortUrl(code));
+      setCopied(true);
       toast({
-        title: "Copied!",
-        description: "Short URL copied to clipboard",
+        title: 'Copied to clipboard',
+        description: getDisplayShortUrl(code),
       });
-    } catch (error) {
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
       toast({
-        title: "Error",
-        description: "Failed to copy to clipboard",
-        variant: "destructive",
+        title: 'Copy failed',
+        description: 'Unable to access clipboard',
+        variant: 'destructive',
       });
     }
   };
 
-  const getShortUrl = (shortCode: string) => {
-    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8787';
-    return `${baseUrl}/${shortCode}`;
-  };
+  const qrImageUrl = createdLink 
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=260x260&format=svg&data=${encodeURIComponent(getFullShortUrl(createdLink.shortCode))}`
+    : '';
 
   return (
-    <div className="space-y-6">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="url">Long URL *</Label>
-          <Input
-            id="url"
-            type="url"
-            placeholder="https://example.com/very/long/url"
-            value={url}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUrl(e.target.value)}
-            disabled={isLoading}
-            required
-          />
-        </div>
+    <div className="space-y-3">
+      {/* Command Bar Container */}
+      <div className="rounded-md border border-[#27282b] bg-[#141517] p-3 sm:p-4 transition-colors">
+        <form onSubmit={handleSubmit} className="space-y-3">
+          {/* Main Command Input Row */}
+          <div className="flex flex-col sm:flex-row items-stretch gap-2">
+            <div className="relative flex-1">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-[#8c8d91]">
+                <Link2 className="h-4 w-4" />
+              </div>
+              <Input
+                ref={inputRef}
+                type="url"
+                required
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="Paste a long destination URL (e.g., https://github.com/owner/repo)..."
+                disabled={isLoading}
+                className="h-11 sm:h-12 pl-9 pr-3 text-base sm:text-sm bg-[#1c1d20] border-[#27282b] text-[#ededed] placeholder:text-[#8c8d91] focus-visible:ring-1 focus-visible:ring-[#56c2ff] rounded-md"
+              />
+            </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="title">Title (Optional)</Label>
-          <Input
-            id="title"
-            placeholder="Custom title for your link"
-            value={title}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
-            disabled={isLoading}
-          />
-        </div>
-        
-        {/* Custom Code Section */}
-        <div className="space-y-3">
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="custom-code"
-              checked={useCustomCode}
-              onCheckedChange={setUseCustomCode}
-              disabled={!canUseCustomCode || isLoading}
-            />
-            <Label htmlFor="custom-code" className="flex items-center space-x-2">
-              <span>Use custom short code</span>
-              {!canUseCustomCode && (
-                <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
-                  Pro/Premium only
-                </span>
-              )}
-            </Label>
+            <div className="flex items-center gap-2">
+              {/* Toggle Options Button */}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowOptions(!showOptions)}
+                className={`min-h-[44px] sm:h-12 px-3 border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#8c8d91] hover:text-[#ededed] ${showOptions ? 'border-[#56c2ff] text-[#ededed]' : ''}`}
+                title="Configure custom slug & options"
+              >
+                <SlidersHorizontal className="h-4 w-4 mr-1.5" />
+                <span className="text-xs font-mono">Slug</span>
+              </Button>
+
+              {/* Primary CTA Button */}
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="min-h-[44px] sm:h-12 px-5 bg-[#ff6363] hover:bg-[#ff4d4d] text-white font-medium text-xs sm:text-sm flex items-center gap-2 transition-transform active:scale-[0.98] rounded-md"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <span>Create Link</span>
+                    <Kbd className="bg-black/30 border-white/20 text-white text-[10px] px-1 py-0.5">↵</Kbd>
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
-          
-          {useCustomCode && (
-            <Input
-              placeholder="my-custom-code"
-              value={customCode}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCustomCode(e.target.value)}
-              disabled={isLoading}
-              maxLength={20}
-            />
-          )}
-        </div>
 
-        {/* Expiration Section */}
-        <div className="space-y-3">
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="expiration"
-              checked={useExpiration}
-              onCheckedChange={setUseExpiration}
-              disabled={!canUseExpiration || isLoading}
-            />
-            <Label htmlFor="expiration" className="flex items-center space-x-2">
-              <Calendar className="h-4 w-4" />
-              <span>Set expiration date</span>
-              {!canUseExpiration && (
-                <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
-                  Pro/Premium only
-                </span>
-              )}
-            </Label>
-          </div>
-          
-          {useExpiration && (
-            <Input
-              type="datetime-local"
-              value={expirationDate}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setExpirationDate(e.target.value)}
-              disabled={isLoading}
-              min={new Date().toISOString().slice(0, 16)}
-            />
-          )}
-        </div>
-
-        <Button type="submit" disabled={isLoading} className="w-full">
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Shorten URL
-        </Button>
-      </form>
-
-      {result && (
-        <Card className="border-green-200 bg-green-50">
-          <CardContent className="pt-6">
-            <div className="space-y-4">
-              <div>
-                <Label className="text-sm font-medium">Short URL</Label>
-                <div className="flex items-center space-x-2 mt-1">
+          {/* Clean Expandable Slug & Custom Options */}
+          {showOptions && (
+            <div className="pt-2 border-t border-[#27282b] grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in-50 duration-150">
+              {/* Custom Slug */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="custom-slug" className="text-xs font-mono text-[#8c8d91]">
+                    Custom Slug
+                  </Label>
+                  {!isProOrPremium && (
+                    <span className="text-[10px] font-mono text-[#f59e0b] bg-[#f59e0b]/10 border border-[#f59e0b]/20 px-1.5 py-0.2 rounded">
+                      Pro / Premium
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center rounded-md border border-[#27282b] bg-[#1c1d20] overflow-hidden focus-within:ring-1 focus-within:ring-[#56c2ff]">
+                  <span className="px-2.5 py-2 text-xs font-mono text-[#8c8d91] bg-[#141517] border-r border-[#27282b] select-none">
+                    classic.et/
+                  </span>
                   <Input
-                    value={getShortUrl(result.shortCode)}
-                    readOnly
-                    className="bg-white"
+                    id="custom-slug"
+                    type="text"
+                    value={customCode}
+                    onChange={(e) => {
+                      setCustomCode(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ''));
+                      setUseCustomCode(true);
+                    }}
+                    placeholder="custom-slug"
+                    maxLength={32}
+                    disabled={isLoading || !isProOrPremium}
+                    className="border-0 bg-transparent text-xs font-mono text-[#ededed] h-9 focus-visible:ring-0 px-2"
                   />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => copyToClipboard(getShortUrl(result.shortCode))}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => window.open(getShortUrl(result.shortCode), '_blank')}
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
-              
-              <div className="text-sm text-muted-foreground space-y-1">
-                <p><strong>Original:</strong> {result.originalUrl}</p>
-                {result.title && <p><strong>Title:</strong> {result.title}</p>}
-                <p><strong>Created:</strong> {new Date(result.createdAt).toLocaleString()}</p>
+
+              {/* Title (Optional) */}
+              <div className="space-y-1.5">
+                <Label htmlFor="link-title" className="text-xs font-mono text-[#8c8d91]">
+                  Title (Optional)
+                </Label>
+                <Input
+                  id="link-title"
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Campaign or referral label"
+                  disabled={isLoading}
+                  className="bg-[#1c1d20] border-[#27282b] text-xs text-[#ededed] h-9 focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                />
+              </div>
+
+              {/* Expiration Date (Pro/Premium) */}
+              <div className="space-y-1.5 sm:col-span-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="use-expiration"
+                      checked={useExpiration}
+                      onCheckedChange={setUseExpiration}
+                      disabled={isLoading || !isProOrPremium}
+                    />
+                    <Label htmlFor="use-expiration" className="text-xs font-mono text-[#8c8d91] cursor-pointer flex items-center gap-1.5">
+                      <Calendar className="h-3.5 w-3.5" />
+                      <span>Set link expiration</span>
+                    </Label>
+                  </div>
+                  {!isProOrPremium && (
+                    <span className="text-[10px] font-mono text-[#f59e0b]">Pro required</span>
+                  )}
+                </div>
+
+                {useExpiration && isProOrPremium && (
+                  <Input
+                    type="datetime-local"
+                    value={expirationDate}
+                    onChange={(e) => setExpirationDate(e.target.value)}
+                    min={new Date().toISOString().slice(0, 16)}
+                    disabled={isLoading}
+                    className="bg-[#1c1d20] border-[#27282b] text-xs text-[#ededed] h-9 focus-visible:ring-1 focus-visible:ring-[#56c2ff] max-w-xs mt-1"
+                  />
+                )}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          )}
+        </form>
+      </div>
+
+      {/* Inline Feedback on Creation (Zero Layout Shift, Instant Feedback) */}
+      {createdLink && (
+        <div className="rounded-md border border-[#5fc992]/40 bg-[#141517] p-3 sm:p-4 animate-in fade-in slide-in-from-top-1 duration-200">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded bg-[#5fc992]/10 text-[#5fc992]">
+                <Check className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-[#5fc992]">Link Ready</span>
+                  <span className="text-[#8c8d91]">•</span>
+                  <span className="font-mono text-xs font-semibold text-[#ededed] truncate">
+                    {getDisplayShortUrl(createdLink.shortCode)}
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#8c8d91] truncate font-sans">
+                  {createdLink.originalUrl}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 w-full sm:w-auto justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleCopy(createdLink.shortCode)}
+                className="min-h-[44px] px-3 border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#ededed] text-xs font-mono flex items-center gap-1.5"
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-3.5 w-3.5 text-[#5fc992]" />
+                    <span className="text-[#5fc992]">Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5 text-[#8c8d91]" />
+                    <span>Copy</span>
+                  </>
+                )}
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowQR(true)}
+                className="min-h-[44px] px-3 border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#8c8d91] hover:text-[#ededed] text-xs"
+                title="View QR Code"
+              >
+                <QrCode className="h-4 w-4" />
+              </Button>
+
+              <a
+                href={getFullShortUrl(createdLink.shortCode)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="min-h-[44px] px-3 border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#8c8d91] hover:text-[#ededed] text-xs"
+                  title="Open in new tab"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </Button>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* QR Code Modal for newly created link */}
+      {createdLink && (
+        <Dialog open={showQR} onOpenChange={setShowQR}>
+          <DialogContent className="border border-[#27282b] bg-[#141517] text-[#ededed] max-w-sm p-6 overscroll-contain">
+            <DialogHeader className="text-center sm:text-center">
+              <DialogTitle className="text-base font-semibold text-[#ededed]">QR Code</DialogTitle>
+              <DialogDescription className="font-mono text-xs text-[#8c8d91] truncate">
+                {getDisplayShortUrl(createdLink.shortCode)}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="flex flex-col items-center justify-center py-2">
+              <div className="p-3 bg-white rounded-md border border-[#27282b]">
+                <img
+                  src={qrImageUrl}
+                  alt={`QR code for ${createdLink.shortCode}`}
+                  className="h-48 w-48 object-contain"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => handleCopy(createdLink.shortCode)}
+                className="w-full min-h-[44px] border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#ededed] text-xs"
+              >
+                <Copy className="mr-2 h-4 w-4 text-[#8c8d91]" />
+                Copy Short URL
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

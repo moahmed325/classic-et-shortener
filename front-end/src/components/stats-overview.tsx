@@ -1,50 +1,52 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Link, MousePointer, Calendar, TrendingUp } from 'lucide-react';
+import { Link2, MousePointerClick, Activity, ShieldCheck } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/contexts/auth-context';
 import { linksApi } from '@/lib/api';
 
 interface Stats {
   totalLinks: number;
   totalClicks: number;
-  linksThisMonth: number;
-  avgClicksPerLink: number;
+  activity30d: number;
 }
 
-export function StatsOverview() {
+interface StatsOverviewProps {
+  refreshTrigger?: number;
+}
+
+export function StatsOverview({ refreshTrigger = 0 }: StatsOverviewProps) {
   const [stats, setStats] = useState<Stats>({
     totalLinks: 0,
     totalClicks: 0,
-    linksThisMonth: 0,
-    avgClicksPerLink: 0,
+    activity30d: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [refreshTrigger]);
 
   const fetchStats = async () => {
     try {
       const { links } = await linksApi.getAll({ limit: 1000 });
-      
       const totalClicks = links.reduce((sum, link) => sum + link.clickCount, 0);
-      const thisMonth = new Date();
-      thisMonth.setDate(1);
-      thisMonth.setHours(0, 0, 0, 0);
-      
-      const linksThisMonth = links.filter(link => 
-        new Date(link.createdAt) >= thisMonth
-      ).length;
 
-      const avgClicksPerLink = links.length > 0 ? Math.round(totalClicks / links.length) : 0;
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      // Links created or active in the past 30 days
+      const linksLast30d = links.filter(
+        (l) => new Date(l.createdAt) >= thirtyDaysAgo
+      ).length;
 
       setStats({
         totalLinks: links.length,
         totalClicks,
-        linksThisMonth,
-        avgClicksPerLink,
+        activity30d: linksLast30d,
       });
     } catch (error) {
       console.error('Failed to fetch stats:', error);
@@ -53,76 +55,99 @@ export function StatsOverview() {
     }
   };
 
+  const currentTier = user?.tier || 'free';
+  const tierDisplay = currentTier.toUpperCase();
+
+  const getTierColor = (tier: string) => {
+    switch (tier.toLowerCase()) {
+      case 'premium':
+        return 'text-[#ff6363] border-[#ff6363]/30 bg-[#ff6363]/10';
+      case 'pro':
+        return 'text-[#56c2ff] border-[#56c2ff]/30 bg-[#56c2ff]/10';
+      default:
+        return 'text-[#8c8d91] border-[#27282b] bg-[#1c1d20]';
+    }
+  };
+
   if (isLoading) {
     return (
-      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {[...Array(4)].map((_, i) => (
-          <Card key={i}>
-            <CardContent className="p-3 sm:p-4 lg:p-6">
-              <div className="animate-pulse">
-                <div className="h-3 sm:h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-                <div className="h-6 sm:h-8 bg-gray-200 rounded w-1/3"></div>
-              </div>
-            </CardContent>
-          </Card>
+          <div
+            key={i}
+            className="rounded-md border border-[#27282b] bg-[#141517] p-3 sm:p-4 animate-pulse space-y-2"
+          >
+            <div className="h-3 w-16 bg-[#1c1d20] rounded" />
+            <div className="h-6 w-24 bg-[#1c1d20] rounded" />
+          </div>
         ))}
       </div>
     );
   }
 
-  return (
-    <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-xs sm:text-sm font-medium">Total Links</CardTitle>
-          <Link className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-lg sm:text-xl lg:text-2xl font-bold">{stats.totalLinks}</div>
-          <p className="text-xs text-muted-foreground">
-            All time
-          </p>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-xs sm:text-sm font-medium">Total Clicks</CardTitle>
-          <MousePointer className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-lg sm:text-xl lg:text-2xl font-bold">{stats.totalClicks}</div>
-          <p className="text-xs text-muted-foreground">
-            All time
-          </p>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-xs sm:text-sm font-medium">This Month</CardTitle>
-          <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-lg sm:text-xl lg:text-2xl font-bold">{stats.linksThisMonth}</div>
-          <p className="text-xs text-muted-foreground">
-            New links created
-          </p>
-        </CardContent>
-      </Card>
+  const items = [
+    {
+      label: 'Total Links',
+      value: stats.totalLinks.toLocaleString(),
+      subtext: 'Shortened URLs',
+      icon: Link2,
+      accent: 'text-[#56c2ff]',
+    },
+    {
+      label: 'Total Clicks',
+      value: stats.totalClicks.toLocaleString(),
+      subtext: 'Across all links',
+      icon: MousePointerClick,
+      accent: 'text-[#5fc992]',
+    },
+    {
+      label: '30d Activity',
+      value: `${stats.activity30d} new`,
+      subtext: 'Past 30 days',
+      icon: Activity,
+      accent: 'text-[#f59e0b]',
+    },
+    {
+      label: 'Current Tier',
+      value: tierDisplay,
+      subtext: currentTier === 'premium' ? 'Unlimited access' : currentTier === 'pro' ? 'Pro limits' : 'Free tier',
+      icon: ShieldCheck,
+      isTier: true,
+    },
+  ];
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-xs sm:text-sm font-medium">Avg. Clicks</CardTitle>
-          <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-lg sm:text-xl lg:text-2xl font-bold">{stats.avgClicksPerLink}</div>
-          <p className="text-xs text-muted-foreground">
-            Per link
-          </p>
-        </CardContent>
-      </Card>
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      {items.map((item, idx) => {
+        const Icon = item.icon;
+        return (
+          <div
+            key={idx}
+            className="rounded-md border border-[#27282b] bg-[#141517] p-3 sm:p-4 transition-colors hover:border-[#383a3f]"
+          >
+            <div className="flex items-center justify-between text-[#8c8d91] mb-1.5">
+              <span className="text-xs font-mono tracking-tight">{item.label}</span>
+              <Icon className="h-3.5 w-3.5 text-[#8c8d91]" />
+            </div>
+
+            <div className="flex items-baseline gap-2">
+              {item.isTier ? (
+                <span className={`text-base sm:text-lg font-mono font-semibold tracking-wide px-2 py-0.5 rounded border ${getTierColor(currentTier)}`}>
+                  {item.value}
+                </span>
+              ) : (
+                <div className="text-lg sm:text-2xl font-semibold font-mono tabular-nums text-[#ededed]">
+                  {item.value}
+                </div>
+              )}
+            </div>
+
+            <p className="text-[11px] text-[#8c8d91] font-sans mt-1 truncate">
+              {item.subtext}
+            </p>
+          </div>
+        );
+      })}
     </div>
   );
 }

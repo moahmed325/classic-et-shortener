@@ -1,208 +1,124 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { ArrowRight, Link2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Copy, ExternalLink, BarChart3, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { LinkIcon } from "lucide-react";
-import { useToast } from '@/hooks/use-toast';
+import { LinkCard, LinkItem } from '@/components/link-card';
 import { linksApi } from '@/lib/api';
-import { useRouter } from 'next/navigation';
-
-interface Link {
-  id: string;
-  shortCode: string;
-  originalUrl: string;
-  title: string | null;
-  clickCount: number;
-  createdAt: string;
-  isActive: boolean;
-  expiresAt: string | null;
-}
+import { useToast } from '@/hooks/use-toast';
 
 interface RecentLinksProps {
   limit?: number;
+  refreshTrigger?: number;
+  onLinkCreatedClick?: () => void;
 }
 
-export function RecentLinks({ limit = 10 }: RecentLinksProps) {
-  const [links, setLinks] = useState<Link[]>([]);
+export function RecentLinks({ limit = 5, refreshTrigger = 0, onLinkCreatedClick }: RecentLinksProps) {
+  const [links, setLinks] = useState<LinkItem[]>([]);
+  const [totalCount, setTotalCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const router = useRouter();
 
   useEffect(() => {
     fetchLinks();
-  }, [limit]);
+  }, [limit, refreshTrigger]);
 
   const fetchLinks = async () => {
     try {
-      const { links } = await linksApi.getAll({ limit });
-      setLinks(links);
+      const response = await linksApi.getAll({ limit });
+      setLinks(response.links);
+      setTotalCount(response.links.length);
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: "Failed to load links",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load recent links',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const getShortUrl = (shortCode: string) => {
-    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8787';
-    return `${baseUrl}/${shortCode}`;
+  const handleUpdate = (updated: LinkItem) => {
+    setLinks((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
   };
 
-  const copyToClipboard = async (shortCode: string) => {
-    try {
-      const shortUrl = getShortUrl(shortCode);
-      await navigator.clipboard.writeText(shortUrl);
-      toast({
-        title: "Copied!",
-        description: "Short URL copied to clipboard",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to copy to clipboard",
-        variant: "destructive",
-      });
-    }
+  const handleDelete = (id: string) => {
+    setLinks((prev) => prev.filter((l) => l.id !== id));
+    setTotalCount((prev) => Math.max(0, prev - 1));
   };
-
-  const handleDelete = async (id: string) => {
-    try {
-      await linksApi.delete(id);
-      setLinks(links.filter(link => link.id !== id));
-      toast({
-        title: "Success",
-        description: "Link deleted successfully",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete link",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const isExpired = (expiresAt: string | null) => {
-    return expiresAt && new Date(expiresAt) < new Date();
-  };
-
-  if (isLoading) {
-    return (
-      <div className="space-y-3 sm:space-y-4">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="p-3 sm:p-4 border rounded-lg animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
-            <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
-            <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (links.length === 0) {
-    return (
-      <div className="text-center py-8 sm:py-12">
-        <LinkIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-2">No links yet</h3>
-        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-          Create your first shortened link above!
-        </p>
-      </div>
-    );
-  }
 
   return (
-    <div className="space-y-3 sm:space-y-4">
-      {links.map((link) => (
-        <div
-          key={link.id}
-          className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+    <div className="space-y-3">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-semibold text-[#ededed] font-sans">Recent Links</h2>
+          {totalCount > 0 && (
+            <span className="rounded-full bg-[#1c1d20] border border-[#27282b] px-2 py-0.5 text-[11px] font-mono text-[#8c8d91]">
+              {totalCount}
+            </span>
+          )}
+        </div>
+
+        <Link
+          href="/dashboard/links"
+          className="group inline-flex items-center gap-1 text-xs font-mono text-[#8c8d91] hover:text-[#ededed] transition-colors"
         >
-          <div className="flex-1 min-w-0 mb-3 sm:mb-0">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 mb-1 sm:mb-2">
-              <h3 className="font-medium truncate text-sm sm:text-base">
-                {link.title || 'Untitled'}
-              </h3>
-              <div className="flex items-center space-x-1 mt-1 sm:mt-0">
-                {!link.isActive && (
-                  <Badge variant="secondary" className="text-xs">Inactive</Badge>
-                )}
-                {isExpired(link.expiresAt) && (
-                  <Badge variant="destructive" className="text-xs">Expired</Badge>
-                )}
-              </div>
+          <span>View all</span>
+          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+        </Link>
+      </div>
+
+      {/* Loading Skeletons */}
+      {isLoading ? (
+        <div className="space-y-2.5">
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className="rounded-md border border-[#27282b] bg-[#141517] p-4 animate-pulse space-y-2"
+            >
+              <div className="h-4 bg-[#1c1d20] rounded w-1/3" />
+              <div className="h-3 bg-[#1c1d20] rounded w-2/3" />
             </div>
-            <p className="text-xs sm:text-sm text-muted-foreground truncate mb-1 sm:mb-2">
-              {link.originalUrl}
-            </p>
-            <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-4 text-xs text-muted-foreground">
-              <span className="font-mono break-all sm:break-normal">{getShortUrl(link.shortCode)}</span>
-              <span>{link.clickCount} clicks</span>
-              <span>{new Date(link.createdAt).toLocaleDateString()}</span>
-            </div>
+          ))}
+        </div>
+      ) : links.length === 0 ? (
+        /* Disciplined Empty State (No cartoonish illustrations) */
+        <div className="rounded-md border border-[#27282b] bg-[#141517] p-8 text-center">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded border border-[#27282b] bg-[#1c1d20] text-[#8c8d91] mb-3">
+            <Link2 className="h-5 w-5" />
           </div>
-          
-          <div className="flex items-center space-x-2 sm:space-x-3">
+          <h3 className="text-sm font-semibold text-[#ededed] font-sans">No links created yet</h3>
+          <p className="mt-1 text-xs text-[#8c8d91] max-w-sm mx-auto">
+            Paste any long URL into the command shortener above to generate your first tracked short link.
+          </p>
+          <div className="mt-4">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => copyToClipboard(link.shortCode)}
-              className="h-8 px-2 sm:px-3 text-xs"
+              onClick={onLinkCreatedClick}
+              className="min-h-[44px] border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#ededed] text-xs font-mono"
             >
-              <Copy className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-              <span className="hidden sm:inline">Copy</span>
+              <Plus className="mr-1.5 h-3.5 w-3.5 text-[#ff6363]" />
+              Create your first short link
             </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.open(getShortUrl(link.shortCode), '_blank')}
-              className="h-8 px-2 sm:px-3 text-xs"
-            >
-              <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-              <span className="hidden sm:inline">Visit</span>
-            </Button>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-                  <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40">
-                <DropdownMenuItem onClick={() => router.push(`/dashboard/links/${link.id}`)}>
-                  <BarChart3 className="mr-2 h-4 w-4" />
-                  <span>Analytics</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push(`/dashboard/links/${link.id}/edit`)}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  <span>Edit</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => handleDelete(link.id)}
-                  className="text-red-600 focus:text-red-600"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  <span>Delete</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </div>
-      ))}
+      ) : (
+        /* Link Cards List */
+        <div className="space-y-2.5">
+          {links.map((link) => (
+            <LinkCard
+              key={link.id}
+              link={link}
+              onUpdate={handleUpdate}
+              onDelete={handleDelete}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

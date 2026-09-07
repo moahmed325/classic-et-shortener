@@ -196,6 +196,7 @@ export const linksApi = {
 
   update: async (id: string, data: {
     title?: string;
+    originalUrl?: string;
     isActive?: boolean;
     expiresAt?: string | null;
     shortCode?: string;
