@@ -183,10 +183,10 @@ export default function SettingsPage() {
     <div className="space-y-6 sm:space-y-8">
       {/* Page Header */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-text-primary font-sans">
+        <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100 font-sans">
           Account Settings
         </h1>
-        <p className="text-xs sm:text-sm text-text-muted font-sans mt-0.5">
+        <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 font-sans mt-0.5">
           Configure personal credentials, security keys, and developer access.
         </p>
       </div>
@@ -194,19 +194,19 @@ export default function SettingsPage() {
       {/* Plan Status Banner */}
       <div className="rounded-md border border-border-subtle bg-surface-1 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded border border-border-subtle bg-surface-2 text-[#ff6363]">
+          <div className="flex h-9 w-9 items-center justify-center rounded border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 text-[#ff6363]">
             <Shield className="h-4 w-4" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-text-primary font-sans">
+              <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 font-sans">
                 Subscription Plan:
               </span>
-              <Kbd className="bg-surface-2 border-border-subtle text-[#5fc992] text-xs font-mono uppercase">
+              <Kbd className="bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-[#5fc992] text-xs font-mono uppercase font-bold">
                 {currentTier}
               </Kbd>
             </div>
-            <p className="text-xs text-text-muted font-sans mt-0.5">
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 font-sans mt-0.5">
               {currentTier === 'premium'
                 ? 'Unlimited redirects, custom domains, and raw telemetry export.'
                 : currentTier === 'pro'
@@ -219,10 +219,10 @@ export default function SettingsPage() {
         <Link href="/dashboard/subscription">
           <Button
             variant="outline"
-            className="w-full sm:w-auto min-h-[44px] border-border-subtle bg-surface-2 hover:bg-surface-2/80 text-text-primary text-xs font-mono"
+            className="w-full sm:w-auto min-h-[44px] border border-border-subtle bg-surface-1 hover:bg-surface-2 text-zinc-900 dark:text-zinc-100 text-xs font-mono font-medium shadow-sm"
           >
             <span>Manage Plan</span>
-            <ArrowUpRight className="ml-1.5 h-3.5 w-3.5 text-text-muted" />
+            <ArrowUpRight className="ml-1.5 h-3.5 w-3.5 text-zinc-600 dark:text-zinc-400" />
           </Button>
         </Link>
       </div>
@@ -232,10 +232,10 @@ export default function SettingsPage() {
         <button
           type="button"
           onClick={() => setActiveTab('profile')}
-          className={`min-h-[44px] px-4 text-xs font-mono rounded-md transition-colors flex items-center gap-2 ${
+          className={`min-h-[40px] px-4 text-xs font-mono rounded-md transition-colors flex items-center gap-2 ${
             activeTab === 'profile'
-              ? 'bg-surface-2 text-text-primary border border-border-subtle'
-              : 'text-text-muted hover:text-text-primary'
+              ? 'bg-surface-1 text-zinc-950 dark:text-zinc-50 border border-border-subtle shadow-sm font-semibold'
+              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-50 hover:bg-surface-2 font-medium'
           }`}
         >
           <User className="h-3.5 w-3.5" />
@@ -245,10 +245,10 @@ export default function SettingsPage() {
         <button
           type="button"
           onClick={() => setActiveTab('security')}
-          className={`min-h-[44px] px-4 text-xs font-mono rounded-md transition-colors flex items-center gap-2 ${
+          className={`min-h-[40px] px-4 text-xs font-mono rounded-md transition-colors flex items-center gap-2 ${
             activeTab === 'security'
-              ? 'bg-surface-2 text-text-primary border border-border-subtle'
-              : 'text-text-muted hover:text-text-primary'
+              ? 'bg-surface-1 text-zinc-950 dark:text-zinc-50 border border-border-subtle shadow-sm font-semibold'
+              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-50 hover:bg-surface-2 font-medium'
           }`}
         >
           <Shield className="h-3.5 w-3.5" />
@@ -258,10 +258,10 @@ export default function SettingsPage() {
         <button
           type="button"
           onClick={() => setActiveTab('api')}
-          className={`min-h-[44px] px-4 text-xs font-mono rounded-md transition-colors flex items-center gap-2 ${
+          className={`min-h-[40px] px-4 text-xs font-mono rounded-md transition-colors flex items-center gap-2 ${
             activeTab === 'api'
-              ? 'bg-surface-2 text-text-primary border border-border-subtle'
-              : 'text-text-muted hover:text-text-primary'
+              ? 'bg-surface-1 text-zinc-950 dark:text-zinc-50 border border-border-subtle shadow-sm font-semibold'
+              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-50 hover:bg-surface-2 font-medium'
           }`}
         >
           <Key className="h-3.5 w-3.5" />
@@ -273,17 +273,17 @@ export default function SettingsPage() {
       {activeTab === 'profile' && (
         <div className="rounded-md border border-border-subtle bg-surface-1 p-5 sm:p-6 space-y-5 animate-in fade-in-50 duration-150">
           <div>
-            <h3 className="text-sm font-semibold text-text-primary font-sans">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 font-sans">
               Personal Information
             </h3>
-            <p className="text-xs text-text-muted font-mono mt-0.5">
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 font-mono mt-0.5">
               Public account identifier and contact details
             </p>
           </div>
 
           <form onSubmit={handleProfileSave} className="space-y-4 max-w-xl">
             <div className="space-y-1.5">
-              <Label htmlFor="profile-name" className="text-xs font-mono text-text-muted">
+              <Label htmlFor="profile-name" className="text-xs font-mono text-zinc-700 dark:text-zinc-300 font-medium">
                 Display Name
               </Label>
               <Input
@@ -292,12 +292,12 @@ export default function SettingsPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Mohammed Ahmed"
-                className="min-h-[44px] bg-surface-2 border-border-subtle text-base sm:text-sm text-text-primary placeholder:text-text-muted focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                className="min-h-[44px] bg-surface-1 border border-border-subtle text-base sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus-visible:ring-1 focus-visible:ring-primary"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="profile-email" className="text-xs font-mono text-text-muted">
+              <Label htmlFor="profile-email" className="text-xs font-mono text-zinc-700 dark:text-zinc-300 font-medium">
                 Email Address
               </Label>
               <Input
@@ -307,12 +307,12 @@ export default function SettingsPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="user@example.com"
-                className="min-h-[44px] bg-surface-2 border-border-subtle text-base sm:text-sm text-text-primary placeholder:text-text-muted focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                className="min-h-[44px] bg-surface-1 border border-border-subtle text-base sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus-visible:ring-1 focus-visible:ring-primary"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="profile-bio" className="text-xs font-mono text-text-muted">
+              <Label htmlFor="profile-bio" className="text-xs font-mono text-zinc-700 dark:text-zinc-300 font-medium">
                 Bio / Team Note
               </Label>
               <Textarea
@@ -321,14 +321,14 @@ export default function SettingsPage() {
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 placeholder="Operational notes or developer bio..."
-                className="bg-surface-2 border-border-subtle text-base sm:text-sm text-text-primary placeholder:text-text-muted focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                className="bg-surface-1 border border-border-subtle text-base sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus-visible:ring-1 focus-visible:ring-primary"
               />
             </div>
 
             <Button
               type="submit"
               disabled={isProfileSaving}
-              className="min-h-[44px] bg-[#ff6363] hover:bg-[#ff4d4d] text-white text-xs font-mono px-5"
+              className="min-h-[44px] bg-[#ff6363] hover:bg-[#ff4d4d] text-white text-xs font-mono px-5 shadow-sm"
             >
               {isProfileSaving ? (
                 <>
@@ -350,17 +350,17 @@ export default function SettingsPage() {
       {activeTab === 'security' && (
         <div className="rounded-md border border-border-subtle bg-surface-1 p-5 sm:p-6 space-y-5 animate-in fade-in-50 duration-150">
           <div>
-            <h3 className="text-sm font-semibold text-text-primary font-sans">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 font-sans">
               Change Password
             </h3>
-            <p className="text-xs text-text-muted font-mono mt-0.5">
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 font-mono mt-0.5">
               Must be at least 6 characters and differ from existing password
             </p>
           </div>
 
           <form onSubmit={handlePasswordSave} className="space-y-4 max-w-xl">
             <div className="space-y-1.5">
-              <Label htmlFor="curr-pass" className="text-xs font-mono text-text-muted">
+              <Label htmlFor="curr-pass" className="text-xs font-mono text-zinc-700 dark:text-zinc-300 font-medium">
                 Current Password
               </Label>
               <div className="relative">
@@ -371,12 +371,12 @@ export default function SettingsPage() {
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="min-h-[44px] pr-10 bg-surface-2 border-border-subtle text-base sm:text-sm text-text-primary placeholder:text-text-muted focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                  className="min-h-[44px] pr-10 bg-surface-1 border border-border-subtle text-base sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus-visible:ring-1 focus-visible:ring-primary"
                 />
                 <button
                   type="button"
                   onClick={() => setShowCurrentPass(!showCurrentPass)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                 >
                   {showCurrentPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -384,7 +384,7 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="new-pass" className="text-xs font-mono text-text-muted">
+              <Label htmlFor="new-pass" className="text-xs font-mono text-zinc-700 dark:text-zinc-300 font-medium">
                 New Password
               </Label>
               <div className="relative">
@@ -395,12 +395,12 @@ export default function SettingsPage() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="min-h-[44px] pr-10 bg-surface-2 border-border-subtle text-base sm:text-sm text-text-primary placeholder:text-text-muted focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                  className="min-h-[44px] pr-10 bg-surface-1 border border-border-subtle text-base sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus-visible:ring-1 focus-visible:ring-primary"
                 />
                 <button
                   type="button"
                   onClick={() => setShowNewPass(!showNewPass)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                 >
                   {showNewPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -408,7 +408,7 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="confirm-pass" className="text-xs font-mono text-text-muted">
+              <Label htmlFor="confirm-pass" className="text-xs font-mono text-zinc-700 dark:text-zinc-300 font-medium">
                 Confirm New Password
               </Label>
               <Input
@@ -418,14 +418,14 @@ export default function SettingsPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className="min-h-[44px] bg-surface-2 border-border-subtle text-base sm:text-sm text-text-primary placeholder:text-text-muted focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                className="min-h-[44px] bg-surface-1 border border-border-subtle text-base sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus-visible:ring-1 focus-visible:ring-primary"
               />
             </div>
 
             <Button
               type="submit"
               disabled={isPasswordSaving}
-              className="min-h-[44px] bg-[#ff6363] hover:bg-[#ff4d4d] text-white text-xs font-mono px-5"
+              className="min-h-[44px] bg-[#ff6363] hover:bg-[#ff4d4d] text-white text-xs font-mono px-5 shadow-sm"
             >
               {isPasswordSaving ? (
                 <>
@@ -444,16 +444,16 @@ export default function SettingsPage() {
       {activeTab === 'api' && (
         <div className="rounded-md border border-border-subtle bg-surface-1 p-5 sm:p-6 space-y-5 animate-in fade-in-50 duration-150">
           <div>
-            <h3 className="text-sm font-semibold text-text-primary font-sans">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 font-sans">
               API Credentials
             </h3>
-            <p className="text-xs text-text-muted font-mono mt-0.5">
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 font-mono mt-0.5">
               Use your API secret key to programmatically generate short links
             </p>
           </div>
 
           <div className="space-y-3 max-w-xl">
-            <Label className="text-xs font-mono text-text-muted">
+            <Label className="text-xs font-mono text-zinc-700 dark:text-zinc-300 font-medium">
               Secret API Key
             </Label>
             <div className="flex items-center gap-2">
@@ -462,12 +462,12 @@ export default function SettingsPage() {
                   type={isApiKeyRevealed ? 'text' : 'password'}
                   readOnly
                   value={apiKey}
-                  className="min-h-[44px] bg-surface-2 border-border-subtle font-mono text-xs text-text-primary pr-10 select-all"
+                  className="min-h-[44px] bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 font-mono text-xs text-zinc-900 dark:text-zinc-100 pr-10 select-all"
                 />
                 <button
                   type="button"
                   onClick={() => setIsApiKeyRevealed(!isApiKeyRevealed)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                 >
                   {isApiKeyRevealed ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -477,16 +477,16 @@ export default function SettingsPage() {
                 type="button"
                 variant="outline"
                 onClick={copyApiKey}
-                className="min-h-[44px] px-3 border-border-subtle bg-surface-2 hover:bg-surface-2/80 text-text-primary text-xs font-mono flex items-center gap-1.5"
+                className="min-h-[44px] px-3 border border-border-subtle bg-surface-1 hover:bg-surface-2 text-zinc-900 dark:text-zinc-100 text-xs font-mono font-medium flex items-center gap-1.5 shadow-sm"
               >
                 {isApiKeyCopied ? (
                   <>
-                    <Check className="h-3.5 w-3.5 text-[#5fc992]" />
-                    <span className="text-[#5fc992]">Copied</span>
+                    <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-[#5fc992]" />
+                    <span className="text-emerald-600 dark:text-[#5fc992] font-semibold">Copied</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="h-3.5 w-3.5 text-text-muted" />
+                    <Copy className="h-3.5 w-3.5 text-zinc-600 dark:text-zinc-400" />
                     <span>Copy</span>
                   </>
                 )}
@@ -499,7 +499,7 @@ export default function SettingsPage() {
                 variant="outline"
                 disabled={isGeneratingKey}
                 onClick={handleGenerateApiKey}
-                className="min-h-[44px] border-border-subtle bg-surface-1 hover:bg-surface-2 text-text-muted hover:text-text-primary text-xs font-mono"
+                className="min-h-[44px] border border-border-subtle bg-surface-1 hover:bg-surface-2 text-zinc-900 dark:text-zinc-100 text-xs font-mono font-medium shadow-sm"
               >
                 {isGeneratingKey ? (
                   <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />

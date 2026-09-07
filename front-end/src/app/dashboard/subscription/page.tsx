@@ -187,23 +187,23 @@ export default function SubscriptionPage() {
       {/* Header & Cycle Switch */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-text-primary font-sans">
+          <h1 className="text-xl sm:text-2xl font-bold text-zinc-950 dark:text-zinc-50 font-sans">
             Subscription Plans
           </h1>
-          <p className="text-xs sm:text-sm text-text-muted font-sans mt-0.5">
+          <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 font-sans mt-0.5">
             Transparent, quota-based tiers for creators, developers, and growing teams.
           </p>
         </div>
 
         {/* Monthly / Yearly Switch */}
-        <div className="inline-flex items-center rounded-md border border-border-subtle bg-surface-1 p-1 gap-1">
+        <div className="inline-flex items-center bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg border border-zinc-200 dark:border-zinc-700 gap-1">
           <button
             type="button"
             onClick={() => setBillingCycle('monthly')}
-            className={`min-h-[34px] px-3 text-xs font-mono rounded transition-colors ${
+            className={`min-h-[34px] px-3.5 text-xs font-mono rounded-md transition-all ${
               billingCycle === 'monthly'
-                ? 'bg-surface-2 text-text-primary border border-border-subtle'
-                : 'text-text-muted hover:text-text-primary'
+                ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-sm font-semibold'
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium'
             }`}
           >
             Monthly
@@ -211,14 +211,14 @@ export default function SubscriptionPage() {
           <button
             type="button"
             onClick={() => setBillingCycle('yearly')}
-            className={`min-h-[34px] px-3 text-xs font-mono rounded transition-colors flex items-center gap-1.5 ${
+            className={`min-h-[34px] px-3.5 text-xs font-mono rounded-md transition-all flex items-center gap-1.5 ${
               billingCycle === 'yearly'
-                ? 'bg-surface-2 text-text-primary border border-border-subtle'
-                : 'text-text-muted hover:text-text-primary'
+                ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-sm font-semibold'
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-medium'
             }`}
           >
             <span>Annual</span>
-            <span className="text-[10px] text-[#5fc992] bg-[#5fc992]/10 px-1 py-0.2 rounded border border-[#5fc992]/20">
+            <span className="text-[10px] text-emerald-700 dark:text-[#5fc992] bg-emerald-50 dark:bg-[#5fc992]/10 px-1.5 py-0.5 rounded font-mono font-medium border border-emerald-200 dark:border-[#5fc992]/20">
               Save 17%
             </span>
           </button>
@@ -236,27 +236,27 @@ export default function SubscriptionPage() {
           return (
             <div
               key={plan.id || plan.tier}
-              className={`relative rounded-md border p-5 sm:p-6 flex flex-col justify-between transition-colors bg-surface-1 ${
+              className={`relative rounded-lg border p-5 sm:p-6 flex flex-col justify-between transition-all bg-surface-1 ${
                 isCurrent
-                  ? 'border-[#5fc992]/50'
+                  ? 'border-emerald-500/60 ring-1 ring-emerald-500/20 shadow-sm'
                   : isPremium
-                  ? 'border-[#ff6363]/40'
+                  ? 'border-zinc-900 dark:border-zinc-100 shadow-sm ring-1 ring-zinc-900/10 dark:ring-zinc-100/10'
                   : 'border-border-subtle hover:border-border-strong'
               }`}
             >
               <div>
                 {/* Header Row: Tier + Current Badge */}
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-base font-semibold text-text-primary font-sans">
+                  <h3 className="text-base font-bold text-zinc-950 dark:text-zinc-50 font-sans">
                     {plan.name}
                   </h3>
 
                   {isCurrent ? (
-                    <Kbd className="bg-surface-2 border-[#5fc992]/40 text-[#5fc992] text-[10px] uppercase font-mono px-2 py-0.5">
+                    <Kbd className="bg-emerald-50 dark:bg-zinc-800 border-emerald-200 dark:border-[#5fc992]/40 text-emerald-700 dark:text-[#5fc992] text-[10px] uppercase font-mono px-2 py-0.5 font-bold">
                       Current Plan
                     </Kbd>
                   ) : isPremium ? (
-                    <span className="text-[10px] font-mono text-[#ff6363] uppercase tracking-wider">
+                    <span className="text-[10px] font-mono font-bold text-white bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 px-2 py-0.5 rounded uppercase tracking-wider">
                       Popular
                     </span>
                   ) : null}
@@ -265,15 +265,15 @@ export default function SubscriptionPage() {
                 {/* Price Display */}
                 <div className="mb-4">
                   <div className="flex items-baseline gap-1 font-mono">
-                    <span className="text-2xl sm:text-3xl font-bold text-text-primary tabular-nums">
+                    <span className="text-2xl sm:text-3xl font-bold text-zinc-950 dark:text-zinc-50 tabular-nums">
                       {price === 0 ? 'Free' : `${price} ETB`}
                     </span>
                     {price > 0 && (
-                      <span className="text-xs text-text-muted">/ month</span>
+                      <span className="text-xs text-zinc-600 dark:text-zinc-400 font-sans font-medium">/ month</span>
                     )}
                   </div>
                   {billingCycle === 'yearly' && price > 0 && (
-                    <p className="text-[11px] font-mono text-text-muted mt-0.5">
+                    <p className="text-[11px] font-mono text-zinc-600 dark:text-zinc-400 mt-0.5 font-medium">
                       Billed annually ({plan.priceYearly} ETB/yr)
                     </p>
                   )}
@@ -283,8 +283,8 @@ export default function SubscriptionPage() {
                 <div className="space-y-2.5 pt-3 border-t border-border-subtle mb-6">
                   {plan.features.map((feat, idx) => (
                     <div key={idx} className="flex items-start gap-2 text-xs">
-                      <Check className="h-3.5 w-3.5 text-[#5fc992] flex-shrink-0 mt-0.5" />
-                      <span className="text-text-muted font-sans">{feat}</span>
+                      <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
+                      <span className="text-zinc-700 dark:text-zinc-300 font-medium font-sans leading-relaxed">{feat}</span>
                     </div>
                   ))}
                 </div>
@@ -296,17 +296,17 @@ export default function SubscriptionPage() {
                   <Button
                     disabled
                     variant="outline"
-                    className="w-full min-h-[44px] border-border-subtle bg-surface-2 text-text-muted text-xs font-mono cursor-default"
+                    className="w-full min-h-[44px] border border-border-subtle bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 text-xs font-mono font-semibold cursor-default"
                   >
                     Current Plan
                   </Button>
                 ) : (
                   <Button
                     onClick={() => handleUpgradeClick(plan)}
-                    className={`w-full min-h-[44px] text-xs font-mono font-medium transition-transform active:scale-[0.99] ${
+                    className={`w-full min-h-[44px] text-xs font-mono font-semibold transition-transform active:scale-[0.99] shadow-sm ${
                       isPremium
                         ? 'bg-[#ff6363] hover:bg-[#ff4d4d] text-white'
-                        : 'bg-text-primary hover:opacity-90 text-surface-1'
+                        : 'bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-white text-white dark:text-zinc-900'
                     }`}
                   >
                     <span>Upgrade to {plan.name}</span>
@@ -321,19 +321,19 @@ export default function SubscriptionPage() {
 
       {/* Chapa Phone Checkout Modal */}
       <Dialog open={showPhoneModal} onOpenChange={setShowPhoneModal}>
-        <DialogContent className="border border-border-subtle bg-surface-1 text-text-primary max-w-sm p-6 overscroll-contain">
+        <DialogContent className="border border-border-subtle bg-surface-1 text-zinc-900 dark:text-zinc-100 max-w-sm p-6 overscroll-contain shadow-lg">
           <DialogHeader>
-            <DialogTitle className="text-base font-semibold text-text-primary">
+            <DialogTitle className="text-base font-bold text-zinc-900 dark:text-zinc-100">
               Complete with Chapa
             </DialogTitle>
-            <DialogDescription className="text-xs text-text-muted font-mono">
+            <DialogDescription className="text-xs text-zinc-600 dark:text-zinc-400 font-mono">
               Upgrading to {selectedPlan?.name} ({billingCycle === 'monthly' ? selectedPlan?.priceMonthly : selectedPlan?.priceYearly} ETB)
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleProceedCheckout} className="space-y-4 pt-2">
             <div className="space-y-1.5">
-              <Label htmlFor="chapa-phone" className="text-xs font-mono text-text-muted flex items-center gap-1.5">
+              <Label htmlFor="chapa-phone" className="text-xs font-mono text-zinc-700 dark:text-zinc-300 font-medium flex items-center gap-1.5">
                 <Phone className="h-3.5 w-3.5" />
                 <span>Mobile Number (Telebirr / CBE)</span>
               </Label>
@@ -344,9 +344,9 @@ export default function SubscriptionPage() {
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 placeholder="0912345678"
-                className="min-h-[44px] bg-surface-2 border-border-subtle text-base sm:text-sm text-text-primary placeholder:text-text-muted font-mono focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                className="min-h-[44px] bg-surface-1 border border-border-subtle text-base sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 font-mono focus-visible:ring-1 focus-visible:ring-primary"
               />
-              <p className="text-[11px] text-text-muted">
+              <p className="text-[11px] text-zinc-600 dark:text-zinc-400 font-sans">
                 Payment will be processed securely via Chapa Financial Technologies.
               </p>
             </div>
@@ -356,14 +356,14 @@ export default function SubscriptionPage() {
                 type="button"
                 variant="outline"
                 onClick={() => setShowPhoneModal(false)}
-                className="min-h-[44px] border-border-subtle bg-surface-1 hover:bg-surface-2 text-text-primary text-xs font-mono px-4"
+                className="min-h-[44px] border border-border-subtle bg-surface-1 hover:bg-surface-2 text-zinc-900 dark:text-zinc-100 text-xs font-mono font-medium px-4 shadow-sm"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={isUpgrading}
-                className="min-h-[44px] bg-[#ff6363] hover:bg-[#ff4d4d] text-white text-xs font-mono px-5"
+                className="min-h-[44px] bg-[#ff6363] hover:bg-[#ff4d4d] text-white text-xs font-mono font-semibold px-5 shadow-sm"
               >
                 {isUpgrading ? (
                   <>

@@ -168,7 +168,7 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
           {/* Main Command Input Row */}
           <div className="flex flex-col sm:flex-row items-stretch gap-2">
             <div className="relative flex-1">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-text-muted">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-500 dark:text-zinc-400">
                 <Link2 className="h-4 w-4" />
               </div>
               <Input
@@ -179,7 +179,7 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="Paste a long destination URL (e.g., https://github.com/owner/repo)..."
                 disabled={isLoading}
-                className="h-11 sm:h-12 pl-9 pr-3 text-base sm:text-sm bg-surface-2 border-border-subtle text-text-primary placeholder:text-text-muted focus-visible:ring-1 focus-visible:ring-primary rounded-md"
+                className="h-11 sm:h-12 pl-9 pr-3 text-base sm:text-sm bg-surface-1 border border-border-subtle text-zinc-950 dark:text-zinc-50 placeholder:text-zinc-400 focus-visible:ring-1 focus-visible:ring-primary rounded-md"
               />
             </div>
 
@@ -189,7 +189,7 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
                 type="button"
                 variant="outline"
                 onClick={() => setShowOptions(!showOptions)}
-                className={`min-h-[44px] sm:h-12 px-3 border-border-subtle bg-surface-2 hover:bg-border-subtle text-text-muted hover:text-text-primary ${showOptions ? 'border-primary text-text-primary' : ''}`}
+                className={`min-h-[44px] sm:h-12 px-3 border border-border-subtle bg-surface-1 hover:bg-surface-2 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-50 ${showOptions ? 'border-zinc-900 dark:border-zinc-100 text-zinc-950 dark:text-zinc-50 font-semibold' : ''}`}
                 title="Configure custom slug & options"
               >
                 <SlidersHorizontal className="h-4 w-4 mr-1.5" />
@@ -200,7 +200,7 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="min-h-[44px] sm:h-12 px-5 bg-[#ff6363] hover:bg-[#ff4d4d] text-white font-medium text-xs sm:text-sm flex items-center gap-2 transition-transform active:scale-[0.98] rounded-md"
+                className="min-h-[44px] sm:h-12 px-5 bg-[#ff6363] hover:bg-[#ff4d4d] text-white font-medium text-xs sm:text-sm flex items-center gap-2 transition-transform active:scale-[0.98] rounded-md shadow-sm"
               >
                 {isLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -216,21 +216,21 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
 
           {/* Clean Expandable Slug & Custom Options */}
           {showOptions && (
-            <div className="pt-2 border-t border-border-subtle grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in-50 duration-150">
+            <div className="pt-3 border-t border-border-subtle grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in-50 duration-150">
               {/* Custom Slug */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="custom-slug" className="text-xs font-mono text-text-muted">
+                  <Label htmlFor="custom-slug" className="text-xs font-mono text-zinc-700 dark:text-zinc-300 font-medium">
                     Custom Slug
                   </Label>
                   {!isProOrPremium && (
-                    <span className="text-[10px] font-mono text-[#f59e0b] bg-[#f59e0b]/10 border border-[#f59e0b]/20 px-1.5 py-0.2 rounded">
+                    <span className="text-[10px] font-mono text-amber-700 dark:text-[#f59e0b] bg-amber-50 dark:bg-[#f59e0b]/10 border border-amber-200 dark:border-[#f59e0b]/20 px-1.5 py-0.2 rounded font-medium">
                       Pro / Premium
                     </span>
                   )}
                 </div>
-                <div className="flex items-center rounded-md border border-border-subtle bg-surface-2 overflow-hidden focus-within:ring-1 focus-within:ring-primary">
-                  <span className="px-2.5 py-2 text-xs font-mono text-text-muted bg-surface-1 border-r border-border-subtle select-none">
+                <div className="flex items-center rounded-md border border-border-subtle bg-surface-1 overflow-hidden focus-within:ring-1 focus-within:ring-primary">
+                  <span className="px-2.5 py-2 text-xs font-mono text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 border-r border-border-subtle select-none font-medium">
                     classic.et/
                   </span>
                   <Input
@@ -244,14 +244,14 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
                     placeholder="custom-slug"
                     maxLength={32}
                     disabled={isLoading || !isProOrPremium}
-                    className="border-0 bg-transparent text-xs font-mono text-text-primary h-9 focus-visible:ring-0 px-2"
+                    className="border-0 bg-transparent text-xs font-mono text-zinc-950 dark:text-zinc-50 placeholder:text-zinc-400 h-9 focus-visible:ring-0 px-2.5"
                   />
                 </div>
               </div>
 
               {/* Title (Optional) */}
               <div className="space-y-1.5">
-                <Label htmlFor="link-title" className="text-xs font-mono text-text-muted">
+                <Label htmlFor="link-title" className="text-xs font-mono text-zinc-700 dark:text-zinc-300 font-medium">
                   Title (Optional)
                 </Label>
                 <Input
@@ -261,7 +261,7 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Campaign or referral label"
                   disabled={isLoading}
-                  className="bg-surface-2 border-border-subtle text-xs text-text-primary h-9 focus-visible:ring-1 focus-visible:ring-primary"
+                  className="bg-surface-1 border border-border-subtle text-xs text-zinc-950 dark:text-zinc-50 placeholder:text-zinc-400 h-9 focus-visible:ring-1 focus-visible:ring-primary"
                 />
               </div>
 
@@ -275,13 +275,13 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
                       onCheckedChange={setUseExpiration}
                       disabled={isLoading || !isProOrPremium}
                     />
-                    <Label htmlFor="use-expiration" className="text-xs font-mono text-text-muted cursor-pointer flex items-center gap-1.5">
+                    <Label htmlFor="use-expiration" className="text-xs font-mono text-zinc-700 dark:text-zinc-300 cursor-pointer flex items-center gap-1.5 font-medium">
                       <Calendar className="h-3.5 w-3.5" />
                       <span>Set link expiration</span>
                     </Label>
                   </div>
                   {!isProOrPremium && (
-                    <span className="text-[10px] font-mono text-[#f59e0b]">Pro required</span>
+                    <span className="text-[10px] font-mono text-amber-700 dark:text-[#f59e0b] font-medium">Pro required</span>
                   )}
                 </div>
 
@@ -292,7 +292,7 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
                     onChange={(e) => setExpirationDate(e.target.value)}
                     min={new Date().toISOString().slice(0, 16)}
                     disabled={isLoading}
-                    className="bg-surface-2 border-border-subtle text-xs text-text-primary h-9 focus-visible:ring-1 focus-visible:ring-primary max-w-xs mt-1"
+                    className="bg-surface-1 border border-border-subtle text-xs text-zinc-950 dark:text-zinc-50 h-9 focus-visible:ring-1 focus-visible:ring-primary max-w-xs mt-1"
                   />
                 )}
               </div>

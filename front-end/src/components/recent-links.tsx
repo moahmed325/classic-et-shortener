@@ -54,9 +54,9 @@ export function RecentLinks({ limit = 5, refreshTrigger = 0, onLinkCreatedClick 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-semibold text-text-primary font-sans">Recent Links</h2>
+          <h2 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50 font-sans">Recent Links</h2>
           {totalCount > 0 && (
-            <span className="rounded-full bg-surface-2 border border-border-subtle px-2 py-0.5 text-[11px] font-mono text-text-muted">
+            <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-2 py-0.5 text-[11px] font-mono text-zinc-600 dark:text-zinc-400 font-medium">
               {totalCount}
             </span>
           )}
@@ -64,7 +64,7 @@ export function RecentLinks({ limit = 5, refreshTrigger = 0, onLinkCreatedClick 
 
         <Link
           href="/dashboard/links"
-          className="group inline-flex items-center gap-1 text-xs font-mono text-text-muted hover:text-text-primary transition-colors"
+          className="group inline-flex items-center gap-1 text-xs font-mono text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-50 font-medium transition-colors"
         >
           <span>View all</span>
           <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -87,11 +87,11 @@ export function RecentLinks({ limit = 5, refreshTrigger = 0, onLinkCreatedClick 
       ) : links.length === 0 ? (
         /* Disciplined Empty State (No cartoonish illustrations) */
         <div className="rounded-md border border-border-subtle bg-surface-1 p-8 text-center">
-          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded border border-border-subtle bg-surface-2 text-text-muted mb-3">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded border border-border-subtle bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 mb-3">
             <Link2 className="h-5 w-5" />
           </div>
-          <h3 className="text-sm font-semibold text-text-primary font-sans">No links created yet</h3>
-          <p className="mt-1 text-xs text-text-muted max-w-sm mx-auto">
+          <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50 font-sans">No links created yet</h3>
+          <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400 max-w-sm mx-auto">
             Paste any long URL into the command shortener above to generate your first tracked short link.
           </p>
           <div className="mt-4">
@@ -99,7 +99,7 @@ export function RecentLinks({ limit = 5, refreshTrigger = 0, onLinkCreatedClick 
               variant="outline"
               size="sm"
               onClick={onLinkCreatedClick}
-              className="min-h-[44px] border-border-subtle bg-surface-2 hover:bg-border-subtle text-text-primary text-xs font-mono"
+              className="min-h-[44px] border border-border-subtle bg-surface-1 hover:bg-surface-2 text-zinc-900 dark:text-zinc-100 text-xs font-mono font-medium"
             >
               <Plus className="mr-1.5 h-3.5 w-3.5 text-[#ff6363]" />
               Create your first short link

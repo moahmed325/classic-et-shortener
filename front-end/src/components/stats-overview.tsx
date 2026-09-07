@@ -61,11 +61,11 @@ export function StatsOverview({ refreshTrigger = 0 }: StatsOverviewProps) {
   const getTierColor = (tier: string) => {
     switch (tier.toLowerCase()) {
       case 'premium':
-        return 'text-[#ff6363] border-[#ff6363]/30 bg-[#ff6363]/10';
+        return 'text-red-600 dark:text-[#ff6363] border-red-200 dark:border-[#ff6363]/30 bg-red-50 dark:bg-[#ff6363]/10';
       case 'pro':
-        return 'text-[#56c2ff] border-[#56c2ff]/30 bg-[#56c2ff]/10';
+        return 'text-sky-600 dark:text-[#56c2ff] border-sky-200 dark:border-[#56c2ff]/30 bg-sky-50 dark:bg-[#56c2ff]/10';
       default:
-        return 'text-text-muted border-border-subtle bg-surface-2';
+        return 'text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-border-subtle bg-zinc-100 dark:bg-surface-2';
     }
   };
 
@@ -91,21 +91,18 @@ export function StatsOverview({ refreshTrigger = 0 }: StatsOverviewProps) {
       value: stats.totalLinks.toLocaleString(),
       subtext: 'Shortened URLs',
       icon: Link2,
-      accent: 'text-[#56c2ff]',
     },
     {
       label: 'Total Clicks',
       value: stats.totalClicks.toLocaleString(),
       subtext: 'Across all links',
       icon: MousePointerClick,
-      accent: 'text-[#5fc992]',
     },
     {
       label: '30d Activity',
       value: `${stats.activity30d} new`,
       subtext: 'Past 30 days',
       icon: Activity,
-      accent: 'text-[#f59e0b]',
     },
     {
       label: 'Current Tier',
@@ -125,24 +122,28 @@ export function StatsOverview({ refreshTrigger = 0 }: StatsOverviewProps) {
             key={idx}
             className="rounded-md border border-border-subtle bg-surface-1 p-3 sm:p-4 transition-colors hover:border-border-strong"
           >
-            <div className="flex items-center justify-between text-text-muted mb-1.5">
-              <span className="text-xs font-mono tracking-tight">{item.label}</span>
-              <Icon className="h-3.5 w-3.5 text-text-muted" />
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-mono tracking-tight text-zinc-600 dark:text-zinc-400 font-medium">
+                {item.label}
+              </span>
+              <div className="h-6 w-6 rounded flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                <Icon className="h-3.5 w-3.5" />
+              </div>
             </div>
 
             <div className="flex items-baseline gap-2">
               {item.isTier ? (
-                <span className={`text-base sm:text-lg font-mono font-semibold tracking-wide px-2 py-0.5 rounded border ${getTierColor(currentTier)}`}>
+                <span className={`text-base sm:text-lg font-mono font-bold tracking-wide px-2 py-0.5 rounded border ${getTierColor(currentTier)}`}>
                   {item.value}
                 </span>
               ) : (
-                <div className="text-lg sm:text-2xl font-semibold font-mono tabular-nums text-text-primary">
+                <div className="text-lg sm:text-2xl font-bold font-mono tabular-nums text-zinc-950 dark:text-zinc-50">
                   {item.value}
                 </div>
               )}
             </div>
 
-            <p className="text-[11px] text-text-muted font-sans mt-1 truncate">
+            <p className="text-[11px] text-zinc-600 dark:text-zinc-400 font-medium font-sans mt-1 truncate">
               {item.subtext}
             </p>
           </div>

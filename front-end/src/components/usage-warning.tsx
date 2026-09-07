@@ -91,36 +91,36 @@ export function UsageWarning({ onClose }: UsageWarningProps) {
           <div className="flex items-start gap-2 sm:gap-3 flex-1">
             <AlertTriangle className={`h-4 w-4 sm:h-5 sm:w-5 mt-0.5 flex-shrink-0 ${getWarningIcon()}`} />
             <div className="flex-1 min-w-0">
-              <h4 className="font-semibold text-xs sm:text-sm text-text-primary font-sans">
+              <h4 className="font-bold text-xs sm:text-sm text-zinc-950 dark:text-zinc-50 font-sans">
                 {getWarningTitle()}
               </h4>
-              <p className="text-xs text-text-muted mt-1 font-sans">
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 font-sans font-medium">
                 {getWarningMessage()}
               </p>
               
               <div className="mt-2 sm:mt-3 space-y-2">
                 {usageData.limits.links.percentage >= 80 && (
                   <div>
-                    <div className="flex items-center justify-between text-[11px] font-mono text-text-muted mb-1">
+                    <div className="flex items-center justify-between text-[11px] font-mono text-zinc-600 dark:text-zinc-400 font-medium mb-1">
                       <span>Links Created</span>
-                      <span className="text-right text-text-primary tabular-nums">{usageData.limits.links.current} / {usageData.limits.links.limit === -1 ? 'Unlimited' : usageData.limits.links.limit}</span>
+                      <span className="text-right text-zinc-950 dark:text-zinc-50 font-bold tabular-nums">{usageData.limits.links.current} / {usageData.limits.links.limit === -1 ? 'Unlimited' : usageData.limits.links.limit}</span>
                     </div>
                     <Progress 
                       value={usageData.limits.links.percentage} 
-                      className="h-1.5 bg-surface-2" 
+                      className="h-1.5 bg-zinc-100 dark:bg-zinc-800" 
                     />
                   </div>
                 )}
                 
                 {usageData.limits.visitors.percentage >= 80 && (
                   <div>
-                    <div className="flex items-center justify-between text-[11px] font-mono text-text-muted mb-1">
+                    <div className="flex items-center justify-between text-[11px] font-mono text-zinc-600 dark:text-zinc-400 font-medium mb-1">
                       <span>Visitors Tracked</span>
-                      <span className="text-right text-text-primary tabular-nums">{usageData.limits.visitors.current} / {usageData.limits.visitors.limit === null ? 'Unlimited' : usageData.limits.visitors.limit}</span>
+                      <span className="text-right text-zinc-950 dark:text-zinc-50 font-bold tabular-nums">{usageData.limits.visitors.current} / {usageData.limits.visitors.limit === null ? 'Unlimited' : usageData.limits.visitors.limit}</span>
                     </div>
                     <Progress 
                       value={usageData.limits.visitors.percentage} 
-                      className="h-1.5 bg-surface-2" 
+                      className="h-1.5 bg-zinc-100 dark:bg-zinc-800" 
                     />
                   </div>
                 )}
@@ -130,7 +130,7 @@ export function UsageWarning({ onClose }: UsageWarningProps) {
                 <Link href="/dashboard/subscription" className="w-full sm:w-auto">
                   <Button 
                     size="sm" 
-                    className="w-full sm:w-auto min-h-[44px] text-xs font-mono bg-[#ff6363] hover:bg-[#ff4d4d] text-white"
+                    className="w-full sm:w-auto min-h-[44px] text-xs font-mono bg-[#ff6363] hover:bg-[#ff4d4d] text-white font-semibold shadow-sm"
                   >
                     <ArrowUpRight className="h-3.5 w-3.5 mr-1.5" />
                     Upgrade Plan
@@ -140,7 +140,7 @@ export function UsageWarning({ onClose }: UsageWarningProps) {
                   variant="outline" 
                   size="sm" 
                   onClick={handleClose}
-                  className="min-h-[44px] border-border-subtle bg-surface-2 hover:bg-border-subtle text-text-muted hover:text-text-primary text-xs font-mono"
+                  className="min-h-[44px] border border-border-subtle bg-surface-1 hover:bg-surface-2 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-50 text-xs font-mono font-medium shadow-sm"
                 >
                   <X className="h-3.5 w-3.5 mr-1.5" />
                   Dismiss

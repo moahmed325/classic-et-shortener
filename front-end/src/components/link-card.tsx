@@ -240,7 +240,7 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
               <div className="flex flex-wrap items-center gap-2">
                 <Link
                   href={`/dashboard/links/${link.id}`}
-                  className="font-mono text-sm font-semibold text-text-primary hover:text-[#ff6363] transition-colors truncate"
+                  className="font-mono text-sm font-bold text-zinc-950 dark:text-zinc-50 hover:text-[#ff6363] transition-colors truncate"
                 >
                   {displayShortUrl}
                 </Link>
@@ -250,7 +250,7 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Visit short URL"
-                  className="text-text-muted hover:text-text-primary transition-colors p-0.5"
+                  className="text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors p-0.5"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
@@ -261,7 +261,7 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
                     Expired
                   </Badge>
                 ) : !link.isActive ? (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-surface-2 text-text-muted uppercase tracking-wider font-mono">
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 uppercase tracking-wider font-mono border border-zinc-200 dark:border-zinc-700">
                     Inactive
                   </Badge>
                 ) : null}
@@ -270,18 +270,18 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
               {/* Destination URL & Title */}
               <div className="min-w-0 flex items-center gap-2">
                 <p 
-                  className="truncate text-xs text-text-muted hover:text-text-primary transition-colors font-sans"
+                  className="truncate text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-50 transition-colors font-sans"
                   title={link.originalUrl}
                 >
                   {link.title ? (
-                    <span className="text-text-primary font-medium mr-1.5">{link.title} —</span>
+                    <span className="text-zinc-950 dark:text-zinc-50 font-semibold mr-1.5">{link.title} —</span>
                   ) : null}
                   {link.originalUrl}
                 </p>
               </div>
 
               {/* Meta timestamp */}
-              <div className="flex items-center gap-2 text-[11px] text-text-muted font-mono pt-0.5">
+              <div className="flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400 font-mono pt-0.5">
                 <span>Added {formattedDate}</span>
                 {domain && (
                   <>
@@ -301,7 +301,7 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
               title="View detailed analytics"
               className="focus:outline-none"
             >
-              <Kbd className="cursor-pointer hover:border-border-strong hover:bg-surface-2 transition-colors px-2.5 py-1 text-xs tabular-nums text-text-primary gap-1.5">
+              <Kbd className="cursor-pointer hover:border-border-strong hover:bg-surface-2 transition-colors px-2.5 py-1 text-xs tabular-nums text-zinc-950 dark:text-zinc-50 font-semibold gap-1.5">
                 <BarChart2 className="h-3 w-3 text-[#5fc992]" />
                 <span>{link.clickCount.toLocaleString()} {link.clickCount === 1 ? 'click' : 'clicks'}</span>
               </Kbd>
@@ -314,7 +314,7 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
                 size="sm"
                 onClick={handleCopy}
                 aria-label="Copy short link"
-                className="min-h-[44px] min-w-[44px] p-0 border-border-subtle bg-surface-1 hover:bg-surface-2 hover:text-text-primary text-text-muted focus-visible:ring-1 focus-visible:ring-primary"
+                className="min-h-[44px] min-w-[44px] p-0 border-border-subtle bg-surface-1 hover:bg-surface-2 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-50 focus-visible:ring-1 focus-visible:ring-primary"
               >
                 {copied ? (
                   <Check className="h-4 w-4 text-[#5fc992] transition-transform scale-110" />
@@ -329,7 +329,7 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
                 size="sm"
                 onClick={() => setShowQR(true)}
                 aria-label="Show QR Code"
-                className="min-h-[44px] min-w-[44px] p-0 border-border-subtle bg-surface-1 hover:bg-surface-2 hover:text-text-primary text-text-muted focus-visible:ring-1 focus-visible:ring-primary"
+                className="min-h-[44px] min-w-[44px] p-0 border-border-subtle bg-surface-1 hover:bg-surface-2 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-50 focus-visible:ring-1 focus-visible:ring-primary"
               >
                 <QrCode className="h-4 w-4" />
               </Button>
@@ -341,7 +341,7 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
                     variant="outline"
                     size="sm"
                     aria-label="Link actions"
-                    className="min-h-[44px] min-w-[44px] p-0 border-border-subtle bg-surface-1 hover:bg-surface-2 hover:text-text-primary text-text-muted focus-visible:ring-1 focus-visible:ring-primary"
+                    className="min-h-[44px] min-w-[44px] p-0 border-border-subtle bg-surface-1 hover:bg-surface-2 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-50 focus-visible:ring-1 focus-visible:ring-primary"
                   >
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
