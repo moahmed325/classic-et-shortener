@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowRight, Link2, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -12,8 +13,10 @@ import { AnalyticsChart } from '@/components/analytics/analytics-chart';
 import { AnalyticsBreakdownGrid } from '@/components/analytics/analytics-breakdown-grid';
 
 export default function AnalyticsPage() {
+  const router = useRouter();
   const [data, setData] = useState<GlobalAnalyticsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<TimeRangeValue>('30');
   const { toast } = useToast();
 
@@ -23,15 +26,70 @@ export default function AnalyticsPage() {
 
   const fetchAnalytics = async () => {
     setIsLoading(true);
+    const token = typeof window !== 'undefined'
+      ? localStorage.getItem('token') || localStorage.getItem('auth_token') || localStorage.getItem('accessToken')
+      : null;
+    const endpoint = `/api/analytics/global?days=${timeRange}`;
+    console.log("Fetching analytics from:", endpoint, "with token:", !!token);
+
     try {
+      setError(null);
       const res = await globalAnalyticsApi.getGlobalAnalytics(parseInt(timeRange));
-      setData(res);
-    } catch (error: any) {
-      toast({
-        title: 'Error loading analytics',
-        description: error.message || 'Could not retrieve telemetry data',
-        variant: 'destructive',
-      });
+      const safeData: GlobalAnalyticsResponse = {
+        links: Array.isArray(res?.links) ? res.links : [],
+        summary: res?.summary || {
+          totalClicks: 0,
+          uniqueVisitors: 0,
+          topCountry: 'Direct / N/A',
+          topReferrer: 'Direct',
+        },
+        timeseries: Array.isArray(res?.timeseries) ? res.timeseries : [],
+        breakdown: res?.breakdown || {
+          referrers: [],
+          countries: [],
+          devices: [],
+          browsers: [],
+        },
+        hourly: Array.isArray(res?.hourly) ? res.hourly : [],
+        clicksByDate: res?.clicksByDate || {},
+        clicksByCountry: res?.clicksByCountry || {},
+        clicksByDevice: res?.clicksByDevice || {},
+        clicksByBrowser: res?.clicksByBrowser || {},
+        clicksByReferrer: res?.clicksByReferrer || {},
+        totalClicks: res?.totalClicks ?? res?.summary?.totalClicks ?? 0,
+        restrictions: res?.restrictions || {
+          canSeeFullAnalytics: true,
+          canSeeAdvancedCharts: true,
+          topCountriesHidden: 0,
+          browsersHidden: false,
+          devicesHidden: false,
+        },
+        usage: res?.usage || {
+          visitorCap: { current: 0, limit: 500, percentage: 0 },
+          newVisitorsSinceLastVisit: 0,
+        },
+      };
+      setData(safeData);
+    } catch (err: any) {
+      console.error("Analytics fetch error:", err);
+      if (err?.status === 401) {
+        toast({
+          title: 'Authentication required',
+          description: 'Session expired or not found. Redirecting to login...',
+          variant: 'destructive',
+        });
+        router.replace('/login');
+        return;
+      }
+
+      if (err?.status >= 400) {
+        setError("Failed to load analytics data");
+        toast({
+          title: 'Error loading analytics',
+          description: err.message || 'Could not retrieve telemetry data',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -40,11 +98,11 @@ export default function AnalyticsPage() {
   const summary = data?.summary || {
     totalClicks: 0,
     uniqueVisitors: 0,
-    topCountry: 'None',
+    topCountry: 'Direct / N/A',
     topReferrer: 'Direct',
   };
 
-  const timeseries = data?.timeseries || [];
+  const timeseries = Array.isArray(data?.timeseries) ? data.timeseries : [];
   const breakdown = data?.breakdown || {
     referrers: [],
     countries: [],
@@ -76,6 +134,20 @@ export default function AnalyticsPage() {
           disabled={isLoading}
         />
       </div>
+
+      {error && (
+        <div className="rounded-md border border-red-500/30 bg-red-500/10 p-4 text-xs font-mono text-red-400 flex items-center justify-between">
+          <span>{error}</span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchAnalytics}
+            className="h-7 px-2.5 border-red-500/30 text-red-400 hover:bg-red-500/20 text-xs"
+          >
+            Retry
+          </Button>
+        </div>
+      )}
 
       {/* 4 Stat Cards */}
       <AnalyticsStatCards summary={summary} isLoading={isLoading} />

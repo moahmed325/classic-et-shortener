@@ -36,16 +36,30 @@ async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
+  const token = typeof window !== 'undefined'
+    ? localStorage.getItem('token') || localStorage.getItem('auth_token') || localStorage.getItem('accessToken')
+    : null;
+
+  const authHeaders: Record<string, string> = {};
+  if (token) {
+    authHeaders['Authorization'] = `Bearer ${token}`;
+  }
+
+  const cleanBase = API_BASE_URL.replace(/\/+$/, '');
+  const cleanEndpoint = endpoint.replace(/^\/+/, '/');
+  const fullUrl = `${cleanBase}${cleanEndpoint}`;
+
   const config: RequestInit = {
     credentials: 'include', // Critical: enables cookies to be sent/received
     headers: {
       'Content-Type': 'application/json',
+      ...authHeaders,
       ...options.headers,
     },
     ...options,
   };
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+  const response = await fetch(fullUrl, config);
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
@@ -92,18 +106,29 @@ export const authApi = {
   },
 
   login: async (data: { email: string; password: string }) => {
-    const result = await apiRequest<{ user: any }>('/api/auth/login', {
+    const result = await apiRequest<{ user: any; token?: string }>('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify(data),
     });
     
+    if (typeof window !== 'undefined' && result.token) {
+      localStorage.setItem('token', result.token);
+      localStorage.setItem('auth_token', result.token);
+      localStorage.setItem('accessToken', result.token);
+    }
+
     return result;
   },
 
   logout: async () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('token');
+      localStorage.removeItem('accessToken');
+    }
     await apiRequest<{ success: boolean }>('/api/auth/logout', {
       method: 'POST',
-    });
+    }).catch(() => {});
   },
 
   forgotPassword: async (data: { email: string }) => {
@@ -312,10 +337,30 @@ export const linksApi = {
   },
 };
 
+// Generic API Client
+export const api = {
+  get: <T = any>(endpoint: string, options?: RequestInit) =>
+    apiRequest<T>(endpoint, { ...options, method: 'GET' }),
+  post: <T = any>(endpoint: string, body?: any, options?: RequestInit) =>
+    apiRequest<T>(endpoint, {
+      ...options,
+      method: 'POST',
+      body: body !== undefined ? (typeof body === 'string' ? body : JSON.stringify(body)) : undefined,
+    }),
+  put: <T = any>(endpoint: string, body?: any, options?: RequestInit) =>
+    apiRequest<T>(endpoint, {
+      ...options,
+      method: 'PUT',
+      body: body !== undefined ? (typeof body === 'string' ? body : JSON.stringify(body)) : undefined,
+    }),
+  delete: <T = any>(endpoint: string, options?: RequestInit) =>
+    apiRequest<T>(endpoint, { ...options, method: 'DELETE' }),
+};
+
 // Global Analytics API
 export const globalAnalyticsApi = {
   getGlobalAnalytics: async (days: number) => {
-    return apiRequest<GlobalAnalyticsResponse>(`/api/analytics/global?days=${days}`);
+    return api.get<GlobalAnalyticsResponse>(`/api/analytics/global?days=${days}`);
   },
 };
 

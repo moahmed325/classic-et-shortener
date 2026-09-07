@@ -28,21 +28,21 @@ export function AnalyticsStatCards({ summary, isLoading }: AnalyticsStatCardsPro
   const cards = [
     {
       label: 'Total Clicks',
-      value: summary.totalClicks.toLocaleString(),
+      value: (summary?.totalClicks ?? 0).toLocaleString(),
       subtext: 'Clicks in selected period',
       icon: MousePointerClick,
       color: 'text-[#ff6363]',
     },
     {
       label: 'Unique Visitors',
-      value: summary.uniqueVisitors.toLocaleString(),
+      value: (summary?.uniqueVisitors ?? 0).toLocaleString(),
       subtext: 'Distinct IP clients',
       icon: Users,
       color: 'text-[#5fc992]',
     },
     {
       label: 'Top Referrer',
-      value: summary.topReferrer || 'Direct',
+      value: summary?.topReferrer || 'Direct',
       subtext: 'Primary traffic origin',
       icon: Compass,
       color: 'text-[#56c2ff]',
@@ -50,7 +50,7 @@ export function AnalyticsStatCards({ summary, isLoading }: AnalyticsStatCardsPro
     },
     {
       label: 'Top Country',
-      value: summary.topCountry || 'None',
+      value: summary?.topCountry || 'Direct / N/A',
       subtext: 'Dominant geolocation',
       icon: Globe,
       color: 'text-[#f59e0b]',

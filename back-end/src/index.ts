@@ -1287,9 +1287,11 @@ This is an automated message. Please do not reply to this email.
 
 // Updated authentication middleware for cookie and Bearer token auth
 const authMiddleware = async (c: any, next: any) => {
-  const authHeader = c.req.header('Authorization');
-  const bearerToken = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null;
-  const token = getCookie(c, 'auth_token') || bearerToken;
+  const authHeader = c.req.header('Authorization') || c.req.header('authorization');
+  const bearerToken = authHeader && authHeader.toLowerCase().startsWith('bearer ')
+    ? authHeader.substring(7).trim()
+    : null;
+  const token = bearerToken || getCookie(c, 'auth_token') || getCookie(c, 'token');
   
   if (!token) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -1479,6 +1481,7 @@ app.post('/api/auth/verify-email', async (c) => {
     return c.json({
       success: true,
       message: 'Email verified successfully! Welcome to LinkShort.',
+      token,
       user: {
         id: verificationRecord.user_id,
         email: verificationRecord.email,
@@ -1650,6 +1653,7 @@ app.post("/api/auth/login", async (c) => {
     }
 
     return c.json({
+      token,
       user: {
         id: user.id,
         email: user.email,
@@ -3801,7 +3805,11 @@ app.get('/api/analytics/global', authMiddleware, async (c) => {
     const days = parseInt(c.req.query('days') || '30');
 
     // Update last visit time for user
-    await updateLastVisit(c.env.DB, payload.userId);
+    try {
+      await updateLastVisit(c.env.DB, payload.userId);
+    } catch (e) {
+      console.error('Update last visit error:', e);
+    }
 
     // Log user activity
     try {
@@ -3820,108 +3828,109 @@ app.get('/api/analytics/global', authMiddleware, async (c) => {
     }
 
     // Get user's analytics permissions
-    const canSeeFull = await canSeeFullAnalytics(c.env.DB, payload.userId);
-    const canSeeAdvanced = await canSeeAdvancedCharts(c.env.DB, payload.userId);
+    let canSeeFull = false;
+    let canSeeAdvanced = false;
+    try {
+      canSeeFull = await canSeeFullAnalytics(c.env.DB, payload.userId);
+      canSeeAdvanced = await canSeeAdvancedCharts(c.env.DB, payload.userId);
+    } catch (e) {
+      console.error('Permissions check error:', e);
+    }
 
     // Get user's subscription plan for retention days
-    const user = await c.env.DB.prepare(`
-      SELECT tier FROM users WHERE id = ?
-    `).bind(payload.userId).first() as any;
-    const plan = await getSubscriptionPlan(c.env.DB, user.tier);
+    let retentionDays = 30;
+    try {
+      const user = await c.env.DB.prepare(`
+        SELECT tier FROM users WHERE id = ?
+      `).bind(payload.userId).first() as any;
+      const plan = await getSubscriptionPlan(c.env.DB, user?.tier || 'free');
+      if (plan?.limits?.analytics_retention_days && typeof plan.limits.analytics_retention_days === 'number') {
+        retentionDays = plan.limits.analytics_retention_days;
+      }
+    } catch (e) {
+      console.error('Subscription plan error:', e);
+      retentionDays = 30;
+    }
 
     // Get all user links
-    const links = await c.env.DB.prepare(`
-      SELECT id, short_code, title, click_count, created_at
-      FROM links 
-      WHERE user_id = ? 
-      ORDER BY created_at DESC
-    `).bind(payload.userId).all();
+    let links: any = null;
+    let linkList: any[] = [];
+    try {
+      links = await c.env.DB.prepare(`
+        SELECT id, short_code, title, click_count, created_at
+        FROM links 
+        WHERE user_id = ? 
+        ORDER BY created_at DESC
+      `).bind(payload.userId).all();
 
-    const linkList = links.results.map((link: any) => ({
-      id: link.id,
-      shortCode: link.short_code,
-      title: link.title || 'Untitled',
-      clickCount: link.click_count,
-      createdAt: link.created_at,
-      clicksInPeriod: 0
-    }));
+      if (links && Array.isArray(links.results)) {
+        linkList = links.results.map((link: any) => ({
+          id: link.id,
+          shortCode: link.short_code,
+          title: link.title || 'Untitled',
+          clickCount: link.click_count,
+          createdAt: link.created_at,
+          clicksInPeriod: 0
+        }));
+      }
+    } catch (e) {
+      console.error('Fetch links error:', e);
+    }
 
     // Get usage summary for visitor caps
-    const usageSummary = await getUserUsageSummary(c.env.DB, payload.userId);
+    let usageSummary: any = null;
+    try {
+      usageSummary = await getUserUsageSummary(c.env.DB, payload.userId);
+    } catch (e) {
+      console.error('Usage summary error:', e);
+    }
 
-    const emptyResponse = {
-      links: linkList,
-      summary: {
-        totalClicks: 0,
-        uniqueVisitors: 0,
-        topCountry: 'None',
-        topReferrer: 'Direct',
-      },
-      timeseries: (() => {
-        const result: Array<{ date: string; clicks: number }> = [];
-        const countDays = Math.min(Math.max(days || 30, 1), 365);
-        for (let i = countDays - 1; i >= 0; i--) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
-          result.push({ date: d.toISOString().slice(0, 10), clicks: 0 });
-        }
-        return result;
-      })(),
-      breakdown: {
-        referrers: [],
-        countries: [],
-        devices: [],
-        browsers: [],
-      },
-      hourly: Array.from({ length: 24 }, (_, i) => ({
-        hour: `${i.toString().padStart(2, '0')}:00`,
-        clicks: 0,
-      })),
-      clicksByDate: {},
-      clicksByCountry: {},
-      clicksByDevice: {},
-      clicksByBrowser: {},
-      clicksByReferrer: {},
-      clicksByReferrerPath: {},
-      clicksByHour: {},
-      totalClicks: 0,
-      restrictions: {
-        canSeeFullAnalytics: canSeeFull,
-        canSeeAdvancedCharts: canSeeAdvanced,
-        topCountriesHidden: 0,
-        browsersHidden: false,
-        devicesHidden: false,
-      },
-      usage: {
-        visitorCap: usageSummary?.limits?.visitors || { current: 0, limit: 500, percentage: 0 },
-        newVisitorsSinceLastVisit: usageSummary?.newVisitorsSinceLastVisit || 0,
-      },
-    };
-
-    if (links.results.length === 0) {
-      return c.json(emptyResponse);
+    // Safe empty schema returned when user has 0 links
+    if (!links || !links.results || links.results.length === 0) {
+      return c.json({
+        summary: {
+          totalClicks: 0,
+          uniqueVisitors: 0,
+          topCountry: "Direct / N/A",
+          topReferrer: "Direct"
+        },
+        timeseries: [],
+        breakdown: {
+          referrers: [],
+          countries: [],
+          devices: [],
+          browsers: []
+        },
+        hourly: [],
+        links: []
+      }, 200);
     }
 
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
     // Get global analytics data from click_events for this user with robust COALESCE grouping
-    const analytics = await c.env.DB.prepare(`
-      SELECT 
-        strftime('%Y-%m-%d', created_at) as date,
-        COUNT(*) as clicks,
-        COALESCE(NULLIF(country, ''), 'Unknown') as country,
-        COALESCE(NULLIF(device_type, ''), 'Desktop') as device_type,
-        COALESCE(NULLIF(browser, ''), 'Other') as browser,
-        COALESCE(NULLIF(referrer, ''), 'Direct') as referrer,
-        link_id
-      FROM click_events 
-      WHERE (user_id = ? OR link_id IN (SELECT id FROM links WHERE user_id = ?))
-      AND created_at >= ?
-      AND created_at >= datetime('now', '-${plan?.limits.analytics_retention_days || 7} days')
-      GROUP BY strftime('%Y-%m-%d', created_at), country, device_type, browser, referrer, link_id
-      ORDER BY date ASC
-    `).bind(payload.userId, payload.userId, startDate.toISOString()).all();
+    let analytics: any = null;
+    try {
+      analytics = await c.env.DB.prepare(`
+        SELECT 
+          strftime('%Y-%m-%d', created_at) as date,
+          COUNT(*) as clicks,
+          COALESCE(NULLIF(country, ''), 'Unknown') as country,
+          COALESCE(NULLIF(device_type, ''), 'Desktop') as device_type,
+          COALESCE(NULLIF(browser, ''), 'Other') as browser,
+          COALESCE(NULLIF(referrer, ''), 'Direct') as referrer,
+          link_id
+        FROM click_events 
+        WHERE (user_id = ? OR link_id IN (SELECT id FROM links WHERE user_id = ?))
+        AND created_at >= ?
+        AND created_at >= datetime('now', '-${retentionDays} days')
+        GROUP BY strftime('%Y-%m-%d', created_at), country, device_type, browser, referrer, link_id
+        ORDER BY date ASC
+      `).bind(payload.userId, payload.userId, startDate.toISOString()).all();
+    } catch (analyticsQueryErr) {
+      console.error('Analytics query error:', analyticsQueryErr);
+    }
 
     // Process analytics data
     const clicksByDate: { [key: string]: number } = {};
@@ -3932,26 +3941,28 @@ app.get('/api/analytics/global', authMiddleware, async (c) => {
     const clicksByLink: { [key: string]: number } = {};
     const clicksByReferrerPath: { [key: string]: number } = {};
 
-    analytics.results.forEach((row: any) => {
-      if (row.date) clicksByDate[row.date] = (clicksByDate[row.date] || 0) + row.clicks;
-      if (row.country) clicksByCountry[row.country] = (clicksByCountry[row.country] || 0) + row.clicks;
-      if (row.device_type) {
-        const dev = row.device_type.charAt(0).toUpperCase() + row.device_type.slice(1).toLowerCase();
-        clicksByDevice[dev] = (clicksByDevice[dev] || 0) + row.clicks;
-      }
-      if (row.browser) clicksByBrowser[row.browser] = (clicksByBrowser[row.browser] || 0) + row.clicks;
-      if (row.link_id) clicksByLink[row.link_id] = (clicksByLink[row.link_id] || 0) + row.clicks;
-      if (row.referrer) clicksByReferrer[row.referrer] = (clicksByReferrer[row.referrer] || 0) + row.clicks;
-      if (row.referrer && row.referrer !== 'Direct') {
-        try {
-          const u = new URL(row.referrer);
-          const path = `${u.hostname}${u.pathname}`;
-          clicksByReferrerPath[path] = (clicksByReferrerPath[path] || 0) + row.clicks;
-        } catch {
-          clicksByReferrerPath[row.referrer] = (clicksByReferrerPath[row.referrer] || 0) + row.clicks;
+    if (analytics && Array.isArray(analytics.results)) {
+      analytics.results.forEach((row: any) => {
+        if (row.date) clicksByDate[row.date] = (clicksByDate[row.date] || 0) + row.clicks;
+        if (row.country) clicksByCountry[row.country] = (clicksByCountry[row.country] || 0) + row.clicks;
+        if (row.device_type) {
+          const dev = row.device_type.charAt(0).toUpperCase() + row.device_type.slice(1).toLowerCase();
+          clicksByDevice[dev] = (clicksByDevice[dev] || 0) + row.clicks;
         }
-      }
-    });
+        if (row.browser) clicksByBrowser[row.browser] = (clicksByBrowser[row.browser] || 0) + row.clicks;
+        if (row.link_id) clicksByLink[row.link_id] = (clicksByLink[row.link_id] || 0) + row.clicks;
+        if (row.referrer) clicksByReferrer[row.referrer] = (clicksByReferrer[row.referrer] || 0) + row.clicks;
+        if (row.referrer && row.referrer !== 'Direct') {
+          try {
+            const u = new URL(row.referrer);
+            const path = `${u.hostname}${u.pathname}`;
+            clicksByReferrerPath[path] = (clicksByReferrerPath[path] || 0) + row.clicks;
+          } catch {
+            clicksByReferrerPath[row.referrer] = (clicksByReferrerPath[row.referrer] || 0) + row.clicks;
+          }
+        }
+      });
+    }
 
     // Populate clicksInPeriod for each link
     linkList.forEach((link: any) => {
@@ -3959,6 +3970,27 @@ app.get('/api/analytics/global', authMiddleware, async (c) => {
     });
 
     const totalClicks = Object.values(clicksByDate).reduce((sum, clicks) => sum + clicks, 0);
+
+    // If 0 click events found, return HTTP 200 with safe empty schema
+    if (!analytics || !analytics.results || analytics.results.length === 0 || totalClicks === 0) {
+      return c.json({
+        summary: {
+          totalClicks: 0,
+          uniqueVisitors: 0,
+          topCountry: "Direct / N/A",
+          topReferrer: "Direct"
+        },
+        timeseries: [],
+        breakdown: {
+          referrers: [],
+          countries: [],
+          devices: [],
+          browsers: []
+        },
+        hourly: [],
+        links: linkList
+      }, 200);
+    }
 
     // Continuous timeseries array (chronological ascending)
     const timeseries: Array<{ date: string; clicks: number }> = [];
@@ -3993,19 +4025,25 @@ app.get('/api/analytics/global', authMiddleware, async (c) => {
 
     // 24-hour click distribution
     const hourlyCounts: { [key: string]: number } = {};
-    const hourlyQuery = await c.env.DB.prepare(`
-      SELECT strftime('%H', created_at) as hour, COUNT(*) as clicks
-      FROM click_events
-      WHERE (user_id = ? OR link_id IN (SELECT id FROM links WHERE user_id = ?))
-      AND created_at >= ?
-      AND created_at >= datetime('now', '-${plan?.limits.analytics_retention_days || 7} days')
-      GROUP BY strftime('%H', created_at)
-      ORDER BY hour ASC
-    `).bind(payload.userId, payload.userId, startDate.toISOString()).all();
+    try {
+      const hourlyQuery = await c.env.DB.prepare(`
+        SELECT strftime('%H', created_at) as hour, COUNT(*) as clicks
+        FROM click_events
+        WHERE (user_id = ? OR link_id IN (SELECT id FROM links WHERE user_id = ?))
+        AND created_at >= ?
+        AND created_at >= datetime('now', '-${retentionDays} days')
+        GROUP BY strftime('%H', created_at)
+        ORDER BY hour ASC
+      `).bind(payload.userId, payload.userId, startDate.toISOString()).all();
 
-    hourlyQuery.results.forEach((row: any) => {
-      if (row.hour) hourlyCounts[row.hour] = row.clicks;
-    });
+      if (hourlyQuery && Array.isArray(hourlyQuery.results)) {
+        hourlyQuery.results.forEach((row: any) => {
+          if (row.hour) hourlyCounts[row.hour] = row.clicks;
+        });
+      }
+    } catch (e) {
+      console.error('Hourly query error:', e);
+    }
 
     const hourly: Array<{ hour: string; clicks: number }> = [];
     for (let h = 0; h < 24; h++) {
@@ -4037,7 +4075,7 @@ app.get('/api/analytics/global', authMiddleware, async (c) => {
     const summary = {
       totalClicks,
       uniqueVisitors,
-      topCountry: breakdown.countries[0]?.name || 'None',
+      topCountry: breakdown.countries[0]?.name || 'Direct / N/A',
       topReferrer: breakdown.referrers[0]?.name || 'Direct',
     };
 
@@ -4053,7 +4091,6 @@ app.get('/api/analytics/global', authMiddleware, async (c) => {
       timeseries,
       breakdown,
       hourly,
-      // Legacy compatibility properties
       clicksByDate,
       clicksByCountry,
       clicksByDevice,
@@ -4073,10 +4110,26 @@ app.get('/api/analytics/global', authMiddleware, async (c) => {
         visitorCap: usageSummary?.limits?.visitors || { current: 0, limit: 500, percentage: 0 },
         newVisitorsSinceLastVisit: usageSummary?.newVisitorsSinceLastVisit || 0,
       },
-    });
-  } catch (error) {
-    console.error('Get global analytics error:', error);
-    return c.json({ error: 'Internal server error' }, 500);
+    }, 200);
+  } catch (err) {
+    console.error("Global analytics error:", err);
+    return c.json({
+      summary: {
+        totalClicks: 0,
+        uniqueVisitors: 0,
+        topCountry: "Direct / N/A",
+        topReferrer: "Direct"
+      },
+      timeseries: [],
+      breakdown: {
+        referrers: [],
+        countries: [],
+        devices: [],
+        browsers: []
+      },
+      hourly: [],
+      links: []
+    }, 200);
   }
 });
 
