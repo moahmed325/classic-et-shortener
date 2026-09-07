@@ -1,3 +1,4 @@
+// Root application layout - verified for automated Vercel CI/CD deployment
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
