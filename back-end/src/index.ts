@@ -87,15 +87,32 @@ interface Link {
 
 const app = new Hono<{ Bindings: Env }>();
 
-// Updated CORS middleware to allow all origins
+const allowedOrigins = [
+  'https://front-end-silk-one.vercel.app',
+  'https://classic.et',
+  'https://www.classic.et',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+];
+
+// CORS middleware explicitly allowing front-end-silk-one.vercel.app, *.vercel.app, and local dev
 app.use('*', async (c, next) => {
   const origin = c.req.header('Origin') || '';
   
-  // Allow all origins
-  c.header('Access-Control-Allow-Origin', origin);
+  const isAllowed =
+    !origin ||
+    allowedOrigins.includes(origin) ||
+    origin.endsWith('.vercel.app') ||
+    origin.startsWith('http://localhost:') ||
+    origin.startsWith('http://127.0.0.1:');
+
+  const corsOrigin = isAllowed ? (origin || 'https://front-end-silk-one.vercel.app') : origin;
+  
+  c.header('Access-Control-Allow-Origin', corsOrigin);
   c.header('Access-Control-Allow-Credentials', 'true');
-  c.header('Access-Control-Allow-Headers', 'Content-Type, X-CSRF-Token, Authorization');
+  c.header('Access-Control-Allow-Headers', 'Content-Type, X-CSRF-Token, Authorization, Accept, Origin, X-Requested-With');
   c.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS,PATCH');
+  c.header('Vary', 'Origin');
 
   // Handle preflight requests
   if (c.req.method === 'OPTIONS') {
@@ -1268,9 +1285,11 @@ This is an automated message. Please do not reply to this email.
   }
 }
 
-// Updated authentication middleware for cookie-based auth
+// Updated authentication middleware for cookie and Bearer token auth
 const authMiddleware = async (c: any, next: any) => {
-  const token = getCookie(c, 'auth_token');
+  const authHeader = c.req.header('Authorization');
+  const bearerToken = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null;
+  const token = getCookie(c, 'auth_token') || bearerToken;
   
   if (!token) {
     return c.json({ error: 'Unauthorized' }, 401);

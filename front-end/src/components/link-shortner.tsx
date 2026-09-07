@@ -134,7 +134,7 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
     }
   };
 
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8787';
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8787';
   const getFullShortUrl = (code: string) => `${baseUrl}/${code}`;
   const getDisplayShortUrl = (code: string) => `classic.et/${code}`;
 

@@ -145,7 +145,9 @@ export async function updateAdminLastLogin(db: any, adminId: string): Promise<vo
 // Admin authentication middleware
 export const adminAuthMiddleware = async (c: any, next: any) => {
   try {
-    const token = getCookie(c, "admin_auth_token")
+    const authHeader = c.req.header("Authorization")
+    const bearerToken = authHeader && authHeader.startsWith("Bearer ") ? authHeader.substring(7) : null
+    const token = getCookie(c, "admin_auth_token") || bearerToken
 
     if (!token) {
       return c.json({ error: "Unauthorized - Admin access required" }, 401)

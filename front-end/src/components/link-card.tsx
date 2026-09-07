@@ -90,7 +90,7 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
   const domain = extractDomain(link.originalUrl);
   const faviconUrl = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : null;
 
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8787';
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8787';
   const fullShortUrl = `${baseUrl}/${link.shortCode}`;
   const displayShortUrl = `classic.et/${link.shortCode}`;
 

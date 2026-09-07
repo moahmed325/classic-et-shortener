@@ -90,7 +90,7 @@ export default function LinkDetailsPage() {
   };
 
   const link = data?.link;
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8787';
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8787';
   const fullShortUrl = link ? `${baseUrl}/${link.shortCode}` : '';
   const displayShortUrl = link ? `classic.et/${link.shortCode}` : '';
   const domain = link ? extractDomain(link.originalUrl) : '';
