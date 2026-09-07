@@ -140,6 +140,100 @@ export const authApi = {
   },
 };
  
+export interface AnalyticsSummary {
+  totalClicks: number;
+  uniqueVisitors: number;
+  topCountry: string;
+  topReferrer: string;
+}
+
+export interface TimeseriesPoint {
+  date: string;
+  clicks: number;
+}
+
+export interface BreakdownItem {
+  name: string;
+  count: number;
+  percentage: number;
+}
+
+export interface AnalyticsBreakdown {
+  referrers: BreakdownItem[];
+  countries: BreakdownItem[];
+  devices: BreakdownItem[];
+  browsers: BreakdownItem[];
+}
+
+export interface HourlyPoint {
+  hour: string;
+  clicks: number;
+}
+
+export interface LinkAnalyticsResponse {
+  link?: {
+    id: string;
+    shortCode: string;
+    title: string | null;
+    originalUrl: string;
+    clickCount: number;
+    createdAt: string;
+  };
+  summary: AnalyticsSummary;
+  timeseries: TimeseriesPoint[];
+  breakdown: AnalyticsBreakdown;
+  hourly: HourlyPoint[];
+  clicksByDate: { [key: string]: number };
+  clicksByCountry: { [key: string]: number };
+  clicksByDevice: { [key: string]: number };
+  clicksByBrowser: { [key: string]: number };
+  clicksByReferrer: { [key: string]: number };
+  clicksByReferrerPath?: { [key: string]: number };
+  clicksByHour?: { [key: string]: number };
+  totalClicks: number;
+  restrictions?: {
+    canSeeFullAnalytics: boolean;
+    canSeeAdvancedCharts: boolean;
+    topCountriesHidden: number;
+    browsersHidden: boolean;
+    devicesHidden: boolean;
+  };
+}
+
+export interface GlobalAnalyticsResponse {
+  links: Array<{
+    id: string;
+    shortCode: string;
+    title: string | null;
+    clickCount: number;
+    createdAt: string;
+    clicksInPeriod: number;
+  }>;
+  summary: AnalyticsSummary;
+  timeseries: TimeseriesPoint[];
+  breakdown: AnalyticsBreakdown;
+  hourly: HourlyPoint[];
+  clicksByDate: { [key: string]: number };
+  clicksByCountry: { [key: string]: number };
+  clicksByDevice: { [key: string]: number };
+  clicksByBrowser: { [key: string]: number };
+  clicksByReferrer?: { [key: string]: number };
+  clicksByReferrerPath?: { [key: string]: number };
+  clicksByHour?: { [key: string]: number };
+  totalClicks: number;
+  restrictions: {
+    canSeeFullAnalytics: boolean;
+    canSeeAdvancedCharts: boolean;
+    topCountriesHidden: number;
+    browsersHidden: boolean;
+    devicesHidden: boolean;
+  };
+  usage: {
+    visitorCap: { current: number; limit: number | null; percentage: number };
+    newVisitorsSinceLastVisit: number;
+  };
+}
+
 // Links API - Updated to use cookie authentication
 export const linksApi = {
   create: async (data: {
@@ -214,51 +308,14 @@ export const linksApi = {
   },
 
   getAnalytics: async (id: string, days = 30) => {
-    return apiRequest<{
-      clicksByDate: { [key: string]: number };
-      clicksByCountry: { [key: string]: number };
-      clicksByDevice: { [key: string]: number };
-      clicksByBrowser: { [key: string]: number };
-      clicksByReferrer: { [key: string]: number };
-      clicksByReferrerPath?: { [key: string]: number };
-      clicksByHour?: { [key: string]: number };
-      totalClicks: number;
-    }>(`/api/links/${id}/analytics?days=${days}`);
+    return apiRequest<LinkAnalyticsResponse>(`/api/links/${id}/analytics?days=${days}`);
   },
 };
 
 // Global Analytics API
 export const globalAnalyticsApi = {
   getGlobalAnalytics: async (days: number) => {
-    return apiRequest<{
-      links: Array<{
-        id: string;
-        shortCode: string;
-        title: string | null;
-        clickCount: number;
-        createdAt: string;
-        clicksInPeriod: number;
-      }>;
-      clicksByDate: { [key: string]: number };
-      clicksByCountry: { [key: string]: number };
-      clicksByDevice: { [key: string]: number };
-      clicksByBrowser: { [key: string]: number };
-      clicksByReferrer?: { [key: string]: number };
-      clicksByReferrerPath?: { [key: string]: number };
-      clicksByHour?: { [key: string]: number };
-      totalClicks: number;
-      restrictions: {
-        canSeeFullAnalytics: boolean;
-        canSeeAdvancedCharts: boolean;
-        topCountriesHidden: number;
-        browsersHidden: boolean;
-        devicesHidden: boolean;
-      };
-      usage: {
-        visitorCap: { current: number; limit: number | null; percentage: number };
-        newVisitorsSinceLastVisit: number;
-      };
-    }>(`/api/analytics/global?days=${days}`);
+    return apiRequest<GlobalAnalyticsResponse>(`/api/analytics/global?days=${days}`);
   },
 };
 

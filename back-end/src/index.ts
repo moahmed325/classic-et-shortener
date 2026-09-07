@@ -3510,25 +3510,25 @@ const linkAnalyticsHandler = async (c: any) => {
     const user = await c.env.DB.prepare(`
       SELECT tier FROM users WHERE id = ?
     `).bind(payload.userId).first() as any;
-    const plan = await getSubscriptionPlan(c.env.DB, user.tier);
+    const plan = await getSubscriptionPlan(c.env.DB, user?.tier || 'free');
 
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    // Get analytics data from click_events
+    // Get analytics data from click_events with robust COALESCE grouping
     const analytics = await c.env.DB.prepare(`
       SELECT 
-        DATE(created_at) as date,
+        strftime('%Y-%m-%d', created_at) as date,
         COUNT(*) as clicks,
         COALESCE(NULLIF(country, ''), 'Unknown') as country,
-        COALESCE(NULLIF(device_type, ''), 'desktop') as device_type,
+        COALESCE(NULLIF(device_type, ''), 'Desktop') as device_type,
         COALESCE(NULLIF(browser, ''), 'Other') as browser,
         COALESCE(NULLIF(referrer, ''), 'Direct') as referrer
       FROM click_events 
       WHERE link_id = ? AND created_at >= ?
       AND created_at >= datetime('now', '-${plan?.limits.analytics_retention_days || 7} days')
-      GROUP BY DATE(created_at), country, device_type, browser, referrer
-      ORDER BY created_at DESC
+      GROUP BY strftime('%Y-%m-%d', created_at), country, device_type, browser, referrer
+      ORDER BY date ASC
     `).bind(link.id, startDate.toISOString()).all();
 
     // Process analytics data
@@ -3542,7 +3542,11 @@ const linkAnalyticsHandler = async (c: any) => {
     analytics.results.forEach((row: any) => {
       if (row.date) clicksByDate[row.date] = (clicksByDate[row.date] || 0) + row.clicks;
       if (row.country) clicksByCountry[row.country] = (clicksByCountry[row.country] || 0) + row.clicks;
-      if (row.device_type) clicksByDevice[row.device_type] = (clicksByDevice[row.device_type] || 0) + row.clicks;
+      if (row.device_type) {
+        // Standardize device casing
+        const dev = row.device_type.charAt(0).toUpperCase() + row.device_type.slice(1).toLowerCase();
+        clicksByDevice[dev] = (clicksByDevice[dev] || 0) + row.clicks;
+      }
       if (row.browser) clicksByBrowser[row.browser] = (clicksByBrowser[row.browser] || 0) + row.clicks;
       if (row.referrer) clicksByReferrer[row.referrer] = (clicksByReferrer[row.referrer] || 0) + row.clicks;
       if (row.referrer && row.referrer !== 'Direct') {
@@ -3556,26 +3560,94 @@ const linkAnalyticsHandler = async (c: any) => {
       }
     });
 
-    // Hourly breakdown for advanced/premium users
-    let clicksByHour: { [key: string]: number } = {};
-    const canSeeAdvanced = await canSeeAdvancedCharts(c.env.DB, payload.userId);
-    const canSeeFull = await canSeeFullAnalytics(c.env.DB, payload.userId);
+    const totalClicks = Object.values(clicksByDate).reduce((sum, clicks) => sum + clicks, 0);
 
-    if (canSeeAdvanced) {
-      const hourly = await c.env.DB.prepare(`
-        SELECT strftime('%Y-%m-%d %H:00', created_at) as hour, COUNT(*) as clicks
-        FROM click_events
-        WHERE link_id = ? AND created_at >= ?
-        AND created_at >= datetime('now', '-${plan?.limits.analytics_retention_days || 7} days')
-        GROUP BY hour
-        ORDER BY hour ASC
-      `).bind(link.id, startDate.toISOString()).all();
-      hourly.results.forEach((row: any) => {
-        if (row.hour) clicksByHour[row.hour] = row.clicks;
+    // Continuous timeseries array (chronological ascending)
+    const timeseries: Array<{ date: string; clicks: number }> = [];
+    const countDays = Math.min(Math.max(days || 30, 1), 365);
+    for (let i = countDays - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateKey = d.toISOString().slice(0, 10);
+      timeseries.push({
+        date: dateKey,
+        clicks: clicksByDate[dateKey] || 0,
       });
     }
 
-    const totalClicks = Object.values(clicksByDate).reduce((sum, clicks) => sum + clicks, 0);
+    // Helper for structured breakdowns
+    const toBreakdownList = (map: { [key: string]: number }) => {
+      const entries = Object.entries(map);
+      entries.sort((a, b) => b[1] - a[1]);
+      return entries.map(([name, count]) => ({
+        name,
+        count,
+        percentage: totalClicks > 0 ? Math.round((count / totalClicks) * 100) : 0,
+      }));
+    };
+
+    const breakdown = {
+      referrers: toBreakdownList(clicksByReferrer),
+      countries: toBreakdownList(clicksByCountry),
+      devices: toBreakdownList(clicksByDevice),
+      browsers: toBreakdownList(clicksByBrowser),
+    };
+
+    // 24-hour click distribution
+    const hourlyCounts: { [key: string]: number } = {};
+    const hourlyQuery = await c.env.DB.prepare(`
+      SELECT strftime('%H', created_at) as hour, COUNT(*) as clicks
+      FROM click_events
+      WHERE link_id = ? AND created_at >= ?
+      AND created_at >= datetime('now', '-${plan?.limits.analytics_retention_days || 7} days')
+      GROUP BY strftime('%H', created_at)
+      ORDER BY hour ASC
+    `).bind(link.id, startDate.toISOString()).all();
+
+    hourlyQuery.results.forEach((row: any) => {
+      if (row.hour) hourlyCounts[row.hour] = row.clicks;
+    });
+
+    const hourly: Array<{ hour: string; clicks: number }> = [];
+    for (let h = 0; h < 24; h++) {
+      const hKey = h.toString().padStart(2, '0');
+      hourly.push({
+        hour: `${hKey}:00`,
+        clicks: hourlyCounts[hKey] || 0,
+      });
+    }
+
+    // Unique visitors query
+    let uniqueVisitors = 0;
+    try {
+      const uvRow = await c.env.DB.prepare(`
+        SELECT COUNT(DISTINCT ip_address) as count 
+        FROM user_activity_logs 
+        WHERE action = 'link_clicked' AND resource_id = ? AND created_at >= ?
+      `).bind(link.id, startDate.toISOString()).first() as any;
+      uniqueVisitors = uvRow?.count || 0;
+    } catch {
+      // Graceful fallback
+    }
+    if (uniqueVisitors === 0 && totalClicks > 0) {
+      uniqueVisitors = Math.min(totalClicks, Object.keys(clicksByDate).length > 0 ? totalClicks : 1);
+    }
+
+    const summary = {
+      totalClicks,
+      uniqueVisitors,
+      topCountry: breakdown.countries[0]?.name || 'Unknown',
+      topReferrer: breakdown.referrers[0]?.name || 'Direct',
+    };
+
+    const canSeeAdvanced = await canSeeAdvancedCharts(c.env.DB, payload.userId);
+    const canSeeFull = await canSeeFullAnalytics(c.env.DB, payload.userId);
+
+    // Hourly map for backward compatibility
+    const clicksByHour: { [key: string]: number } = {};
+    hourly.forEach((item) => {
+      clicksByHour[item.hour] = item.clicks;
+    });
 
     return c.json({
       link: {
@@ -3584,8 +3656,13 @@ const linkAnalyticsHandler = async (c: any) => {
         title: link.title || 'Untitled',
         originalUrl: link.original_url,
         clickCount: link.click_count,
-        createdAt: link.created_at
+        createdAt: link.created_at,
       },
+      summary,
+      timeseries,
+      breakdown,
+      hourly,
+      // Legacy compatibility properties
       clicksByDate,
       clicksByCountry,
       clicksByDevice,
@@ -3599,10 +3676,9 @@ const linkAnalyticsHandler = async (c: any) => {
         canSeeAdvancedCharts: canSeeAdvanced,
         topCountriesHidden: 0,
         browsersHidden: false,
-        devicesHidden: false
-      }
+        devicesHidden: false,
+      },
     });
-
   } catch (error) {
     console.error('Get analytics error:', error);
     return c.json({ error: 'Internal server error' }, 500);
@@ -3756,6 +3832,32 @@ app.get('/api/analytics/global', authMiddleware, async (c) => {
 
     const emptyResponse = {
       links: linkList,
+      summary: {
+        totalClicks: 0,
+        uniqueVisitors: 0,
+        topCountry: 'None',
+        topReferrer: 'Direct',
+      },
+      timeseries: (() => {
+        const result: Array<{ date: string; clicks: number }> = [];
+        const countDays = Math.min(Math.max(days || 30, 1), 365);
+        for (let i = countDays - 1; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          result.push({ date: d.toISOString().slice(0, 10), clicks: 0 });
+        }
+        return result;
+      })(),
+      breakdown: {
+        referrers: [],
+        countries: [],
+        devices: [],
+        browsers: [],
+      },
+      hourly: Array.from({ length: 24 }, (_, i) => ({
+        hour: `${i.toString().padStart(2, '0')}:00`,
+        clicks: 0,
+      })),
       clicksByDate: {},
       clicksByCountry: {},
       clicksByDevice: {},
@@ -3769,12 +3871,12 @@ app.get('/api/analytics/global', authMiddleware, async (c) => {
         canSeeAdvancedCharts: canSeeAdvanced,
         topCountriesHidden: 0,
         browsersHidden: false,
-        devicesHidden: false
+        devicesHidden: false,
       },
       usage: {
         visitorCap: usageSummary?.limits?.visitors || { current: 0, limit: 500, percentage: 0 },
-        newVisitorsSinceLastVisit: usageSummary?.newVisitorsSinceLastVisit || 0
-      }
+        newVisitorsSinceLastVisit: usageSummary?.newVisitorsSinceLastVisit || 0,
+      },
     };
 
     if (links.results.length === 0) {
@@ -3784,22 +3886,23 @@ app.get('/api/analytics/global', authMiddleware, async (c) => {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    // Get global analytics data from click_events for this user
+    // Get global analytics data from click_events for this user with robust COALESCE grouping
     const analytics = await c.env.DB.prepare(`
       SELECT 
-        DATE(created_at) as date,
+        strftime('%Y-%m-%d', created_at) as date,
         COUNT(*) as clicks,
         COALESCE(NULLIF(country, ''), 'Unknown') as country,
-        COALESCE(NULLIF(device_type, ''), 'desktop') as device_type,
+        COALESCE(NULLIF(device_type, ''), 'Desktop') as device_type,
         COALESCE(NULLIF(browser, ''), 'Other') as browser,
         COALESCE(NULLIF(referrer, ''), 'Direct') as referrer,
         link_id
       FROM click_events 
-      WHERE user_id = ? AND created_at >= ?
+      WHERE (user_id = ? OR link_id IN (SELECT id FROM links WHERE user_id = ?))
+      AND created_at >= ?
       AND created_at >= datetime('now', '-${plan?.limits.analytics_retention_days || 7} days')
-      GROUP BY DATE(created_at), country, device_type, browser, referrer, link_id
-      ORDER BY created_at DESC
-    `).bind(payload.userId, startDate.toISOString()).all();
+      GROUP BY strftime('%Y-%m-%d', created_at), country, device_type, browser, referrer, link_id
+      ORDER BY date ASC
+    `).bind(payload.userId, payload.userId, startDate.toISOString()).all();
 
     // Process analytics data
     const clicksByDate: { [key: string]: number } = {};
@@ -3813,7 +3916,10 @@ app.get('/api/analytics/global', authMiddleware, async (c) => {
     analytics.results.forEach((row: any) => {
       if (row.date) clicksByDate[row.date] = (clicksByDate[row.date] || 0) + row.clicks;
       if (row.country) clicksByCountry[row.country] = (clicksByCountry[row.country] || 0) + row.clicks;
-      if (row.device_type) clicksByDevice[row.device_type] = (clicksByDevice[row.device_type] || 0) + row.clicks;
+      if (row.device_type) {
+        const dev = row.device_type.charAt(0).toUpperCase() + row.device_type.slice(1).toLowerCase();
+        clicksByDevice[dev] = (clicksByDevice[dev] || 0) + row.clicks;
+      }
       if (row.browser) clicksByBrowser[row.browser] = (clicksByBrowser[row.browser] || 0) + row.clicks;
       if (row.link_id) clicksByLink[row.link_id] = (clicksByLink[row.link_id] || 0) + row.clicks;
       if (row.referrer) clicksByReferrer[row.referrer] = (clicksByReferrer[row.referrer] || 0) + row.clicks;
@@ -3833,26 +3939,102 @@ app.get('/api/analytics/global', authMiddleware, async (c) => {
       link.clicksInPeriod = clicksByLink[link.id] || 0;
     });
 
-    // Hourly breakdown for premium
-    let clicksByHour: { [key: string]: number } = {};
-    if (canSeeAdvanced) {
-      const hourly = await c.env.DB.prepare(`
-        SELECT strftime('%Y-%m-%d %H:00', created_at) as hour, COUNT(*) as clicks
-        FROM click_events
-        WHERE user_id = ? AND created_at >= ?
-        AND created_at >= datetime('now', '-${plan?.limits.analytics_retention_days || 7} days')
-        GROUP BY hour
-        ORDER BY hour ASC
-      `).bind(payload.userId, startDate.toISOString()).all();
-      hourly.results.forEach((row: any) => {
-        if (row.hour) clicksByHour[row.hour] = row.clicks;
+    const totalClicks = Object.values(clicksByDate).reduce((sum, clicks) => sum + clicks, 0);
+
+    // Continuous timeseries array (chronological ascending)
+    const timeseries: Array<{ date: string; clicks: number }> = [];
+    const countDays = Math.min(Math.max(days || 30, 1), 365);
+    for (let i = countDays - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateKey = d.toISOString().slice(0, 10);
+      timeseries.push({
+        date: dateKey,
+        clicks: clicksByDate[dateKey] || 0,
       });
     }
 
-    const totalClicks = Object.values(clicksByDate).reduce((sum, clicks) => sum + clicks, 0);
+    // Helper for structured breakdowns
+    const toBreakdownList = (map: { [key: string]: number }) => {
+      const entries = Object.entries(map);
+      entries.sort((a, b) => b[1] - a[1]);
+      return entries.map(([name, count]) => ({
+        name,
+        count,
+        percentage: totalClicks > 0 ? Math.round((count / totalClicks) * 100) : 0,
+      }));
+    };
+
+    const breakdown = {
+      referrers: toBreakdownList(clicksByReferrer),
+      countries: toBreakdownList(clicksByCountry),
+      devices: toBreakdownList(clicksByDevice),
+      browsers: toBreakdownList(clicksByBrowser),
+    };
+
+    // 24-hour click distribution
+    const hourlyCounts: { [key: string]: number } = {};
+    const hourlyQuery = await c.env.DB.prepare(`
+      SELECT strftime('%H', created_at) as hour, COUNT(*) as clicks
+      FROM click_events
+      WHERE (user_id = ? OR link_id IN (SELECT id FROM links WHERE user_id = ?))
+      AND created_at >= ?
+      AND created_at >= datetime('now', '-${plan?.limits.analytics_retention_days || 7} days')
+      GROUP BY strftime('%H', created_at)
+      ORDER BY hour ASC
+    `).bind(payload.userId, payload.userId, startDate.toISOString()).all();
+
+    hourlyQuery.results.forEach((row: any) => {
+      if (row.hour) hourlyCounts[row.hour] = row.clicks;
+    });
+
+    const hourly: Array<{ hour: string; clicks: number }> = [];
+    for (let h = 0; h < 24; h++) {
+      const hKey = h.toString().padStart(2, '0');
+      hourly.push({
+        hour: `${hKey}:00`,
+        clicks: hourlyCounts[hKey] || 0,
+      });
+    }
+
+    // Unique visitors query
+    let uniqueVisitors = 0;
+    try {
+      const uvRow = await c.env.DB.prepare(`
+        SELECT COUNT(DISTINCT ip_address) as count 
+        FROM user_activity_logs 
+        WHERE action = 'link_clicked' AND user_id = ? AND created_at >= ?
+      `).bind(payload.userId, startDate.toISOString()).first() as any;
+      uniqueVisitors = uvRow?.count || 0;
+    } catch {
+      // Graceful fallback
+    }
+    if (uniqueVisitors === 0 && (usageSummary?.limits?.visitors?.current || 0) > 0) {
+      uniqueVisitors = usageSummary.limits.visitors.current;
+    } else if (uniqueVisitors === 0 && totalClicks > 0) {
+      uniqueVisitors = Math.min(totalClicks, Object.keys(clicksByDate).length > 0 ? totalClicks : 1);
+    }
+
+    const summary = {
+      totalClicks,
+      uniqueVisitors,
+      topCountry: breakdown.countries[0]?.name || 'None',
+      topReferrer: breakdown.referrers[0]?.name || 'Direct',
+    };
+
+    // Hourly map for backward compatibility
+    const clicksByHour: { [key: string]: number } = {};
+    hourly.forEach((item) => {
+      clicksByHour[item.hour] = item.clicks;
+    });
 
     return c.json({
       links: linkList,
+      summary,
+      timeseries,
+      breakdown,
+      hourly,
+      // Legacy compatibility properties
       clicksByDate,
       clicksByCountry,
       clicksByDevice,
@@ -3866,14 +4048,13 @@ app.get('/api/analytics/global', authMiddleware, async (c) => {
         canSeeAdvancedCharts: canSeeAdvanced,
         topCountriesHidden: 0,
         browsersHidden: false,
-        devicesHidden: false
+        devicesHidden: false,
       },
       usage: {
         visitorCap: usageSummary?.limits?.visitors || { current: 0, limit: 500, percentage: 0 },
-        newVisitorsSinceLastVisit: usageSummary?.newVisitorsSinceLastVisit || 0
-      }
+        newVisitorsSinceLastVisit: usageSummary?.newVisitorsSinceLastVisit || 0,
+      },
     });
-
   } catch (error) {
     console.error('Get global analytics error:', error);
     return c.json({ error: 'Internal server error' }, 500);

@@ -2,743 +2,448 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { 
+  ArrowLeft, 
+  Copy, 
+  Check, 
+  ExternalLink, 
+  Globe, 
+  Calendar, 
+  Edit3, 
+  Trash2, 
+  Loader2,
+  QrCode,
+  Download
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Copy, ExternalLink, Edit, Save, Calendar, BarChart3, Globe, Smartphone, Monitor, Tablet, Loader2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { linksApi } from '@/lib/api';
-import { useAuth } from '@/contexts/auth-context';
-import Link from 'next/link';
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip } from 'recharts';
+import { linksApi, LinkAnalyticsResponse } from '@/lib/api';
+import { TimeRangeSelector, TimeRangeValue } from '@/components/analytics/time-range-selector';
+import { AnalyticsStatCards } from '@/components/analytics/analytics-stat-cards';
+import { AnalyticsChart } from '@/components/analytics/analytics-chart';
+import { AnalyticsBreakdownGrid } from '@/components/analytics/analytics-breakdown-grid';
 
-interface LinkData {
-  id: string;
-  shortCode: string;
-  originalUrl: string;
-  title: string | null;
-  clickCount: number;
-  createdAt: string;
-  isActive: boolean;
-  expiresAt: string | null;
-}
-
-interface AnalyticsData {
-  clicksByDate: { [key: string]: number };
-  clicksByCountry: { [key: string]: number };
-  clicksByDevice: { [key: string]: number };
-  clicksByBrowser: { [key: string]: number };
-  clicksByReferrer: { [key: string]: number };
-  
-  clicksByReferrerPath?: { [key: string]: number };
-  clicksByHour?: { [key: string]: number };
-  totalClicks: number;
+function extractDomain(url: string): string {
+  try {
+    const formatted = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
+    const parsed = new URL(formatted);
+    return parsed.hostname.replace(/^www\./, '');
+  } catch {
+    return '';
+  }
 }
 
 export default function LinkDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
   const { toast } = useToast();
   const linkId = params.linkId as string;
 
-  const [link, setLink] = useState<LinkData | null>(null);
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [data, setData] = useState<LinkAnalyticsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [timeRange, setTimeRange] = useState<TimeRangeValue>('30');
+  const [copied, setCopied] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Edit form state
   const [editTitle, setEditTitle] = useState('');
-  const [editIsActive, setEditIsActive] = useState(true);
+  const [editUrl, setEditUrl] = useState('');
+  const [editActive, setEditActive] = useState(true);
   const [editExpiresAt, setEditExpiresAt] = useState('');
-  const [editShortCode, setEditShortCode] = useState('');
 
   useEffect(() => {
-    fetchLinkData();
-  }, [linkId]);
+    fetchLinkAnalytics();
+  }, [linkId, timeRange]);
 
-  useEffect(() => {
-    if (link) {
-      fetchAnalytics();
-    }
-  }, [link]);
-
-  const fetchLinkData = async () => {
+  const fetchLinkAnalytics = async () => {
+    setIsLoading(true);
     try {
-      const linkData = await linksApi.getById(linkId);
-      setLink(linkData);
-      setEditTitle(linkData.title || '');
-      setEditIsActive(linkData.isActive);
-      setEditExpiresAt(linkData.expiresAt ? new Date(linkData.expiresAt).toISOString().slice(0, 16) : '');
-      setEditShortCode(linkData.shortCode || '');
+      const res = await linksApi.getAnalytics(linkId, parseInt(timeRange));
+      setData(res);
+      if (res.link) {
+        setEditTitle(res.link.title || '');
+        setEditUrl(res.link.originalUrl || '');
+      }
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to load link",
-        variant: "destructive",
+        title: 'Error loading analytics',
+        description: error.message || 'Failed to retrieve per-link metrics',
+        variant: 'destructive',
       });
-      router.push('/dashboard/links');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fetchAnalytics = async () => {
-    setAnalyticsLoading(true);
+  const link = data?.link;
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8787';
+  const fullShortUrl = link ? `${baseUrl}/${link.shortCode}` : '';
+  const displayShortUrl = link ? `classic.et/${link.shortCode}` : '';
+  const domain = link ? extractDomain(link.originalUrl) : '';
+  const faviconUrl = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : null;
+
+  const handleCopy = async () => {
+    if (!fullShortUrl) return;
     try {
-      const analyticsData = await linksApi.getAnalytics(linkId, 30);
-      setAnalytics(analyticsData);
-    } catch (error: any) {
-      console.error('Failed to load analytics:', error);
-    } finally {
-      setAnalyticsLoading(false);
+      await navigator.clipboard.writeText(fullShortUrl);
+      setCopied(true);
+      toast({
+        title: 'Copied to clipboard',
+        description: displayShortUrl,
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({
+        title: 'Copy failed',
+        variant: 'destructive',
+      });
     }
   };
 
-  const handleSave = async () => {
-    if (!link) return;
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editUrl.trim()) {
+      toast({
+        title: 'Destination URL required',
+        variant: 'destructive',
+      });
+      return;
+    }
 
-    setIsSaving(true);
+    setIsUpdating(true);
     try {
       await linksApi.update(linkId, {
-        title: editTitle.trim() || "",
-        isActive: editIsActive,
+        title: editTitle.trim() || undefined,
+        originalUrl: editUrl.trim(),
+        isActive: editActive,
         expiresAt: editExpiresAt ? new Date(editExpiresAt).toISOString() : null,
-        ...(user?.tier === 'premium' && editShortCode.trim() && editShortCode.trim() !== link.shortCode ? { shortCode: editShortCode.trim() } : {}),
       });
 
-      setLink({
-        ...link,
-        title: editTitle.trim() || null,
-        isActive: editIsActive,
-        expiresAt: editExpiresAt ? new Date(editExpiresAt).toISOString() : null,
-        shortCode: editShortCode.trim() || link.shortCode,
-      });
+      if (data && data.link) {
+        setData({
+          ...data,
+          link: {
+            ...data.link,
+            title: editTitle.trim() || null,
+            originalUrl: editUrl.trim(),
+          },
+        });
+      }
 
-      setIsEditing(false);
+      setShowEdit(false);
       toast({
-        title: "Success",
-        description: "Link updated successfully",
+        title: 'Link updated',
+        description: 'Changes saved successfully.',
       });
-    } catch (error: any) {
+    } catch (err: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to update link",
-        variant: "destructive",
+        title: 'Failed to update link',
+        description: err.message || 'Could not update link details',
+        variant: 'destructive',
       });
     } finally {
-      setIsSaving(false);
+      setIsUpdating(false);
     }
   };
 
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast({
-        title: "Copied!",
-        description: "URL copied to clipboard",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to copy to clipboard",
-        variant: "destructive",
-      });
-    }
+  const qrImageUrl = link
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=260x260&format=svg&data=${encodeURIComponent(fullShortUrl)}`
+    : '';
+
+  const summary = data?.summary || {
+    totalClicks: link?.clickCount || 0,
+    uniqueVisitors: 0,
+    topCountry: 'None',
+    topReferrer: 'Direct',
   };
 
-  const getShortUrl = (shortCode: string) => {
-    return `${window.location.origin}/${shortCode}`;
+  const timeseries = data?.timeseries || [];
+  const breakdown = data?.breakdown || {
+    referrers: [],
+    countries: [],
+    devices: [],
+    browsers: [],
   };
 
-  const isExpired = (expiresAt: string | null) => {
-    return expiresAt && new Date(expiresAt) < new Date();
-  };
-
-  const getDeviceIcon = (device: string) => {
-    switch (device.toLowerCase()) {
-      case 'mobile': return <Smartphone className="h-4 w-4" />;
-      case 'tablet': return <Tablet className="h-4 w-4" />;
-      default: return <Monitor className="h-4 w-4" />;
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
-  if (!link) {
-    return (
-      <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Link not found</h2>
-        <p className="text-gray-600 mb-6">The link you're looking for doesn't exist or has been deleted.</p>
-        <Link href="/dashboard/links">
-          <Button>Back to Links</Button>
-        </Link>
-      </div>
-    );
-  }
+  const formattedCreatedDate = link
+    ? new Date(link.createdAt).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : '';
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link href="/dashboard/links">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Links
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              {link.title || 'Untitled Link'}
-            </h1>
-            <p className="text-gray-600 mt-1">
-              Created {formatDate(link.createdAt)}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-2">
-          {!isEditing ? (
-            <Button onClick={() => setIsEditing(true)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </Button>
-          ) : (
-            <div className="flex space-x-2">
-              <Button variant="outline" onClick={() => setIsEditing(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSave} disabled={isSaving}>
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                <Save className="mr-2 h-4 w-4" />
-                Save
-              </Button>
+    <div className="space-y-6 sm:space-y-8">
+      {/* Back navigation */}
+      <div>
+        <Link
+          href="/dashboard/links"
+          className="group inline-flex items-center gap-1.5 text-xs font-mono text-[#8c8d91] hover:text-[#ededed] transition-colors"
+        >
+          <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
+          <span>Back to links feed</span>
+        </Link>
+      </div>
+
+      {/* Link Metadata Bar */}
+      <div className="rounded-md border border-[#27282b] bg-[#141517] p-4 sm:p-5">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          {/* Left: Favicon + Slug + Truncated Target */}
+          <div className="flex items-start gap-3 min-w-0 flex-1">
+            <div className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded border border-[#27282b] bg-[#1c1d20] overflow-hidden">
+              {faviconUrl ? (
+                <img
+                  src={faviconUrl}
+                  alt={domain || 'favicon'}
+                  className="h-4 w-4 object-contain"
+                />
+              ) : (
+                <Globe className="h-4 w-4 text-[#8c8d91]" />
+              )}
             </div>
-          )}
+
+            <div className="min-w-0 flex-1 space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-mono text-base font-semibold text-[#ededed]">
+                  {displayShortUrl}
+                </span>
+
+                <a
+                  href={fullShortUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Visit link"
+                  className="text-[#8c8d91] hover:text-[#ededed] transition-colors p-0.5"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+
+                <Badge variant="outline" className="text-[10px] font-mono px-1.5 py-0 border-[#27282b] text-[#5fc992] bg-[#5fc992]/10">
+                  Active
+                </Badge>
+              </div>
+
+              {/* Destination URL */}
+              <p
+                className="truncate text-xs text-[#8c8d91] hover:text-[#ededed] transition-colors font-sans"
+                title={link?.originalUrl}
+              >
+                {link?.title ? (
+                  <span className="text-[#ededed] font-medium mr-1.5">{link.title} —</span>
+                ) : null}
+                {link?.originalUrl}
+              </p>
+
+              <div className="flex items-center gap-2 text-[11px] font-mono text-[#8c8d91] pt-0.5">
+                <span>Created {formattedCreatedDate}</span>
+                {domain && (
+                  <>
+                    <span>•</span>
+                    <span className="truncate max-w-[200px]">{domain}</span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Action Controls */}
+          <div className="flex items-center gap-2 flex-shrink-0 pt-2 border-t border-[#27282b]/60 md:border-t-0 md:pt-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopy}
+              className="min-h-[44px] px-3.5 border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#ededed] text-xs font-mono flex items-center gap-1.5"
+            >
+              {copied ? (
+                <>
+                  <Check className="h-3.5 w-3.5 text-[#5fc992]" />
+                  <span className="text-[#5fc992]">Copied</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="h-3.5 w-3.5 text-[#8c8d91]" />
+                  <span>Copy</span>
+                </>
+              )}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowQR(true)}
+              className="min-h-[44px] min-w-[44px] p-0 border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#8c8d91] hover:text-[#ededed] text-xs"
+              title="Show QR Code"
+            >
+              <QrCode className="h-4 w-4" />
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowEdit(true)}
+              className="min-h-[44px] px-3 border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#8c8d91] hover:text-[#ededed] text-xs font-mono flex items-center gap-1.5"
+            >
+              <Edit3 className="h-3.5 w-3.5" />
+              <span>Edit</span>
+            </Button>
+          </div>
         </div>
       </div>
 
-      <Tabs defaultValue="analytics" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-        </TabsList>
+      {/* Top Bar: Analytics Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 className="text-base sm:text-lg font-bold text-[#ededed] font-sans">
+            Telemetry & Visitor Breakdown
+          </h2>
+          <p className="text-xs text-[#8c8d91] font-mono mt-0.5">
+            Real-time click events filtered for this shortcode
+          </p>
+        </div>
 
-        <TabsContent value="overview" className="space-y-6">
-          {/* Link Info Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Link Information</CardTitle>
-              <CardDescription>
-                Basic information about your shortened link
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-sm font-medium">Short URL</Label>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <Input
-                        value={getShortUrl(link.shortCode)}
-                        readOnly
-                        className="font-mono"
-                      />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => copyToClipboard(getShortUrl(link.shortCode))}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => window.open(getShortUrl(link.shortCode), '_blank')}
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
+        <TimeRangeSelector
+          value={timeRange}
+          onChange={setTimeRange}
+          disabled={isLoading}
+        />
+      </div>
 
-                  <div>
-                    <Label className="text-sm font-medium">Original URL</Label>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <Input
-                        value={link.originalUrl}
-                        readOnly
-                      />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => copyToClipboard(link.originalUrl)}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
+      {/* 4 Stat Cards */}
+      <AnalyticsStatCards summary={summary} isLoading={isLoading} />
 
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-sm font-medium">Status</Label>
-                    <div className="flex items-center space-x-2 mt-1">
-                      {link.isActive ? (
-                        <Badge variant="default">Active</Badge>
-                      ) : (
-                        <Badge variant="secondary">Inactive</Badge>
-                      )}
-                      {isExpired(link.expiresAt) && (
-                        <Badge variant="destructive">Expired</Badge>
-                      )}
-                    </div>
-                  </div>
+      {/* Timeseries AreaChart */}
+      <AnalyticsChart
+        data={timeseries}
+        isLoading={isLoading}
+        strokeColor="#56c2ff"
+        fillGradientId="perLinkClicksGradient"
+      />
 
-                  <div>
-                    <Label className="text-sm font-medium">Total Clicks</Label>
-                    <div className="text-2xl font-bold mt-1">{link.clickCount}</div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Breakdown Grid: Referrers, Countries, Devices/Browsers */}
+      <AnalyticsBreakdownGrid breakdown={breakdown} isLoading={isLoading} />
 
-          {/* Quick Stats */}
-          {analytics && (
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-              <Card className="rounded-md border border-neutral-200 dark:border-neutral-800">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Clicks</CardTitle>
-                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold tabular-nums">{analytics.totalClicks || 0}</div>
-                  <p className="text-xs text-muted-foreground">Last 30 days</p>
-                </CardContent>
-              </Card>
+      {/* QR Code Modal */}
+      <Dialog open={showQR} onOpenChange={setShowQR}>
+        <DialogContent className="border border-[#27282b] bg-[#141517] text-[#ededed] max-w-sm p-6 overscroll-contain">
+          <DialogHeader className="text-center sm:text-center">
+            <DialogTitle className="text-base font-semibold text-[#ededed]">QR Code</DialogTitle>
+            <DialogDescription className="font-mono text-xs text-[#8c8d91] truncate">
+              {displayShortUrl}
+            </DialogDescription>
+          </DialogHeader>
 
-              <Card className="rounded-md border border-neutral-200 dark:border-neutral-800">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Countries</CardTitle>
-                  <Globe className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold tabular-nums">
-                    {Object.keys(analytics.clicksByCountry || {}).length}
-                  </div>
-                  <p className="text-xs text-muted-foreground">Unique countries</p>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-md border border-neutral-200 dark:border-neutral-800">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Top Device</CardTitle>
-                  <Monitor className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold capitalize">
-                    {Object.keys(analytics.clicksByDevice || {}).length > 0
-                      ? Object.entries(analytics.clicksByDevice)
-                          .sort(([,a], [,b]) => b - a)[0][0]
-                      : 'N/A'
-                    }
-                  </div>
-                  <p className="text-xs text-muted-foreground">Most used device</p>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-md border border-neutral-200 dark:border-neutral-800">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Top Browser</CardTitle>
-                  <Globe className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {Object.keys(analytics.clicksByBrowser || {}).length > 0
-                      ? Object.entries(analytics.clicksByBrowser)
-                          .sort(([,a], [,b]) => b - a)[0][0]
-                      : 'N/A'
-                    }
-                  </div>
-                  <p className="text-xs text-muted-foreground">Most used browser</p>
-                </CardContent>
-              </Card>
+          <div className="flex flex-col items-center justify-center py-2">
+            <div className="p-3 bg-white rounded-md border border-[#27282b]">
+              <img
+                src={qrImageUrl}
+                alt={`QR code for ${displayShortUrl}`}
+                className="h-48 w-48 object-contain"
+              />
             </div>
-          )}
-        </TabsContent>
+          </div>
 
-        <TabsContent value="analytics" className="space-y-6">
-          {analyticsLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <div className="flex flex-col gap-2 pt-2">
+            <a
+              href={qrImageUrl}
+              download={`${link?.shortCode || 'link'}-qr.svg`}
+              target="_blank"
+              rel="noreferrer"
+              className="w-full"
+            >
+              <Button
+                variant="outline"
+                className="w-full min-h-[44px] border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#ededed] text-xs font-mono"
+              >
+                <Download className="mr-2 h-4 w-4 text-[#8c8d91]" />
+                Download SVG
+              </Button>
+            </a>
+            <Button
+              variant="outline"
+              onClick={handleCopy}
+              className="w-full min-h-[44px] border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#ededed] text-xs"
+            >
+              <Copy className="mr-2 h-4 w-4 text-[#8c8d91]" />
+              Copy Link
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Link Modal */}
+      <Dialog open={showEdit} onOpenChange={setShowEdit}>
+        <DialogContent className="border border-[#27282b] bg-[#141517] text-[#ededed] max-w-md p-6 overscroll-contain">
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold text-[#ededed]">Edit Link Details</DialogTitle>
+            <DialogDescription className="font-mono text-xs text-[#8c8d91]">
+              {displayShortUrl}
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveEdit} className="space-y-4 pt-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-dest-url" className="text-xs font-medium text-[#8c8d91]">
+                Destination URL
+              </Label>
+              <Input
+                id="edit-dest-url"
+                type="url"
+                required
+                value={editUrl}
+                onChange={(e) => setEditUrl(e.target.value)}
+                className="min-h-[44px] bg-[#1c1d20] border-[#27282b] text-base sm:text-sm text-[#ededed]"
+              />
             </div>
-          ) : analytics ? (
-            <div className="space-y-6">
-              {/* Clicks by Date */}
-              <Card className="rounded-md border border-neutral-200 dark:border-neutral-800">
-                <CardHeader>
-                  <CardTitle className="text-base font-semibold">Clicks Over Time</CardTitle>
-                  <CardDescription className="text-xs">Daily click trends for the last 30 days</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {Object.keys(analytics.clicksByDate || {}).length === 0 ? (
-                    <div className="py-12 text-center border border-dashed border-neutral-200 dark:border-neutral-800 rounded-md">
-                      <Calendar className="h-8 w-8 mx-auto mb-2 text-neutral-400" />
-                      <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">No clicks recorded yet</p>
-                      <p className="text-xs text-neutral-500 mt-1">Daily trends will appear here once visitors start clicking your link.</p>
-                    </div>
-                  ) : (
-                    <div className="h-64 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart
-                          data={Object.entries(analytics.clicksByDate)
-                            .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
-                            .map(([date, clicks]) => ({
-                              date: new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-                              clicks
-                            }))}
-                          margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" className="dark:stroke-neutral-800" />
-                          <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="#9ca3af" />
-                          <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" allowDecimals={false} />
-                          <RechartsTooltip contentStyle={{ backgroundColor: 'rgba(255,255,255,0.95)', border: '1px solid #e5e7eb', borderRadius: '6px' }} />
-                          <Line type="monotone" dataKey="clicks" stroke="#2563eb" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
 
-              <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
-                {/* Countries */}
-                <Card className="rounded-md border border-neutral-200 dark:border-neutral-800">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base font-semibold">Top Countries</CardTitle>
-                    <CardDescription className="text-xs">Clicks by geographic location</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {Object.keys(analytics.clicksByCountry || {}).length === 0 ? (
-                      <div className="py-8 text-center text-xs text-neutral-500 border border-dashed border-neutral-200 dark:border-neutral-800 rounded-md">
-                        No geographic data available
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {Object.entries(analytics.clicksByCountry)
-                          .sort(([,a], [,b]) => b - a)
-                          .slice(0, 8)
-                          .map(([country, clicks]) => (
-                            <div key={country} className="flex items-center justify-between py-1.5 border-b border-neutral-100 dark:border-neutral-800 last:border-0 text-sm">
-                              <span className="font-medium text-xs truncate">{country || 'Unknown'}</span>
-                              <div className="flex items-center space-x-2">
-                                <span className="text-xs font-semibold tabular-nums">{clicks}</span>
-                                <span className="text-[11px] text-neutral-400 w-10 text-right">
-                                  {analytics.totalClicks > 0 ? `${Math.round((clicks / analytics.totalClicks) * 100)}%` : '0%'}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Referrers */}
-                <Card className="rounded-md border border-neutral-200 dark:border-neutral-800">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base font-semibold">Top Referrers</CardTitle>
-                    <CardDescription className="text-xs">Traffic sources and origins</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {Object.keys(analytics.clicksByReferrer || {}).length === 0 ? (
-                      <div className="py-8 text-center text-xs text-neutral-500 border border-dashed border-neutral-200 dark:border-neutral-800 rounded-md">
-                        No referrer data available
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {Object.entries(analytics.clicksByReferrer)
-                          .sort(([,a], [,b]) => b - a)
-                          .slice(0, 8)
-                          .map(([referrer, clicks]) => (
-                            <div key={referrer} className="flex items-center justify-between py-1.5 border-b border-neutral-100 dark:border-neutral-800 last:border-0 text-sm">
-                              <span className="font-mono text-xs truncate max-w-[200px] text-neutral-800 dark:text-neutral-200">
-                                {referrer || 'Direct'}
-                              </span>
-                              <div className="flex items-center space-x-2">
-                                <span className="text-xs font-semibold tabular-nums">{clicks}</span>
-                                <span className="text-[11px] text-neutral-400 w-10 text-right">
-                                  {analytics.totalClicks > 0 ? `${Math.round((clicks / analytics.totalClicks) * 100)}%` : '0%'}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Devices */}
-                <Card className="rounded-md border border-neutral-200 dark:border-neutral-800">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base font-semibold">Device Types</CardTitle>
-                    <CardDescription className="text-xs">Clicks by device category</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {Object.keys(analytics.clicksByDevice || {}).length === 0 ? (
-                      <div className="py-8 text-center text-xs text-neutral-500 border border-dashed border-neutral-200 dark:border-neutral-800 rounded-md">
-                        No device data available
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {Object.entries(analytics.clicksByDevice)
-                          .sort(([,a], [,b]) => b - a)
-                          .map(([device, clicks]) => (
-                            <div key={device} className="flex items-center justify-between py-1.5 border-b border-neutral-100 dark:border-neutral-800 last:border-0 text-sm">
-                              <div className="flex items-center space-x-2">
-                                {getDeviceIcon(device)}
-                                <span className="text-xs capitalize font-medium">{device}</span>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <span className="text-xs font-semibold tabular-nums">{clicks}</span>
-                                <span className="text-[11px] text-neutral-400 w-10 text-right">
-                                  {analytics.totalClicks > 0 ? `${Math.round((clicks / analytics.totalClicks) * 100)}%` : '0%'}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Browsers */}
-                <Card className="rounded-md border border-neutral-200 dark:border-neutral-800">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base font-semibold">Top Browsers</CardTitle>
-                    <CardDescription className="text-xs">Clicks by browser software</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {Object.keys(analytics.clicksByBrowser || {}).length === 0 ? (
-                      <div className="py-8 text-center text-xs text-neutral-500 border border-dashed border-neutral-200 dark:border-neutral-800 rounded-md">
-                        No browser data available
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {Object.entries(analytics.clicksByBrowser)
-                          .sort(([,a], [,b]) => b - a)
-                          .slice(0, 8)
-                          .map(([browser, clicks]) => (
-                            <div key={browser} className="flex items-center justify-between py-1.5 border-b border-neutral-100 dark:border-neutral-800 last:border-0 text-sm">
-                              <span className="text-xs font-medium">{browser}</span>
-                              <div className="flex items-center space-x-2">
-                                <span className="text-xs font-semibold tabular-nums">{clicks}</span>
-                                <span className="text-[11px] text-neutral-400 w-10 text-right">
-                                  {analytics.totalClicks > 0 ? `${Math.round((clicks / analytics.totalClicks) * 100)}%` : '0%'}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Referrer paths (Advanced) */}
-                {analytics.clicksByReferrerPath && Object.keys(analytics.clicksByReferrerPath).length > 0 && (
-                  <Card className="rounded-md border border-neutral-200 dark:border-neutral-800 md:col-span-2">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base font-semibold">Detailed Referrer Paths</CardTitle>
-                      <CardDescription className="text-xs">Full hostnames and landing pathways</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        {Object.entries(analytics.clicksByReferrerPath)
-                          .sort(([,a], [,b]) => b - a)
-                          .slice(0, 10)
-                          .map(([path, clicks]) => (
-                            <div key={path} className="flex items-center justify-between py-1.5 border-b border-neutral-100 dark:border-neutral-800 last:border-0 text-sm">
-                              <span className="font-mono text-xs truncate max-w-[280px] sm:max-w-[450px]">{path}</span>
-                              <span className="text-xs font-semibold tabular-nums">{clicks}</span>
-                            </div>
-                          ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Hourly breakdown (Advanced) */}
-                {analytics.clicksByHour && Object.keys(analytics.clicksByHour).length > 0 && (
-                  <Card className="rounded-md border border-neutral-200 dark:border-neutral-800 md:col-span-2">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base font-semibold">Hourly Activity Breakdown</CardTitle>
-                      <CardDescription className="text-xs">Recent time-based click frequency</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="h-56 w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart
-                            data={Object.entries(analytics.clicksByHour)
-                              .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
-                              .map(([hour, clicks]) => ({
-                                hour: new Date(hour).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
-                                clicks
-                              }))}
-                            margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" className="dark:stroke-neutral-800" />
-                            <XAxis dataKey="hour" tick={{ fontSize: 11 }} stroke="#9ca3af" />
-                            <YAxis tick={{ fontSize: 11 }} stroke="#9ca3af" allowDecimals={false} />
-                            <RechartsTooltip contentStyle={{ backgroundColor: 'rgba(255,255,255,0.95)', border: '1px solid #e5e7eb', borderRadius: '6px' }} />
-                            <Line type="monotone" dataKey="clicks" stroke="#4f46e5" strokeWidth={2} dot={{ r: 2 }} />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-dest-title" className="text-xs font-medium text-[#8c8d91]">
+                Title (Optional)
+              </Label>
+              <Input
+                id="edit-dest-title"
+                type="text"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="min-h-[44px] bg-[#1c1d20] border-[#27282b] text-base sm:text-sm text-[#ededed]"
+              />
             </div>
-          ) : (
-            <Card>
-              <CardContent className="text-center py-12">
-                <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <h3 className="text-lg font-medium mb-2">No Analytics Data</h3>
-                <p className="text-gray-600">
-                  Analytics data will appear here once your link receives clicks.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
 
-        <TabsContent value="settings" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Link Settings</CardTitle>
-              <CardDescription>
-                Configure your link settings and preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="edit-title">Title</Label>
-                  <Input
-                    id="edit-title"
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    placeholder="Enter a title for your link"
-                    disabled={!isEditing}
-                  />
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="edit-active"
-                    checked={editIsActive}
-                    onCheckedChange={setEditIsActive}
-                    disabled={!isEditing}
-                  />
-                  <Label htmlFor="edit-active">Link is active</Label>
-                </div>
-
-                {(user?.tier === 'pro' || user?.tier === 'premium') && (
-                  <div>
-                    <Label htmlFor="edit-expires">Expiration Date (Optional)</Label>
-                    <Input
-                      id="edit-expires"
-                      type="datetime-local"
-                      value={editExpiresAt}
-                      onChange={(e) => setEditExpiresAt(e.target.value)}
-                      disabled={!isEditing}
-                      min={new Date().toISOString().slice(0, 16)}
-                    />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Leave empty for no expiration
-                    </p>
-                  </div>
-                )}
-
-                {user?.tier === 'premium' && (
-                  <div>
-                    <Label htmlFor="edit-shortcode">Custom Short Code</Label>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <span className="text-sm text-muted-foreground">/</span>
-                      <Input
-                        id="edit-shortcode"
-                        value={editShortCode}
-                        onChange={(e) => setEditShortCode(e.target.value)}
-                        placeholder="my-brand-code"
-                        disabled={!isEditing}
-                        className="font-mono"
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">Must be unique. Letters, numbers, and dashes recommended.</p>
-                  </div>
-                )}
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h4 className="text-sm font-medium">Link Information</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Short Code:</span>
-                    <p className="font-mono">{link.shortCode}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Created:</span>
-                    <p>{formatDate(link.createdAt)}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Total Clicks:</span>
-                    <p>{link.clickCount}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Status:</span>
-                    <div className="flex items-center space-x-1">
-                      {link.isActive ? (
-                        <Badge variant="default">Active</Badge>
-                      ) : (
-                        <Badge variant="secondary">Inactive</Badge>
-                      )}
-                      {isExpired(link.expiresAt) && (
-                        <Badge variant="destructive">Expired</Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowEdit(false)}
+                className="min-h-[44px] border-[#27282b] bg-[#141517] hover:bg-[#1c1d20] text-[#ededed] text-xs px-4"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isUpdating}
+                className="min-h-[44px] bg-[#ff6363] hover:bg-[#ff4d4d] text-white text-xs font-medium px-5"
+              >
+                {isUpdating ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : null}
+                Save Changes
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
