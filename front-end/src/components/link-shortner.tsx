@@ -163,12 +163,12 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
   return (
     <div className="space-y-3">
       {/* Command Bar Container */}
-      <div className="rounded-md border border-[#27282b] bg-[#141517] p-3 sm:p-4 transition-colors">
+      <div className="rounded-md border border-border-subtle bg-surface-1 p-3 sm:p-4 transition-colors">
         <form onSubmit={handleSubmit} className="space-y-3">
           {/* Main Command Input Row */}
           <div className="flex flex-col sm:flex-row items-stretch gap-2">
             <div className="relative flex-1">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-[#8c8d91]">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-text-muted">
                 <Link2 className="h-4 w-4" />
               </div>
               <Input
@@ -179,7 +179,7 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="Paste a long destination URL (e.g., https://github.com/owner/repo)..."
                 disabled={isLoading}
-                className="h-11 sm:h-12 pl-9 pr-3 text-base sm:text-sm bg-[#1c1d20] border-[#27282b] text-[#ededed] placeholder:text-[#8c8d91] focus-visible:ring-1 focus-visible:ring-[#56c2ff] rounded-md"
+                className="h-11 sm:h-12 pl-9 pr-3 text-base sm:text-sm bg-surface-2 border-border-subtle text-text-primary placeholder:text-text-muted focus-visible:ring-1 focus-visible:ring-primary rounded-md"
               />
             </div>
 
@@ -189,7 +189,7 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
                 type="button"
                 variant="outline"
                 onClick={() => setShowOptions(!showOptions)}
-                className={`min-h-[44px] sm:h-12 px-3 border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#8c8d91] hover:text-[#ededed] ${showOptions ? 'border-[#56c2ff] text-[#ededed]' : ''}`}
+                className={`min-h-[44px] sm:h-12 px-3 border-border-subtle bg-surface-2 hover:bg-border-subtle text-text-muted hover:text-text-primary ${showOptions ? 'border-primary text-text-primary' : ''}`}
                 title="Configure custom slug & options"
               >
                 <SlidersHorizontal className="h-4 w-4 mr-1.5" />
@@ -216,11 +216,11 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
 
           {/* Clean Expandable Slug & Custom Options */}
           {showOptions && (
-            <div className="pt-2 border-t border-[#27282b] grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in-50 duration-150">
+            <div className="pt-2 border-t border-border-subtle grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in-50 duration-150">
               {/* Custom Slug */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="custom-slug" className="text-xs font-mono text-[#8c8d91]">
+                  <Label htmlFor="custom-slug" className="text-xs font-mono text-text-muted">
                     Custom Slug
                   </Label>
                   {!isProOrPremium && (
@@ -229,8 +229,8 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
                     </span>
                   )}
                 </div>
-                <div className="flex items-center rounded-md border border-[#27282b] bg-[#1c1d20] overflow-hidden focus-within:ring-1 focus-within:ring-[#56c2ff]">
-                  <span className="px-2.5 py-2 text-xs font-mono text-[#8c8d91] bg-[#141517] border-r border-[#27282b] select-none">
+                <div className="flex items-center rounded-md border border-border-subtle bg-surface-2 overflow-hidden focus-within:ring-1 focus-within:ring-primary">
+                  <span className="px-2.5 py-2 text-xs font-mono text-text-muted bg-surface-1 border-r border-border-subtle select-none">
                     classic.et/
                   </span>
                   <Input
@@ -244,14 +244,14 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
                     placeholder="custom-slug"
                     maxLength={32}
                     disabled={isLoading || !isProOrPremium}
-                    className="border-0 bg-transparent text-xs font-mono text-[#ededed] h-9 focus-visible:ring-0 px-2"
+                    className="border-0 bg-transparent text-xs font-mono text-text-primary h-9 focus-visible:ring-0 px-2"
                   />
                 </div>
               </div>
 
               {/* Title (Optional) */}
               <div className="space-y-1.5">
-                <Label htmlFor="link-title" className="text-xs font-mono text-[#8c8d91]">
+                <Label htmlFor="link-title" className="text-xs font-mono text-text-muted">
                   Title (Optional)
                 </Label>
                 <Input
@@ -261,7 +261,7 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Campaign or referral label"
                   disabled={isLoading}
-                  className="bg-[#1c1d20] border-[#27282b] text-xs text-[#ededed] h-9 focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                  className="bg-surface-2 border-border-subtle text-xs text-text-primary h-9 focus-visible:ring-1 focus-visible:ring-primary"
                 />
               </div>
 
@@ -275,7 +275,7 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
                       onCheckedChange={setUseExpiration}
                       disabled={isLoading || !isProOrPremium}
                     />
-                    <Label htmlFor="use-expiration" className="text-xs font-mono text-[#8c8d91] cursor-pointer flex items-center gap-1.5">
+                    <Label htmlFor="use-expiration" className="text-xs font-mono text-text-muted cursor-pointer flex items-center gap-1.5">
                       <Calendar className="h-3.5 w-3.5" />
                       <span>Set link expiration</span>
                     </Label>
@@ -292,7 +292,7 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
                     onChange={(e) => setExpirationDate(e.target.value)}
                     min={new Date().toISOString().slice(0, 16)}
                     disabled={isLoading}
-                    className="bg-[#1c1d20] border-[#27282b] text-xs text-[#ededed] h-9 focus-visible:ring-1 focus-visible:ring-[#56c2ff] max-w-xs mt-1"
+                    className="bg-surface-2 border-border-subtle text-xs text-text-primary h-9 focus-visible:ring-1 focus-visible:ring-primary max-w-xs mt-1"
                   />
                 )}
               </div>
@@ -303,7 +303,7 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
 
       {/* Inline Feedback on Creation (Zero Layout Shift, Instant Feedback) */}
       {createdLink && (
-        <div className="rounded-md border border-[#5fc992]/40 bg-[#141517] p-3 sm:p-4 animate-in fade-in slide-in-from-top-1 duration-200">
+        <div className="rounded-md border border-[#5fc992]/40 bg-surface-1 p-3 sm:p-4 animate-in fade-in slide-in-from-top-1 duration-200">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2.5 min-w-0 flex-1">
               <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded bg-[#5fc992]/10 text-[#5fc992]">
@@ -312,12 +312,12 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium text-[#5fc992]">Link Ready</span>
-                  <span className="text-[#8c8d91]">•</span>
-                  <span className="font-mono text-xs font-semibold text-[#ededed] truncate">
+                  <span className="text-text-muted">•</span>
+                  <span className="font-mono text-xs font-semibold text-text-primary truncate">
                     {getDisplayShortUrl(createdLink.shortCode)}
                   </span>
                 </div>
-                <p className="text-[11px] text-[#8c8d91] truncate font-sans">
+                <p className="text-[11px] text-text-muted truncate font-sans">
                   {createdLink.originalUrl}
                 </p>
               </div>
@@ -328,7 +328,7 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
                 variant="outline"
                 size="sm"
                 onClick={() => handleCopy(createdLink.shortCode)}
-                className="min-h-[44px] px-3 border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#ededed] text-xs font-mono flex items-center gap-1.5"
+                className="min-h-[44px] px-3 border-border-subtle bg-surface-2 hover:bg-border-subtle text-text-primary text-xs font-mono flex items-center gap-1.5"
               >
                 {copied ? (
                   <>
@@ -337,7 +337,7 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
                   </>
                 ) : (
                   <>
-                    <Copy className="h-3.5 w-3.5 text-[#8c8d91]" />
+                    <Copy className="h-3.5 w-3.5 text-text-muted" />
                     <span>Copy</span>
                   </>
                 )}
@@ -347,7 +347,7 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
                 variant="outline"
                 size="sm"
                 onClick={() => setShowQR(true)}
-                className="min-h-[44px] px-3 border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#8c8d91] hover:text-[#ededed] text-xs"
+                className="min-h-[44px] px-3 border-border-subtle bg-surface-2 hover:bg-border-subtle text-text-muted hover:text-text-primary text-xs"
                 title="View QR Code"
               >
                 <QrCode className="h-4 w-4" />
@@ -361,7 +361,7 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="min-h-[44px] px-3 border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#8c8d91] hover:text-[#ededed] text-xs"
+                  className="min-h-[44px] px-3 border-border-subtle bg-surface-2 hover:bg-border-subtle text-text-muted hover:text-text-primary text-xs"
                   title="Open in new tab"
                 >
                   <ExternalLink className="h-4 w-4" />
@@ -375,16 +375,16 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
       {/* QR Code Modal for newly created link */}
       {createdLink && (
         <Dialog open={showQR} onOpenChange={setShowQR}>
-          <DialogContent className="border border-[#27282b] bg-[#141517] text-[#ededed] max-w-sm p-6 overscroll-contain">
+          <DialogContent className="border border-border-subtle bg-surface-1 text-text-primary max-w-sm p-6 overscroll-contain">
             <DialogHeader className="text-center sm:text-center">
-              <DialogTitle className="text-base font-semibold text-[#ededed]">QR Code</DialogTitle>
-              <DialogDescription className="font-mono text-xs text-[#8c8d91] truncate">
+              <DialogTitle className="text-base font-semibold text-text-primary">QR Code</DialogTitle>
+              <DialogDescription className="font-mono text-xs text-text-muted truncate">
                 {getDisplayShortUrl(createdLink.shortCode)}
               </DialogDescription>
             </DialogHeader>
 
             <div className="flex flex-col items-center justify-center py-2">
-              <div className="p-3 bg-white rounded-md border border-[#27282b]">
+              <div className="p-3 bg-white rounded-md border border-border-subtle">
                 <img
                   src={qrImageUrl}
                   alt={`QR code for ${createdLink.shortCode}`}
@@ -397,9 +397,9 @@ export function LinkShortener({ onLinkCreated }: LinkShortenerProps) {
               <Button
                 variant="outline"
                 onClick={() => handleCopy(createdLink.shortCode)}
-                className="w-full min-h-[44px] border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#ededed] text-xs"
+                className="w-full min-h-[44px] border-border-subtle bg-surface-2 hover:bg-border-subtle text-text-primary text-xs"
               >
-                <Copy className="mr-2 h-4 w-4 text-[#8c8d91]" />
+                <Copy className="mr-2 h-4 w-4 text-text-muted" />
                 Copy Short URL
               </Button>
             </div>

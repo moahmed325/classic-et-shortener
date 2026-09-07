@@ -38,7 +38,7 @@ export function HorizontalBar({
   return (
     <div
       className={cn(
-        "group relative flex flex-col justify-center rounded-md border border-[#27282b] bg-[#141517] p-2.5 transition-colors hover:bg-[#1c1d20] min-h-[44px]",
+        "group relative flex flex-col justify-center rounded-md border border-border-subtle bg-surface-1 p-2.5 transition-colors hover:bg-surface-2 min-h-[44px]",
         onClick && "cursor-pointer active:scale-[0.99]",
         className
       )}
@@ -47,31 +47,31 @@ export function HorizontalBar({
     >
       {/* Background progress fill */}
       <div
-        className="absolute inset-y-0 left-0 rounded-l-md bg-white/[0.04] transition-all duration-300 pointer-events-none"
+        className="absolute inset-y-0 left-0 rounded-l-md bg-surface-2 dark:bg-white/[0.04] transition-all duration-300 pointer-events-none"
         style={{ width: `${Math.min(100, Math.max(0, percentage))}%` }}
       />
 
       <div className="relative z-10 flex items-center justify-between text-xs sm:text-sm">
         <div className="flex items-center space-x-2 min-w-0 pr-2">
           {item.icon && (
-            <span className="flex-shrink-0 text-[#8c8d91] group-hover:text-[#ededed] transition-colors">
+            <span className="flex-shrink-0 text-text-muted group-hover:text-text-primary transition-colors">
               {item.icon}
             </span>
           )}
-          <span className="font-medium text-[#ededed] truncate">{item.label}</span>
+          <span className="font-medium text-text-primary truncate">{item.label}</span>
           {item.sublabel && (
-            <span className="text-xs text-[#8c8d91] truncate hidden sm:inline">
+            <span className="text-xs text-text-muted truncate hidden sm:inline">
               {item.sublabel}
             </span>
           )}
         </div>
 
         <div className="flex items-center space-x-2 flex-shrink-0 text-right font-mono">
-          <span className="text-[#ededed] font-semibold tabular-nums">
+          <span className="text-text-primary font-semibold tabular-nums">
             {item.value.toLocaleString()}
           </span>
           {showPercentage && (
-            <span className="text-[11px] text-[#8c8d91] w-9 text-right tabular-nums">
+            <span className="text-[11px] text-text-muted w-9 text-right tabular-nums">
               {percentage}%
             </span>
           )}

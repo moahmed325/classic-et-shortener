@@ -19,7 +19,7 @@ const RANGES: { label: string; value: TimeRangeValue; shortcut: string }[] = [
 
 export function TimeRangeSelector({ value, onChange, disabled = false }: TimeRangeSelectorProps) {
   return (
-    <div className="inline-flex items-center rounded-md border border-[#27282b] bg-[#141517] p-1 gap-1">
+    <div className="inline-flex items-center rounded-md border border-border-subtle bg-surface-1 p-1 gap-1">
       {RANGES.map((range) => {
         const active = value === range.value;
         return (
@@ -30,16 +30,16 @@ export function TimeRangeSelector({ value, onChange, disabled = false }: TimeRan
             onClick={() => onChange(range.value)}
             className={`min-h-[36px] sm:min-h-[32px] px-2.5 py-1 text-xs font-mono rounded transition-colors flex items-center gap-1.5 focus:outline-none ${
               active
-                ? 'bg-[#1c1d20] text-[#ededed] border border-[#27282b]'
-                : 'text-[#8c8d91] hover:text-[#ededed] hover:bg-[#1c1d20]/50 border border-transparent'
+                ? 'bg-surface-2 text-text-primary border border-border-subtle shadow-xs'
+                : 'text-text-muted hover:text-text-primary hover:bg-surface-2/60 border border-transparent'
             }`}
           >
             <span>{range.label}</span>
             <Kbd
               className={`text-[9px] px-1 py-0.2 ${
                 active
-                  ? 'bg-black/30 border-[#27282b] text-[#ededed]'
-                  : 'bg-transparent border-transparent text-[#8c8d91]'
+                  ? 'bg-surface-1 border-border-subtle text-text-primary'
+                  : 'bg-transparent border-transparent text-text-muted'
               }`}
             >
               {range.shortcut}

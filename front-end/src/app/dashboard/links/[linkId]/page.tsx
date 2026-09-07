@@ -193,7 +193,7 @@ export default function LinkDetailsPage() {
       <div>
         <Link
           href="/dashboard/links"
-          className="group inline-flex items-center gap-1.5 text-xs font-mono text-[#8c8d91] hover:text-[#ededed] transition-colors"
+          className="group inline-flex items-center gap-1.5 text-xs font-mono text-text-muted hover:text-text-primary transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
           <span>Back to links feed</span>
@@ -201,11 +201,11 @@ export default function LinkDetailsPage() {
       </div>
 
       {/* Link Metadata Bar */}
-      <div className="rounded-md border border-[#27282b] bg-[#141517] p-4 sm:p-5">
+      <div className="rounded-md border border-border-subtle bg-surface-1 p-4 sm:p-5">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           {/* Left: Favicon + Slug + Truncated Target */}
           <div className="flex items-start gap-3 min-w-0 flex-1">
-            <div className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded border border-[#27282b] bg-[#1c1d20] overflow-hidden">
+            <div className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded border border-border-subtle bg-surface-2 overflow-hidden">
               {faviconUrl ? (
                 <img
                   src={faviconUrl}
@@ -213,13 +213,13 @@ export default function LinkDetailsPage() {
                   className="h-4 w-4 object-contain"
                 />
               ) : (
-                <Globe className="h-4 w-4 text-[#8c8d91]" />
+                <Globe className="h-4 w-4 text-text-muted" />
               )}
             </div>
 
             <div className="min-w-0 flex-1 space-y-1">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-base font-semibold text-[#ededed]">
+                <span className="font-mono text-base font-semibold text-text-primary">
                   {displayShortUrl}
                 </span>
 
@@ -228,28 +228,28 @@ export default function LinkDetailsPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Visit link"
-                  className="text-[#8c8d91] hover:text-[#ededed] transition-colors p-0.5"
+                  className="text-text-muted hover:text-text-primary transition-colors p-0.5"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
 
-                <Badge variant="outline" className="text-[10px] font-mono px-1.5 py-0 border-[#27282b] text-[#5fc992] bg-[#5fc992]/10">
+                <Badge variant="outline" className="text-[10px] font-mono px-1.5 py-0 border-border-subtle text-[#5fc992] bg-[#5fc992]/10">
                   Active
                 </Badge>
               </div>
 
               {/* Destination URL */}
               <p
-                className="truncate text-xs text-[#8c8d91] hover:text-[#ededed] transition-colors font-sans"
+                className="truncate text-xs text-text-muted hover:text-text-primary transition-colors font-sans"
                 title={link?.originalUrl}
               >
                 {link?.title ? (
-                  <span className="text-[#ededed] font-medium mr-1.5">{link.title} —</span>
+                  <span className="text-text-primary font-medium mr-1.5">{link.title} —</span>
                 ) : null}
                 {link?.originalUrl}
               </p>
 
-              <div className="flex items-center gap-2 text-[11px] font-mono text-[#8c8d91] pt-0.5">
+              <div className="flex items-center gap-2 text-[11px] font-mono text-text-muted pt-0.5">
                 <span>Created {formattedCreatedDate}</span>
                 {domain && (
                   <>
@@ -262,12 +262,12 @@ export default function LinkDetailsPage() {
           </div>
 
           {/* Right Action Controls */}
-          <div className="flex items-center gap-2 flex-shrink-0 pt-2 border-t border-[#27282b]/60 md:border-t-0 md:pt-0">
+          <div className="flex items-center gap-2 flex-shrink-0 pt-2 border-t border-border-subtle/60 md:border-t-0 md:pt-0">
             <Button
               variant="outline"
               size="sm"
               onClick={handleCopy}
-              className="min-h-[44px] px-3.5 border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#ededed] text-xs font-mono flex items-center gap-1.5"
+              className="min-h-[44px] px-3.5 border-border-subtle bg-surface-2 hover:bg-border-subtle text-text-primary text-xs font-mono flex items-center gap-1.5"
             >
               {copied ? (
                 <>
@@ -276,7 +276,7 @@ export default function LinkDetailsPage() {
                 </>
               ) : (
                 <>
-                  <Copy className="h-3.5 w-3.5 text-[#8c8d91]" />
+                  <Copy className="h-3.5 w-3.5 text-text-muted" />
                   <span>Copy</span>
                 </>
               )}
@@ -286,7 +286,7 @@ export default function LinkDetailsPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowQR(true)}
-              className="min-h-[44px] min-w-[44px] p-0 border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#8c8d91] hover:text-[#ededed] text-xs"
+              className="min-h-[44px] min-w-[44px] p-0 border-border-subtle bg-surface-2 hover:bg-border-subtle text-text-muted hover:text-text-primary text-xs"
               title="Show QR Code"
             >
               <QrCode className="h-4 w-4" />
@@ -296,7 +296,7 @@ export default function LinkDetailsPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowEdit(true)}
-              className="min-h-[44px] px-3 border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#8c8d91] hover:text-[#ededed] text-xs font-mono flex items-center gap-1.5"
+              className="min-h-[44px] px-3 border-border-subtle bg-surface-2 hover:bg-border-subtle text-text-muted hover:text-text-primary text-xs font-mono flex items-center gap-1.5"
             >
               <Edit3 className="h-3.5 w-3.5" />
               <span>Edit</span>
@@ -308,10 +308,10 @@ export default function LinkDetailsPage() {
       {/* Top Bar: Analytics Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-base sm:text-lg font-bold text-[#ededed] font-sans">
+          <h2 className="text-base sm:text-lg font-bold text-text-primary font-sans">
             Telemetry & Visitor Breakdown
           </h2>
-          <p className="text-xs text-[#8c8d91] font-mono mt-0.5">
+          <p className="text-xs text-text-muted font-mono mt-0.5">
             Real-time click events filtered for this shortcode
           </p>
         </div>
@@ -339,16 +339,16 @@ export default function LinkDetailsPage() {
 
       {/* QR Code Modal */}
       <Dialog open={showQR} onOpenChange={setShowQR}>
-        <DialogContent className="border border-[#27282b] bg-[#141517] text-[#ededed] max-w-sm p-6 overscroll-contain">
+        <DialogContent className="border border-border-subtle bg-surface-1 text-text-primary max-w-sm p-6 overscroll-contain">
           <DialogHeader className="text-center sm:text-center">
-            <DialogTitle className="text-base font-semibold text-[#ededed]">QR Code</DialogTitle>
-            <DialogDescription className="font-mono text-xs text-[#8c8d91] truncate">
+            <DialogTitle className="text-base font-semibold text-text-primary">QR Code</DialogTitle>
+            <DialogDescription className="font-mono text-xs text-text-muted truncate">
               {displayShortUrl}
             </DialogDescription>
           </DialogHeader>
 
           <div className="flex flex-col items-center justify-center py-2">
-            <div className="p-3 bg-white rounded-md border border-[#27282b]">
+            <div className="p-3 bg-white rounded-md border border-border-subtle">
               <img
                 src={qrImageUrl}
                 alt={`QR code for ${displayShortUrl}`}
@@ -367,18 +367,18 @@ export default function LinkDetailsPage() {
             >
               <Button
                 variant="outline"
-                className="w-full min-h-[44px] border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#ededed] text-xs font-mono"
+                className="w-full min-h-[44px] border-border-subtle bg-surface-2 hover:bg-border-subtle text-text-primary text-xs font-mono"
               >
-                <Download className="mr-2 h-4 w-4 text-[#8c8d91]" />
+                <Download className="mr-2 h-4 w-4 text-text-muted" />
                 Download SVG
               </Button>
             </a>
             <Button
               variant="outline"
               onClick={handleCopy}
-              className="w-full min-h-[44px] border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#ededed] text-xs"
+              className="w-full min-h-[44px] border-border-subtle bg-surface-2 hover:bg-border-subtle text-text-primary text-xs"
             >
-              <Copy className="mr-2 h-4 w-4 text-[#8c8d91]" />
+              <Copy className="mr-2 h-4 w-4 text-text-muted" />
               Copy Link
             </Button>
           </div>
@@ -387,17 +387,17 @@ export default function LinkDetailsPage() {
 
       {/* Edit Link Modal */}
       <Dialog open={showEdit} onOpenChange={setShowEdit}>
-        <DialogContent className="border border-[#27282b] bg-[#141517] text-[#ededed] max-w-md p-6 overscroll-contain">
+        <DialogContent className="border border-border-subtle bg-surface-1 text-text-primary max-w-md p-6 overscroll-contain">
           <DialogHeader>
-            <DialogTitle className="text-base font-semibold text-[#ededed]">Edit Link Details</DialogTitle>
-            <DialogDescription className="font-mono text-xs text-[#8c8d91]">
+            <DialogTitle className="text-base font-semibold text-text-primary">Edit Link Details</DialogTitle>
+            <DialogDescription className="font-mono text-xs text-text-muted">
               {displayShortUrl}
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSaveEdit} className="space-y-4 pt-2">
             <div className="space-y-1.5">
-              <Label htmlFor="edit-dest-url" className="text-xs font-medium text-[#8c8d91]">
+              <Label htmlFor="edit-dest-url" className="text-xs font-medium text-text-muted">
                 Destination URL
               </Label>
               <Input
@@ -406,12 +406,12 @@ export default function LinkDetailsPage() {
                 required
                 value={editUrl}
                 onChange={(e) => setEditUrl(e.target.value)}
-                className="min-h-[44px] bg-[#1c1d20] border-[#27282b] text-base sm:text-sm text-[#ededed]"
+                className="min-h-[44px] bg-surface-2 border-border-subtle text-base sm:text-sm text-text-primary"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="edit-dest-title" className="text-xs font-medium text-[#8c8d91]">
+              <Label htmlFor="edit-dest-title" className="text-xs font-medium text-text-muted">
                 Title (Optional)
               </Label>
               <Input
@@ -419,7 +419,7 @@ export default function LinkDetailsPage() {
                 type="text"
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
-                className="min-h-[44px] bg-[#1c1d20] border-[#27282b] text-base sm:text-sm text-[#ededed]"
+                className="min-h-[44px] bg-surface-2 border-border-subtle text-base sm:text-sm text-text-primary"
               />
             </div>
 
@@ -428,7 +428,7 @@ export default function LinkDetailsPage() {
                 type="button"
                 variant="outline"
                 onClick={() => setShowEdit(false)}
-                className="min-h-[44px] border-[#27282b] bg-[#141517] hover:bg-[#1c1d20] text-[#ededed] text-xs px-4"
+                className="min-h-[44px] border-border-subtle bg-surface-1 hover:bg-surface-2 text-text-primary text-xs px-4"
               >
                 Cancel
               </Button>

@@ -54,8 +54,8 @@ export default function LoginPage() {
       <div className="w-full max-w-sm space-y-4">
         {/* Brand Header */}
         <div className="text-center space-y-1.5">
-          <Link href="/" className="inline-flex items-center space-x-2 text-sm font-semibold tracking-tight text-[#ededed]">
-            <div className="h-6 w-6 rounded bg-[#1c1d20] border border-[#27282b] flex items-center justify-center text-[#ff6363]">
+          <Link href="/" className="inline-flex items-center space-x-2 text-sm font-semibold tracking-tight text-text-primary">
+            <div className="h-6 w-6 rounded bg-surface-2 border border-border-subtle flex items-center justify-center text-[#ff6363]">
               <Zap className="h-3.5 w-3.5 fill-current" />
             </div>
             <span className="font-mono font-bold text-base tracking-tight">classic.et</span>
@@ -63,10 +63,10 @@ export default function LoginPage() {
         </div>
 
         {/* Tactical Auth Card */}
-        <Card className="rounded-lg border border-[#27282b] bg-[#141517] shadow-none">
+        <Card className="rounded-lg border border-border-subtle bg-surface-1 shadow-none">
           <CardHeader className="p-5 pb-3">
-            <CardTitle className="text-lg font-semibold text-[#ededed]">Sign in</CardTitle>
-            <CardDescription className="text-xs text-[#8c8d91]">
+            <CardTitle className="text-lg font-semibold text-text-primary">Sign in</CardTitle>
+            <CardDescription className="text-xs text-text-muted">
               Enter credentials to access your link dashboard.
             </CardDescription>
           </CardHeader>
@@ -81,7 +81,7 @@ export default function LoginPage() {
               )}
 
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-xs font-medium text-[#8c8d91]">
+                <Label htmlFor="email" className="text-xs font-medium text-text-muted">
                   Email address
                 </Label>
                 <Input
@@ -92,16 +92,16 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="bg-[#1c1d20] border-[#27282b] text-[#ededed] text-sm h-10 focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                  className="bg-surface-2 border-border-subtle text-text-primary text-sm h-10 focus-visible:ring-1 focus-visible:ring-primary"
                 />
               </div>
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-xs font-medium text-[#8c8d91]">
+                  <Label htmlFor="password" className="text-xs font-medium text-text-muted">
                     Password
                   </Label>
-                  <Link href="/forgot-password" className="text-xs text-[#8c8d91] hover:text-[#ededed] transition-colors">
+                  <Link href="/forgot-password" className="text-xs text-text-muted hover:text-text-primary transition-colors">
                     Forgot password?
                   </Link>
                 </div>
@@ -114,12 +114,12 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     disabled={isLoading}
-                    className="bg-[#1c1d20] border-[#27282b] text-[#ededed] text-sm h-10 pr-10 focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                    className="bg-surface-2 border-border-subtle text-text-primary text-sm h-10 pr-10 focus-visible:ring-1 focus-visible:ring-primary"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8c8d91] hover:text-[#ededed]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
                     tabIndex={-1}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -143,9 +143,9 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            <div className="mt-4 pt-4 border-t border-[#27282b]/60 text-center text-xs text-[#8c8d91]">
+            <div className="mt-4 pt-4 border-t border-border-subtle/60 text-center text-xs text-text-muted">
               Don&apos;t have an account?{' '}
-              <Link href="/register" className="text-[#ededed] hover:underline font-medium">
+              <Link href="/register" className="text-text-primary hover:underline font-medium">
                 Create one
               </Link>
             </div>

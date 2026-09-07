@@ -82,8 +82,8 @@ export default function RegisterPage() {
       <div className="w-full max-w-sm space-y-4">
         {/* Brand Header */}
         <div className="text-center space-y-1.5">
-          <Link href="/" className="inline-flex items-center space-x-2 text-sm font-semibold tracking-tight text-[#ededed]">
-            <div className="h-6 w-6 rounded bg-[#1c1d20] border border-[#27282b] flex items-center justify-center text-[#ff6363]">
+          <Link href="/" className="inline-flex items-center space-x-2 text-sm font-semibold tracking-tight text-text-primary">
+            <div className="h-6 w-6 rounded bg-surface-2 border border-border-subtle flex items-center justify-center text-[#ff6363]">
               <Zap className="h-3.5 w-3.5 fill-current" />
             </div>
             <span className="font-mono font-bold text-base tracking-tight">classic.et</span>
@@ -91,10 +91,10 @@ export default function RegisterPage() {
         </div>
 
         {/* Tactical Auth Card */}
-        <Card className="rounded-lg border border-[#27282b] bg-[#141517] shadow-none">
+        <Card className="rounded-lg border border-border-subtle bg-surface-1 shadow-none">
           <CardHeader className="p-5 pb-3">
-            <CardTitle className="text-lg font-semibold text-[#ededed]">Create account</CardTitle>
-            <CardDescription className="text-xs text-[#8c8d91]">
+            <CardTitle className="text-lg font-semibold text-text-primary">Create account</CardTitle>
+            <CardDescription className="text-xs text-text-muted">
               Sign up to shorten URLs and view analytics.
             </CardDescription>
           </CardHeader>
@@ -116,7 +116,7 @@ export default function RegisterPage() {
               )}
 
               <div className="space-y-1.5">
-                <Label htmlFor="name" className="text-xs font-medium text-[#8c8d91]">
+                <Label htmlFor="name" className="text-xs font-medium text-text-muted">
                   Full name
                 </Label>
                 <Input
@@ -127,12 +127,12 @@ export default function RegisterPage() {
                   onChange={(e) => setName(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="bg-[#1c1d20] border-[#27282b] text-[#ededed] text-sm h-10 focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                  className="bg-surface-2 border-border-subtle text-text-primary text-sm h-10 focus-visible:ring-1 focus-visible:ring-primary"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-xs font-medium text-[#8c8d91]">
+                <Label htmlFor="email" className="text-xs font-medium text-text-muted">
                   Email address
                 </Label>
                 <Input
@@ -143,12 +143,12 @@ export default function RegisterPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="bg-[#1c1d20] border-[#27282b] text-[#ededed] text-sm h-10 focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                  className="bg-surface-2 border-border-subtle text-text-primary text-sm h-10 focus-visible:ring-1 focus-visible:ring-primary"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="password" className="text-xs font-medium text-[#8c8d91]">
+                <Label htmlFor="password" className="text-xs font-medium text-text-muted">
                   Password
                 </Label>
                 <div className="relative">
@@ -160,12 +160,12 @@ export default function RegisterPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     disabled={isLoading}
-                    className="bg-[#1c1d20] border-[#27282b] text-[#ededed] text-sm h-10 pr-10 focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                    className="bg-surface-2 border-border-subtle text-text-primary text-sm h-10 pr-10 focus-visible:ring-1 focus-visible:ring-primary"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8c8d91] hover:text-[#ededed]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
                     tabIndex={-1}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -174,7 +174,7 @@ export default function RegisterPage() {
 
                 {password && (
                   <div className="space-y-1 pt-1">
-                    <div className="h-1 w-full bg-[#1c1d20] rounded-full overflow-hidden border border-[#27282b]">
+                    <div className="h-1 w-full bg-surface-2 rounded-full overflow-hidden border border-border-subtle">
                       <div
                         className={`h-full transition-all duration-300 ${
                           strength <= 25 ? 'bg-[#ff6363] w-1/4' : strength <= 50 ? 'bg-[#f59e0b] w-2/4' : 'bg-[#5fc992] w-full'
@@ -186,7 +186,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="confirmPassword" className="text-xs font-medium text-[#8c8d91]">
+                <Label htmlFor="confirmPassword" className="text-xs font-medium text-text-muted">
                   Confirm password
                 </Label>
                 <Input
@@ -197,7 +197,7 @@ export default function RegisterPage() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="bg-[#1c1d20] border-[#27282b] text-[#ededed] text-sm h-10 focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                  className="bg-surface-2 border-border-subtle text-text-primary text-sm h-10 focus-visible:ring-1 focus-visible:ring-primary"
                 />
               </div>
 
@@ -217,9 +217,9 @@ export default function RegisterPage() {
               </Button>
             </form>
 
-            <div className="mt-4 pt-4 border-t border-[#27282b]/60 text-center text-xs text-[#8c8d91]">
+            <div className="mt-4 pt-4 border-t border-border-subtle/60 text-center text-xs text-text-muted">
               Already have an account?{' '}
-              <Link href="/login" className="text-[#ededed] hover:underline font-medium">
+              <Link href="/login" className="text-text-primary hover:underline font-medium">
                 Sign in
               </Link>
             </div>

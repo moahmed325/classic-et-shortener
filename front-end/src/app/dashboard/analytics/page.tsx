@@ -120,10 +120,10 @@ export default function AnalyticsPage() {
       {/* Top Bar: Title & Time-Range Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-[#ededed] font-sans">
+          <h1 className="text-xl sm:text-2xl font-bold text-text-primary font-sans">
             Analytics Overview
           </h1>
-          <p className="text-xs sm:text-sm text-[#8c8d91] font-sans mt-0.5">
+          <p className="text-xs sm:text-sm text-text-muted font-sans mt-0.5">
             Aggregated visitor telemetry, conversion velocity, and referrer attribution.
           </p>
         </div>
@@ -136,13 +136,13 @@ export default function AnalyticsPage() {
       </div>
 
       {error && (
-        <div className="rounded-md border border-red-500/30 bg-red-500/10 p-4 text-xs font-mono text-red-400 flex items-center justify-between">
+        <div className="rounded-md border border-red-500/30 bg-red-500/10 p-4 text-xs font-mono text-red-500 flex items-center justify-between">
           <span>{error}</span>
           <Button
             variant="outline"
             size="sm"
             onClick={fetchAnalytics}
-            className="h-7 px-2.5 border-red-500/30 text-red-400 hover:bg-red-500/20 text-xs"
+            className="h-7 px-2.5 border-red-500/30 text-red-500 hover:bg-red-500/20 text-xs"
           >
             Retry
           </Button>
@@ -164,20 +164,20 @@ export default function AnalyticsPage() {
       <AnalyticsBreakdownGrid breakdown={breakdown} isLoading={isLoading} />
 
       {/* Top Performing Links Table/Card */}
-      <div className="rounded-md border border-[#27282b] bg-[#141517] p-4 sm:p-5">
-        <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#27282b]">
+      <div className="rounded-md border border-border-subtle bg-surface-1 p-4 sm:p-5">
+        <div className="flex items-center justify-between pb-3 mb-3 border-b border-border-subtle">
           <div>
-            <h3 className="text-sm font-semibold text-[#ededed] font-sans">
+            <h3 className="text-sm font-semibold text-text-primary font-sans">
               Top Performing Links
             </h3>
-            <p className="text-xs text-[#8c8d91] font-mono mt-0.5">
+            <p className="text-xs text-text-muted font-mono mt-0.5">
               Ranked by click volume in selected period
             </p>
           </div>
 
           <Link
             href="/dashboard/links"
-            className="group inline-flex items-center gap-1 text-xs font-mono text-[#8c8d91] hover:text-[#ededed] transition-colors"
+            className="group inline-flex items-center gap-1 text-xs font-mono text-text-muted hover:text-text-primary transition-colors"
           >
             <span>All links</span>
             <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -185,7 +185,7 @@ export default function AnalyticsPage() {
         </div>
 
         {topLinks.length === 0 ? (
-          <div className="py-8 text-center text-xs text-[#8c8d91] font-mono">
+          <div className="py-8 text-center text-xs text-text-muted font-mono">
             No short link clicks recorded in this period
           </div>
         ) : (
@@ -193,21 +193,21 @@ export default function AnalyticsPage() {
             {topLinks.map((link, idx) => (
               <div
                 key={link.id}
-                className="flex items-center justify-between p-2.5 rounded border border-[#27282b] bg-[#1c1d20]/50 hover:bg-[#1c1d20] transition-colors"
+                className="flex items-center justify-between p-2.5 rounded border border-border-subtle bg-surface-2/60 hover:bg-surface-2 transition-colors"
               >
                 <div className="flex items-center gap-3 min-w-0 pr-3">
-                  <span className="font-mono text-xs font-semibold text-[#8c8d91] w-4 text-center">
+                  <span className="font-mono text-xs font-semibold text-text-muted w-4 text-center">
                     {idx + 1}
                   </span>
                   <div className="min-w-0">
                     <Link
                       href={`/dashboard/links/${link.id}`}
-                      className="font-mono text-xs font-medium text-[#ededed] hover:text-[#ff6363] transition-colors truncate block"
+                      className="font-mono text-xs font-medium text-text-primary hover:text-[#ff6363] transition-colors truncate block"
                     >
                       classic.et/{link.shortCode}
                     </Link>
                     {link.title && (
-                      <p className="text-[11px] text-[#8c8d91] truncate font-sans">
+                      <p className="text-[11px] text-text-muted truncate font-sans">
                         {link.title}
                       </p>
                     )}
@@ -216,17 +216,17 @@ export default function AnalyticsPage() {
 
                 <div className="flex items-center gap-3 flex-shrink-0">
                   <div className="text-right font-mono">
-                    <span className="text-xs font-semibold text-[#ededed] tabular-nums">
+                    <span className="text-xs font-semibold text-text-primary tabular-nums">
                       {(link.clicksInPeriod ?? link.clickCount).toLocaleString()}
                     </span>
-                    <span className="text-[10px] text-[#8c8d91] ml-1">clicks</span>
+                    <span className="text-[10px] text-text-muted ml-1">clicks</span>
                   </div>
 
                   <Link href={`/dashboard/links/${link.id}`}>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-8 px-2.5 border-[#27282b] bg-[#141517] hover:bg-[#25262a] text-[#8c8d91] hover:text-[#ededed] text-xs font-mono"
+                      className="h-8 px-2.5 border-border-subtle bg-surface-1 hover:bg-surface-2 text-text-muted hover:text-text-primary text-xs font-mono"
                     >
                       Details
                     </Button>

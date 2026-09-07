@@ -139,8 +139,8 @@ export default function LinksPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-[#ededed] font-sans">Links</h1>
-          <p className="text-xs sm:text-sm text-[#8c8d91] font-sans mt-0.5">
+          <h1 className="text-xl sm:text-2xl font-bold text-text-primary font-sans">Links</h1>
+          <p className="text-xs sm:text-sm text-text-muted font-sans mt-0.5">
             Manage your short URLs, inspect click analytics, and configure destinations.
           </p>
         </div>
@@ -157,17 +157,17 @@ export default function LinksPage() {
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
         {/* Fast Search Input with ⌘K Indicator */}
         <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8c8d91]" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
           <Input
             ref={searchInputRef}
             type="text"
             placeholder="Search by title, URL, or shortcode..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="min-h-[44px] pl-9 pr-14 bg-[#141517] border-[#27282b] text-base sm:text-sm text-[#ededed] placeholder:text-[#8c8d91] focus-visible:ring-1 focus-visible:ring-[#56c2ff] rounded-md"
+            className="min-h-[44px] pl-9 pr-14 bg-surface-1 border-border-subtle text-base sm:text-sm text-text-primary placeholder:text-text-muted focus-visible:ring-1 focus-visible:ring-primary rounded-md"
           />
           <div className="absolute right-2.5 top-1/2 -translate-y-1/2 hidden sm:flex items-center">
-            <Kbd className="bg-[#1c1d20] border-[#27282b] text-[#8c8d91] text-[10px] px-1.5 py-0.5">⌘K</Kbd>
+            <Kbd className="text-[10px] px-1.5 py-0.5">⌘K</Kbd>
           </div>
         </div>
 
@@ -178,40 +178,40 @@ export default function LinksPage() {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="min-h-[44px] flex-1 sm:flex-initial border-[#27282b] bg-[#141517] hover:bg-[#1c1d20] text-[#ededed] text-xs font-mono justify-between gap-2"
+                className="min-h-[44px] flex-1 sm:flex-initial border-border-subtle bg-surface-1 hover:bg-surface-2 text-text-primary text-xs font-mono justify-between gap-2"
               >
                 <div className="flex items-center gap-1.5">
-                  <Filter className="h-3.5 w-3.5 text-[#8c8d91]" />
+                  <Filter className="h-3.5 w-3.5 text-text-muted" />
                   <span>{activeFilterLabel}</span>
                 </div>
-                <ChevronDown className="h-3.5 w-3.5 text-[#8c8d91]" />
+                <ChevronDown className="h-3.5 w-3.5 text-text-muted" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-40 bg-[#141517] border-[#27282b] text-[#ededed] p-1 shadow-none"
+              className="w-40 bg-surface-1 border-border-subtle text-text-primary p-1 shadow-none"
             >
               <DropdownMenuItem
                 onClick={() => setStatusFilter('all')}
-                className={`min-h-[44px] cursor-pointer text-xs font-mono px-3 ${statusFilter === 'all' ? 'bg-[#1c1d20] text-[#56c2ff]' : ''}`}
+                className={`min-h-[44px] cursor-pointer text-xs font-mono px-3 ${statusFilter === 'all' ? 'bg-surface-2 text-[#56c2ff]' : ''}`}
               >
                 All Links
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => setStatusFilter('active')}
-                className={`min-h-[44px] cursor-pointer text-xs font-mono px-3 ${statusFilter === 'active' ? 'bg-[#1c1d20] text-[#5fc992]' : ''}`}
+                className={`min-h-[44px] cursor-pointer text-xs font-mono px-3 ${statusFilter === 'active' ? 'bg-surface-2 text-[#5fc992]' : ''}`}
               >
                 Active
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => setStatusFilter('expired')}
-                className={`min-h-[44px] cursor-pointer text-xs font-mono px-3 ${statusFilter === 'expired' ? 'bg-[#1c1d20] text-[#ff6363]' : ''}`}
+                className={`min-h-[44px] cursor-pointer text-xs font-mono px-3 ${statusFilter === 'expired' ? 'bg-surface-2 text-[#ff6363]' : ''}`}
               >
                 Expired
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => setStatusFilter('inactive')}
-                className={`min-h-[44px] cursor-pointer text-xs font-mono px-3 ${statusFilter === 'inactive' ? 'bg-[#1c1d20] text-[#f59e0b]' : ''}`}
+                className={`min-h-[44px] cursor-pointer text-xs font-mono px-3 ${statusFilter === 'inactive' ? 'bg-surface-2 text-[#f59e0b]' : ''}`}
               >
                 Inactive
               </DropdownMenuItem>
@@ -223,34 +223,34 @@ export default function LinksPage() {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="min-h-[44px] flex-1 sm:flex-initial border-[#27282b] bg-[#141517] hover:bg-[#1c1d20] text-[#ededed] text-xs font-mono justify-between gap-2"
+                className="min-h-[44px] flex-1 sm:flex-initial border-border-subtle bg-surface-1 hover:bg-surface-2 text-text-primary text-xs font-mono justify-between gap-2"
               >
                 <div className="flex items-center gap-1.5">
-                  <ArrowUpDown className="h-3.5 w-3.5 text-[#8c8d91]" />
+                  <ArrowUpDown className="h-3.5 w-3.5 text-text-muted" />
                   <span>{activeSortLabel}</span>
                 </div>
-                <ChevronDown className="h-3.5 w-3.5 text-[#8c8d91]" />
+                <ChevronDown className="h-3.5 w-3.5 text-text-muted" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-40 bg-[#141517] border-[#27282b] text-[#ededed] p-1 shadow-none"
+              className="w-40 bg-surface-1 border-border-subtle text-text-primary p-1 shadow-none"
             >
               <DropdownMenuItem
                 onClick={() => setSortBy('recent')}
-                className={`min-h-[44px] cursor-pointer text-xs font-mono px-3 ${sortBy === 'recent' ? 'bg-[#1c1d20] text-[#56c2ff]' : ''}`}
+                className={`min-h-[44px] cursor-pointer text-xs font-mono px-3 ${sortBy === 'recent' ? 'bg-surface-2 text-[#56c2ff]' : ''}`}
               >
                 Recent
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => setSortBy('clicks')}
-                className={`min-h-[44px] cursor-pointer text-xs font-mono px-3 ${sortBy === 'clicks' ? 'bg-[#1c1d20] text-[#56c2ff]' : ''}`}
+                className={`min-h-[44px] cursor-pointer text-xs font-mono px-3 ${sortBy === 'clicks' ? 'bg-surface-2 text-[#56c2ff]' : ''}`}
               >
                 Most Clicked
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => setSortBy('alphabetical')}
-                className={`min-h-[44px] cursor-pointer text-xs font-mono px-3 ${sortBy === 'alphabetical' ? 'bg-[#1c1d20] text-[#56c2ff]' : ''}`}
+                className={`min-h-[44px] cursor-pointer text-xs font-mono px-3 ${sortBy === 'alphabetical' ? 'bg-surface-2 text-[#56c2ff]' : ''}`}
               >
                 Alphabetical
               </DropdownMenuItem>
@@ -265,23 +265,23 @@ export default function LinksPage() {
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
-              className="rounded-md border border-[#27282b] bg-[#141517] p-4 animate-pulse space-y-2"
+              className="rounded-md border border-border-subtle bg-surface-1 p-4 animate-pulse space-y-2"
             >
-              <div className="h-4 bg-[#1c1d20] rounded w-1/4" />
-              <div className="h-3 bg-[#1c1d20] rounded w-1/2" />
+              <div className="h-4 bg-surface-2 rounded w-1/4" />
+              <div className="h-3 bg-surface-2 rounded w-1/2" />
             </div>
           ))}
         </div>
       ) : filteredAndSortedLinks.length === 0 ? (
         /* Disciplined Empty State */
-        <div className="rounded-md border border-[#27282b] bg-[#141517] p-10 text-center">
-          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded border border-[#27282b] bg-[#1c1d20] text-[#8c8d91] mb-3">
+        <div className="rounded-md border border-border-subtle bg-surface-1 p-10 text-center">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded border border-border-subtle bg-surface-2 text-text-muted mb-3">
             <Link2 className="h-5 w-5" />
           </div>
-          <h3 className="text-sm font-semibold text-[#ededed] font-sans">
+          <h3 className="text-sm font-semibold text-text-primary font-sans">
             {searchQuery ? 'No links match your filter' : 'No short links yet'}
           </h3>
-          <p className="mt-1 text-xs text-[#8c8d91] max-w-sm mx-auto">
+          <p className="mt-1 text-xs text-text-muted max-w-sm mx-auto">
             {searchQuery
               ? 'Try adjusting your search query or clear the active status filter.'
               : 'Create your first short link from the command center to begin tracking clicks.'}
@@ -295,7 +295,7 @@ export default function LinksPage() {
                   setSearchQuery('');
                   setStatusFilter('all');
                 }}
-                className="min-h-[44px] border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#ededed] text-xs font-mono"
+                className="min-h-[44px] border-border-subtle bg-surface-2 hover:bg-border-subtle text-text-primary text-xs font-mono"
               >
                 Clear Search & Filters
               </Button>

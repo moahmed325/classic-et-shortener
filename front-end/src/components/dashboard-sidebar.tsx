@@ -33,10 +33,10 @@ export function DashboardSidebar() {
   };
 
   return (
-    <aside className="w-64 border-r border-[#27282b] bg-[#0c0d0e] flex flex-col justify-between p-4 min-h-[100dvh]">
+    <aside className="w-64 border-r border-border-subtle bg-canvas text-text-primary flex flex-col justify-between p-4 min-h-[100dvh]">
       <div className="space-y-4">
-        <Link href="/dashboard" className="flex items-center space-x-2 text-sm font-semibold text-[#ededed]">
-          <div className="h-6 w-6 rounded bg-[#1c1d20] border border-[#27282b] flex items-center justify-center text-[#ff6363]">
+        <Link href="/dashboard" className="flex items-center space-x-2 text-sm font-semibold text-text-primary">
+          <div className="h-6 w-6 rounded bg-surface-2 border border-border-subtle flex items-center justify-center text-[#ff6363]">
             <Zap className="h-3.5 w-3.5 fill-current" />
           </div>
           <span className="font-mono font-bold tracking-tight">classic.et</span>
@@ -52,8 +52,8 @@ export function DashboardSidebar() {
                 href={item.href}
                 className={`flex items-center px-3 py-2 rounded-md text-xs font-medium min-h-[44px] sm:min-h-0 transition-colors ${
                   active
-                    ? 'bg-[#1c1d20] text-[#ededed] border border-[#27282b]'
-                    : 'text-[#8c8d91] hover:text-[#ededed] hover:bg-[#141517]'
+                    ? 'bg-surface-2 text-text-primary border border-border-subtle'
+                    : 'text-text-muted hover:text-text-primary hover:bg-surface-1'
                 }`}
               >
                 <Icon className="h-4 w-4 mr-2.5" />
@@ -64,17 +64,17 @@ export function DashboardSidebar() {
         </nav>
       </div>
 
-      <div className="pt-4 border-t border-[#27282b] space-y-3">
+      <div className="pt-4 border-t border-border-subtle space-y-3">
         <div className="flex items-center justify-between text-xs">
-          <span className="text-[#ededed] truncate max-w-[120px] font-medium">{user?.email}</span>
-          <Badge variant="secondary" className="text-[10px] uppercase">{user?.tier || 'FREE'}</Badge>
+          <span className="text-text-primary truncate max-w-[120px] font-medium">{user?.email}</span>
+          <Badge variant="secondary" className="text-[10px] uppercase bg-surface-2 text-text-muted">{user?.tier || 'FREE'}</Badge>
         </div>
         <Button
           variant="outline"
           size="sm"
           onClick={handleLogout}
           disabled={isLoggingOut}
-          className="w-full text-xs text-[#ff6363] bg-[#141517] border-[#27282b]"
+          className="w-full text-xs text-[#ff6363] bg-surface-1 border-border-subtle hover:bg-[#ff6363]/10"
         >
           <LogOut className="h-3.5 w-3.5 mr-1.5" />
           <span>Sign Out</span>

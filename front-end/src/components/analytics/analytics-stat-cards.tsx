@@ -15,10 +15,10 @@ export function AnalyticsStatCards({ summary, isLoading }: AnalyticsStatCardsPro
         {[...Array(4)].map((_, i) => (
           <div
             key={i}
-            className="rounded-md border border-[#27282b] bg-[#141517] p-3 sm:p-4 animate-pulse space-y-2"
+            className="rounded-md border border-border-subtle bg-surface-1 p-3 sm:p-4 animate-pulse space-y-2"
           >
-            <div className="h-3 w-16 bg-[#1c1d20] rounded" />
-            <div className="h-6 w-24 bg-[#1c1d20] rounded" />
+            <div className="h-3 w-16 bg-surface-2 rounded" />
+            <div className="h-6 w-24 bg-surface-2 rounded" />
           </div>
         ))}
       </div>
@@ -65,16 +65,16 @@ export function AnalyticsStatCards({ summary, isLoading }: AnalyticsStatCardsPro
         return (
           <div
             key={idx}
-            className="rounded-md border border-[#27282b] bg-[#141517] p-3 sm:p-4 hover:border-[#383a3f] transition-colors"
+            className="rounded-md border border-border-subtle bg-surface-1 p-3 sm:p-4 hover:border-border-strong transition-colors"
           >
-            <div className="flex items-center justify-between text-[#8c8d91] mb-1.5">
+            <div className="flex items-center justify-between text-text-muted mb-1.5">
               <span className="text-xs font-mono tracking-tight">{card.label}</span>
-              <Icon className="h-3.5 w-3.5 text-[#8c8d91]" />
+              <Icon className="h-3.5 w-3.5 text-text-muted" />
             </div>
 
             <div className="flex items-baseline">
               <span
-                className={`font-mono font-semibold tracking-tight text-[#ededed] truncate ${
+                className={`font-mono font-semibold tracking-tight text-text-primary truncate ${
                   card.isString ? 'text-sm sm:text-base' : 'text-lg sm:text-2xl tabular-nums'
                 }`}
                 title={card.isString ? card.value : undefined}
@@ -83,7 +83,7 @@ export function AnalyticsStatCards({ summary, isLoading }: AnalyticsStatCardsPro
               </span>
             </div>
 
-            <p className="text-[11px] text-[#8c8d91] font-sans mt-1 truncate">
+            <p className="text-[11px] text-text-muted font-sans mt-1 truncate">
               {card.subtext}
             </p>
           </div>

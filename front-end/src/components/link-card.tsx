@@ -216,12 +216,12 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
 
   return (
     <>
-      <div className="group relative rounded-md border border-[#27282b] bg-[#141517] p-3 sm:p-4 hover:border-[#383a3f] transition-colors">
+      <div className="group relative rounded-md border border-border-subtle bg-surface-1 p-3 sm:p-4 hover:border-border-strong transition-colors">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           {/* Left Section: Favicon + Slug + Truncated Destination */}
           <div className="flex items-start gap-3 min-w-0 flex-1">
             {/* Domain Favicon with fallback */}
-            <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded border border-[#27282b] bg-[#1c1d20] overflow-hidden">
+            <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded border border-border-subtle bg-surface-2 overflow-hidden">
               {faviconUrl && !faviconError ? (
                 <img
                   src={faviconUrl}
@@ -231,7 +231,7 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
                   loading="lazy"
                 />
               ) : (
-                <Globe className="h-4 w-4 text-[#8c8d91]" />
+                <Globe className="h-4 w-4 text-text-muted" />
               )}
             </div>
 
@@ -240,7 +240,7 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
               <div className="flex flex-wrap items-center gap-2">
                 <Link
                   href={`/dashboard/links/${link.id}`}
-                  className="font-mono text-sm font-semibold text-[#ededed] hover:text-[#ff6363] transition-colors truncate"
+                  className="font-mono text-sm font-semibold text-text-primary hover:text-[#ff6363] transition-colors truncate"
                 >
                   {displayShortUrl}
                 </Link>
@@ -250,7 +250,7 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Visit short URL"
-                  className="text-[#8c8d91] hover:text-[#ededed] transition-colors p-0.5"
+                  className="text-text-muted hover:text-text-primary transition-colors p-0.5"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
@@ -261,7 +261,7 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
                     Expired
                   </Badge>
                 ) : !link.isActive ? (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-[#27282b] text-[#8c8d91] uppercase tracking-wider font-mono">
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-surface-2 text-text-muted uppercase tracking-wider font-mono">
                     Inactive
                   </Badge>
                 ) : null}
@@ -270,18 +270,18 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
               {/* Destination URL & Title */}
               <div className="min-w-0 flex items-center gap-2">
                 <p 
-                  className="truncate text-xs text-[#8c8d91] hover:text-[#ededed] transition-colors font-sans"
+                  className="truncate text-xs text-text-muted hover:text-text-primary transition-colors font-sans"
                   title={link.originalUrl}
                 >
                   {link.title ? (
-                    <span className="text-[#ededed] font-medium mr-1.5">{link.title} —</span>
+                    <span className="text-text-primary font-medium mr-1.5">{link.title} —</span>
                   ) : null}
                   {link.originalUrl}
                 </p>
               </div>
 
               {/* Meta timestamp */}
-              <div className="flex items-center gap-2 text-[11px] text-[#8c8d91] font-mono pt-0.5">
+              <div className="flex items-center gap-2 text-[11px] text-text-muted font-mono pt-0.5">
                 <span>Added {formattedDate}</span>
                 {domain && (
                   <>
@@ -294,14 +294,14 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
           </div>
 
           {/* Right Section: Clicks Badge + Quick Copy + Action Controls */}
-          <div className="flex items-center justify-between md:justify-end gap-2 pt-2 border-t border-[#27282b]/60 md:border-t-0 md:pt-0">
+          <div className="flex items-center justify-between md:justify-end gap-2 pt-2 border-t border-border-subtle/60 md:border-t-0 md:pt-0">
             {/* Clicks Badge as tactile Kbd */}
             <Link 
               href={`/dashboard/links/${link.id}`}
               title="View detailed analytics"
               className="focus:outline-none"
             >
-              <Kbd className="cursor-pointer hover:border-[#383a3f] hover:bg-[#25262a] transition-colors px-2.5 py-1 text-xs tabular-nums text-[#ededed] gap-1.5">
+              <Kbd className="cursor-pointer hover:border-border-strong hover:bg-surface-2 transition-colors px-2.5 py-1 text-xs tabular-nums text-text-primary gap-1.5">
                 <BarChart2 className="h-3 w-3 text-[#5fc992]" />
                 <span>{link.clickCount.toLocaleString()} {link.clickCount === 1 ? 'click' : 'clicks'}</span>
               </Kbd>
@@ -314,7 +314,7 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
                 size="sm"
                 onClick={handleCopy}
                 aria-label="Copy short link"
-                className="min-h-[44px] min-w-[44px] p-0 border-[#27282b] bg-[#141517] hover:bg-[#1c1d20] hover:text-[#ededed] text-[#8c8d91] focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                className="min-h-[44px] min-w-[44px] p-0 border-border-subtle bg-surface-1 hover:bg-surface-2 hover:text-text-primary text-text-muted focus-visible:ring-1 focus-visible:ring-primary"
               >
                 {copied ? (
                   <Check className="h-4 w-4 text-[#5fc992] transition-transform scale-110" />
@@ -329,7 +329,7 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
                 size="sm"
                 onClick={() => setShowQR(true)}
                 aria-label="Show QR Code"
-                className="min-h-[44px] min-w-[44px] p-0 border-[#27282b] bg-[#141517] hover:bg-[#1c1d20] hover:text-[#ededed] text-[#8c8d91] focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                className="min-h-[44px] min-w-[44px] p-0 border-border-subtle bg-surface-1 hover:bg-surface-2 hover:text-text-primary text-text-muted focus-visible:ring-1 focus-visible:ring-primary"
               >
                 <QrCode className="h-4 w-4" />
               </Button>
@@ -341,18 +341,18 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
                     variant="outline"
                     size="sm"
                     aria-label="Link actions"
-                    className="min-h-[44px] min-w-[44px] p-0 border-[#27282b] bg-[#141517] hover:bg-[#1c1d20] hover:text-[#ededed] text-[#8c8d91] focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                    className="min-h-[44px] min-w-[44px] p-0 border-border-subtle bg-surface-1 hover:bg-surface-2 hover:text-text-primary text-text-muted focus-visible:ring-1 focus-visible:ring-primary"
                   >
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  className="w-48 bg-[#141517] border border-[#27282b] text-[#ededed] p-1 shadow-none"
+                  className="w-48 bg-surface-1 border border-border-subtle text-text-primary p-1 shadow-none"
                 >
                   <DropdownMenuItem
                     onClick={() => router.push(`/dashboard/links/${link.id}`)}
-                    className="min-h-[44px] cursor-pointer hover:bg-[#1c1d20] focus:bg-[#1c1d20] text-xs font-sans px-3"
+                    className="min-h-[44px] cursor-pointer hover:bg-surface-2 focus:bg-surface-2 text-xs font-sans px-3"
                   >
                     <BarChart2 className="mr-2 h-4 w-4 text-[#5fc992]" />
                     <span>View Analytics</span>
@@ -360,7 +360,7 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
 
                   <DropdownMenuItem
                     onClick={() => setShowEdit(true)}
-                    className="min-h-[44px] cursor-pointer hover:bg-[#1c1d20] focus:bg-[#1c1d20] text-xs font-sans px-3"
+                    className="min-h-[44px] cursor-pointer hover:bg-surface-2 focus:bg-surface-2 text-xs font-sans px-3"
                   >
                     <Edit3 className="mr-2 h-4 w-4 text-[#56c2ff]" />
                     <span>Edit Destination</span>
@@ -369,13 +369,13 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
                   <DropdownMenuItem
                     onClick={handleToggleActive}
                     disabled={isUpdating}
-                    className="min-h-[44px] cursor-pointer hover:bg-[#1c1d20] focus:bg-[#1c1d20] text-xs font-sans px-3"
+                    className="min-h-[44px] cursor-pointer hover:bg-surface-2 focus:bg-surface-2 text-xs font-sans px-3"
                   >
                     <Power className={`mr-2 h-4 w-4 ${link.isActive ? 'text-[#f59e0b]' : 'text-[#5fc992]'}`} />
                     <span>{link.isActive ? 'Pause Link' : 'Activate Link'}</span>
                   </DropdownMenuItem>
 
-                  <DropdownMenuSeparator className="bg-[#27282b]" />
+                  <DropdownMenuSeparator className="bg-border-subtle" />
 
                   <DropdownMenuItem
                     onClick={handleDelete}
@@ -394,16 +394,16 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
 
       {/* QR Code Modal with overscroll-contain */}
       <Dialog open={showQR} onOpenChange={setShowQR}>
-        <DialogContent className="border border-[#27282b] bg-[#141517] text-[#ededed] max-w-sm p-6 overscroll-contain">
+        <DialogContent className="border border-border-subtle bg-surface-1 text-text-primary max-w-sm p-6 overscroll-contain">
           <DialogHeader className="text-center sm:text-center">
-            <DialogTitle className="text-base font-semibold text-[#ededed]">QR Code</DialogTitle>
-            <DialogDescription className="font-mono text-xs text-[#8c8d91] truncate">
+            <DialogTitle className="text-base font-semibold text-text-primary">QR Code</DialogTitle>
+            <DialogDescription className="font-mono text-xs text-text-muted truncate">
               {displayShortUrl}
             </DialogDescription>
           </DialogHeader>
 
           <div className="flex flex-col items-center justify-center py-2">
-            <div className="p-3 bg-white rounded-md border border-[#27282b]">
+            <div className="p-3 bg-white rounded-md border border-border-subtle">
               <img
                 src={qrImageUrl}
                 alt={`QR code for ${displayShortUrl}`}
@@ -422,18 +422,18 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
             >
               <Button
                 variant="outline"
-                className="w-full min-h-[44px] border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#ededed] text-xs font-mono"
+                className="w-full min-h-[44px] border-border-subtle bg-surface-2 hover:bg-border-subtle text-text-primary text-xs font-mono"
               >
-                <Download className="mr-2 h-4 w-4 text-[#8c8d91]" />
+                <Download className="mr-2 h-4 w-4 text-text-muted" />
                 Download SVG
               </Button>
             </a>
             <Button
               variant="outline"
               onClick={handleCopy}
-              className="w-full min-h-[44px] border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#ededed] text-xs"
+              className="w-full min-h-[44px] border-border-subtle bg-surface-2 hover:bg-border-subtle text-text-primary text-xs"
             >
-              <Copy className="mr-2 h-4 w-4 text-[#8c8d91]" />
+              <Copy className="mr-2 h-4 w-4 text-text-muted" />
               Copy Link
             </Button>
           </div>
@@ -442,10 +442,10 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
 
       {/* Edit Link Modal with overscroll-contain and 44px touch targets */}
       <Dialog open={showEdit} onOpenChange={setShowEdit}>
-        <DialogContent className="border border-[#27282b] bg-[#141517] text-[#ededed] max-w-md p-6 overscroll-contain">
+        <DialogContent className="border border-border-subtle bg-surface-1 text-text-primary max-w-md p-6 overscroll-contain">
           <DialogHeader>
-            <DialogTitle className="text-base font-semibold text-[#ededed]">Edit Short Link</DialogTitle>
-            <DialogDescription className="font-mono text-xs text-[#8c8d91]">
+            <DialogTitle className="text-base font-semibold text-text-primary">Edit Short Link</DialogTitle>
+            <DialogDescription className="font-mono text-xs text-text-muted">
               {displayShortUrl}
             </DialogDescription>
           </DialogHeader>
@@ -453,7 +453,7 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
           <form onSubmit={handleSaveEdit} className="space-y-4 pt-2">
             {/* Destination URL */}
             <div className="space-y-1.5">
-              <Label htmlFor={`edit-url-${link.id}`} className="text-xs font-medium text-[#8c8d91]">
+              <Label htmlFor={`edit-url-${link.id}`} className="text-xs font-medium text-text-muted">
                 Destination URL
               </Label>
               <Input
@@ -463,13 +463,13 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
                 value={editUrl}
                 onChange={(e) => setEditUrl(e.target.value)}
                 placeholder="https://example.com/target"
-                className="min-h-[44px] bg-[#1c1d20] border-[#27282b] text-base sm:text-sm text-[#ededed] focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                className="min-h-[44px] bg-surface-2 border-border-subtle text-base sm:text-sm text-text-primary focus-visible:ring-1 focus-visible:ring-primary"
               />
             </div>
 
             {/* Title (Optional) */}
             <div className="space-y-1.5">
-              <Label htmlFor={`edit-title-${link.id}`} className="text-xs font-medium text-[#8c8d91]">
+              <Label htmlFor={`edit-title-${link.id}`} className="text-xs font-medium text-text-muted">
                 Title (Optional)
               </Label>
               <Input
@@ -478,13 +478,13 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
                 placeholder="Campaign / Dashboard link title"
-                className="min-h-[44px] bg-[#1c1d20] border-[#27282b] text-base sm:text-sm text-[#ededed] focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                className="min-h-[44px] bg-surface-2 border-border-subtle text-base sm:text-sm text-text-primary focus-visible:ring-1 focus-visible:ring-primary"
               />
             </div>
 
             {/* Expiration Date */}
             <div className="space-y-1.5">
-              <Label htmlFor={`edit-exp-${link.id}`} className="text-xs font-medium text-[#8c8d91] flex items-center gap-1.5">
+              <Label htmlFor={`edit-exp-${link.id}`} className="text-xs font-medium text-text-muted flex items-center gap-1.5">
                 <Calendar className="h-3.5 w-3.5" />
                 <span>Expiration Date (Optional)</span>
               </Label>
@@ -493,17 +493,17 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
                 type="datetime-local"
                 value={editExpiresAt}
                 onChange={(e) => setEditExpiresAt(e.target.value)}
-                className="min-h-[44px] bg-[#1c1d20] border-[#27282b] text-base sm:text-sm text-[#ededed] focus-visible:ring-1 focus-visible:ring-[#56c2ff]"
+                className="min-h-[44px] bg-surface-2 border-border-subtle text-base sm:text-sm text-text-primary focus-visible:ring-1 focus-visible:ring-primary"
               />
             </div>
 
             {/* Active Toggle */}
-            <div className="flex items-center justify-between rounded-md border border-[#27282b] bg-[#1c1d20] p-3">
+            <div className="flex items-center justify-between rounded-md border border-border-subtle bg-surface-2 p-3">
               <div>
-                <Label htmlFor={`edit-active-${link.id}`} className="text-xs font-medium text-[#ededed] cursor-pointer">
+                <Label htmlFor={`edit-active-${link.id}`} className="text-xs font-medium text-text-primary cursor-pointer">
                   Link Status
                 </Label>
-                <p className="text-[11px] text-[#8c8d91]">
+                <p className="text-[11px] text-text-muted">
                   {editActive ? 'Link is active and redirecting traffic' : 'Link is paused (visitors see 404/expired)'}
                 </p>
               </div>
@@ -520,7 +520,7 @@ export function LinkCard({ link, onUpdate, onDelete }: LinkCardProps) {
                 type="button"
                 variant="outline"
                 onClick={() => setShowEdit(false)}
-                className="min-h-[44px] border-[#27282b] bg-[#141517] hover:bg-[#1c1d20] text-[#ededed] text-xs px-4"
+                className="min-h-[44px] border-border-subtle bg-surface-1 hover:bg-surface-2 text-text-primary text-xs px-4"
               >
                 Cancel
               </Button>

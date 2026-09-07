@@ -63,8 +63,8 @@ export function UsageWarning({ onClose }: UsageWarningProps) {
   }
 
   const getWarningColor = () => {
-    if (isAtLimit) return 'border-[#ff6363]/40 bg-[#141517] text-[#ededed]';
-    return 'border-[#f59e0b]/40 bg-[#141517] text-[#ededed]';
+    if (isAtLimit) return 'border-[#ff6363]/40 bg-surface-1 text-text-primary';
+    return 'border-[#f59e0b]/40 bg-surface-1 text-text-primary';
   };
 
   const getWarningIcon = () => {
@@ -91,36 +91,36 @@ export function UsageWarning({ onClose }: UsageWarningProps) {
           <div className="flex items-start gap-2 sm:gap-3 flex-1">
             <AlertTriangle className={`h-4 w-4 sm:h-5 sm:w-5 mt-0.5 flex-shrink-0 ${getWarningIcon()}`} />
             <div className="flex-1 min-w-0">
-              <h4 className="font-semibold text-xs sm:text-sm text-[#ededed] font-sans">
+              <h4 className="font-semibold text-xs sm:text-sm text-text-primary font-sans">
                 {getWarningTitle()}
               </h4>
-              <p className="text-xs text-[#8c8d91] mt-1 font-sans">
+              <p className="text-xs text-text-muted mt-1 font-sans">
                 {getWarningMessage()}
               </p>
               
               <div className="mt-2 sm:mt-3 space-y-2">
                 {usageData.limits.links.percentage >= 80 && (
                   <div>
-                    <div className="flex items-center justify-between text-[11px] font-mono text-[#8c8d91] mb-1">
+                    <div className="flex items-center justify-between text-[11px] font-mono text-text-muted mb-1">
                       <span>Links Created</span>
-                      <span className="text-right text-[#ededed] tabular-nums">{usageData.limits.links.current} / {usageData.limits.links.limit === -1 ? 'Unlimited' : usageData.limits.links.limit}</span>
+                      <span className="text-right text-text-primary tabular-nums">{usageData.limits.links.current} / {usageData.limits.links.limit === -1 ? 'Unlimited' : usageData.limits.links.limit}</span>
                     </div>
                     <Progress 
                       value={usageData.limits.links.percentage} 
-                      className="h-1.5 bg-[#1c1d20]" 
+                      className="h-1.5 bg-surface-2" 
                     />
                   </div>
                 )}
                 
                 {usageData.limits.visitors.percentage >= 80 && (
                   <div>
-                    <div className="flex items-center justify-between text-[11px] font-mono text-[#8c8d91] mb-1">
+                    <div className="flex items-center justify-between text-[11px] font-mono text-text-muted mb-1">
                       <span>Visitors Tracked</span>
-                      <span className="text-right text-[#ededed] tabular-nums">{usageData.limits.visitors.current} / {usageData.limits.visitors.limit === null ? 'Unlimited' : usageData.limits.visitors.limit}</span>
+                      <span className="text-right text-text-primary tabular-nums">{usageData.limits.visitors.current} / {usageData.limits.visitors.limit === null ? 'Unlimited' : usageData.limits.visitors.limit}</span>
                     </div>
                     <Progress 
                       value={usageData.limits.visitors.percentage} 
-                      className="h-1.5 bg-[#1c1d20]" 
+                      className="h-1.5 bg-surface-2" 
                     />
                   </div>
                 )}
@@ -140,7 +140,7 @@ export function UsageWarning({ onClose }: UsageWarningProps) {
                   variant="outline" 
                   size="sm" 
                   onClick={handleClose}
-                  className="min-h-[44px] border-[#27282b] bg-[#1c1d20] hover:bg-[#25262a] text-[#8c8d91] hover:text-[#ededed] text-xs font-mono"
+                  className="min-h-[44px] border-border-subtle bg-surface-2 hover:bg-border-subtle text-text-muted hover:text-text-primary text-xs font-mono"
                 >
                   <X className="h-3.5 w-3.5 mr-1.5" />
                   Dismiss

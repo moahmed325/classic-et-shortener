@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#56c2ff] focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 min-h-[44px] sm:min-h-0 active:scale-[0.98] select-none",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 min-h-[44px] sm:min-h-0 active:scale-[0.98] select-none",
   {
     variants: {
       variant: {
@@ -14,11 +14,11 @@ const buttonVariants = cva(
         destructive:
           "bg-[#ff6363]/10 text-[#ff6363] border border-[#ff6363]/30 hover:bg-[#ff6363]/20 shadow-none",
         outline:
-          "border border-[#27282b] bg-[#141517] text-[#ededed] hover:bg-[#1c1d20] hover:text-white shadow-none",
+          "border border-border-subtle bg-surface-1 text-text-primary hover:bg-surface-2 hover:text-text-primary shadow-none",
         secondary:
-          "bg-[#1c1d20] text-[#ededed] border border-[#27282b] hover:bg-[#27282b] shadow-none",
+          "bg-surface-2 text-text-primary border border-border-subtle hover:bg-border-subtle shadow-none",
         ghost:
-          "text-[#8c8d91] hover:text-[#ededed] hover:bg-[#1c1d20]",
+          "text-text-muted hover:text-text-primary hover:bg-surface-2",
         link:
           "text-[#56c2ff] underline-offset-4 hover:underline p-0 h-auto min-h-0",
       },

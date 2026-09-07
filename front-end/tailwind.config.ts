@@ -46,12 +46,23 @@ const config: Config = {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        canvas: "var(--canvas)",
+        canvas: "color-mix(in srgb, var(--canvas) calc(100% * <alpha-value>), transparent)",
         surface: {
-          1: "var(--surface-1)",
-          2: "var(--surface-2)",
+          1: "color-mix(in srgb, var(--surface-1) calc(100% * <alpha-value>), transparent)",
+          2: "color-mix(in srgb, var(--surface-2) calc(100% * <alpha-value>), transparent)",
+          DEFAULT: "color-mix(in srgb, var(--surface-1) calc(100% * <alpha-value>), transparent)",
         },
-        'border-subtle': "var(--border-subtle)",
+        'surface-1': "color-mix(in srgb, var(--surface-1) calc(100% * <alpha-value>), transparent)",
+        'surface-2': "color-mix(in srgb, var(--surface-2) calc(100% * <alpha-value>), transparent)",
+        'border-subtle': "color-mix(in srgb, var(--border-subtle) calc(100% * <alpha-value>), transparent)",
+        'border-strong': "color-mix(in srgb, var(--border-strong) calc(100% * <alpha-value>), transparent)",
+        'text-primary': "color-mix(in srgb, var(--text-primary) calc(100% * <alpha-value>), transparent)",
+        'text-muted': "color-mix(in srgb, var(--text-muted) calc(100% * <alpha-value>), transparent)",
+        kbd: {
+          bg: "var(--kbd-bg)",
+          border: "var(--kbd-border)",
+          text: "var(--kbd-text)",
+        },
         coral: {
           DEFAULT: "var(--accent-coral)",
           hover: "#f85353",
@@ -93,6 +104,10 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+      },
+      textColor: {
+        primary: "color-mix(in srgb, var(--text-primary) calc(100% * <alpha-value>), transparent)",
+        muted: "color-mix(in srgb, var(--text-muted) calc(100% * <alpha-value>), transparent)",
       },
       borderRadius: {
         lg: "0.5rem",

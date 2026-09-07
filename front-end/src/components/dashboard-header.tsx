@@ -74,39 +74,39 @@ export function DashboardHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-[#27282b] bg-[#0c0d0e]/95 transition-colors">
+    <header className="sticky top-0 z-40 w-full border-b border-border-subtle bg-canvas/95 backdrop-blur transition-colors">
       {/* Top Navbar Row */}
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
         {/* Brand & Workspace Pill */}
         <div className="flex items-center space-x-3">
-          <Link href="/dashboard" className="flex items-center space-x-2 text-sm font-semibold tracking-tight text-[#ededed]">
-            <div className="h-5 w-5 rounded bg-[#1c1d20] border border-[#27282b] flex items-center justify-center text-[#ff6363]">
+          <Link href="/dashboard" className="flex items-center space-x-2 text-sm font-semibold tracking-tight text-text-primary">
+            <div className="h-5 w-5 rounded bg-surface-2 border border-border-subtle flex items-center justify-center text-[#ff6363]">
               <Zap className="h-3 w-3 fill-current" />
             </div>
             <span className="font-mono font-bold tracking-tight">classic.et</span>
           </Link>
 
-          <span className="text-[#27282b] text-sm">/</span>
+          <span className="text-border-strong text-sm">/</span>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs font-normal border-[#27282b] bg-[#141517] hover:bg-[#1c1d20] text-[#ededed]">
+              <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs font-normal border-border-subtle bg-surface-1 hover:bg-surface-2 text-text-primary">
                 <span className="truncate max-w-[120px] sm:max-w-[160px]">
                   {user?.name || user?.email?.split('@')[0] || 'Personal'}
                 </span>
-                <span className="ml-1.5 px-1 py-0.2 rounded text-[10px] font-mono bg-[#1c1d20] border border-[#27282b] text-[#8c8d91]">
+                <span className="ml-1.5 px-1 py-0.2 rounded text-[10px] font-mono bg-surface-2 border border-border-subtle text-text-muted">
                   {user?.tier?.toUpperCase() || 'FREE'}
                 </span>
-                <ChevronDown className="ml-1 h-3 w-3 text-[#8c8d91]" />
+                <ChevronDown className="ml-1 h-3 w-3 text-text-muted" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56 bg-[#141517] border-[#27282b] text-[#ededed]">
-              <div className="px-2 py-1.5 text-xs font-semibold text-[#8c8d91]">Active Workspace</div>
-              <DropdownMenuItem className="text-xs flex items-center justify-between bg-[#1c1d20] cursor-pointer">
+            <DropdownMenuContent align="start" className="w-56 bg-surface-1 border-border-subtle text-text-primary">
+              <div className="px-2 py-1.5 text-xs font-semibold text-text-muted">Active Workspace</div>
+              <DropdownMenuItem className="text-xs flex items-center justify-between bg-surface-2 cursor-pointer">
                 <span className="truncate">{user?.email}</span>
                 <Check className="h-3.5 w-3.5 text-[#5fc992]" />
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-[#27282b]" />
+              <DropdownMenuSeparator className="bg-border-subtle" />
               <DropdownMenuItem onClick={() => router.push('/dashboard/subscription')} className="text-xs cursor-pointer">
                 <Crown className="mr-2 h-3.5 w-3.5 text-[#f59e0b]" />
                 <span>Upgrade Plan</span>
@@ -122,27 +122,27 @@ export function DashboardHeader() {
           {/* User Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="h-8 w-8 rounded-md bg-[#1c1d20] border border-[#27282b] flex items-center justify-center text-xs font-mono font-semibold text-[#ededed] hover:border-[#8c8d91]/50 transition-colors">
+              <button className="h-8 w-8 rounded-md bg-surface-2 border border-border-subtle flex items-center justify-center text-xs font-mono font-semibold text-text-primary hover:border-border-strong transition-colors">
                 {getUserInitials(user?.name, user?.email)}
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-[#141517] border-[#27282b] text-[#ededed]">
+            <DropdownMenuContent align="end" className="w-56 bg-surface-1 border-border-subtle text-text-primary">
               <DropdownMenuLabel className="font-normal p-3">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-xs font-semibold text-[#ededed] truncate">{user?.name || 'User'}</p>
-                  <p className="text-[11px] font-mono text-[#8c8d91] truncate">{user?.email}</p>
+                  <p className="text-xs font-semibold text-text-primary truncate">{user?.name || 'User'}</p>
+                  <p className="text-[11px] font-mono text-text-muted truncate">{user?.email}</p>
                 </div>
               </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-[#27282b]" />
-              <DropdownMenuItem onClick={() => router.push('/dashboard/settings')} className="text-xs cursor-pointer hover:bg-[#1c1d20]">
-                <Settings className="mr-2 h-3.5 w-3.5 text-[#8c8d91]" />
+              <DropdownMenuSeparator className="bg-border-subtle" />
+              <DropdownMenuItem onClick={() => router.push('/dashboard/settings')} className="text-xs cursor-pointer hover:bg-surface-2">
+                <Settings className="mr-2 h-3.5 w-3.5 text-text-muted" />
                 <span>Settings</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push('/dashboard/subscription')} className="text-xs cursor-pointer hover:bg-[#1c1d20]">
-                <Crown className="mr-2 h-3.5 w-3.5 text-[#8c8d91]" />
+              <DropdownMenuItem onClick={() => router.push('/dashboard/subscription')} className="text-xs cursor-pointer hover:bg-surface-2">
+                <Crown className="mr-2 h-3.5 w-3.5 text-text-muted" />
                 <span>Subscription</span>
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-[#27282b]" />
+              <DropdownMenuSeparator className="bg-border-subtle" />
               <DropdownMenuItem
                 onClick={handleLogout}
                 disabled={isLoggingOut}
@@ -158,17 +158,17 @@ export function DashboardHeader() {
           <div className="md:hidden">
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="h-8 w-8 min-h-0 bg-[#141517] border-[#27282b] text-[#ededed]">
+                <Button variant="outline" size="icon" className="h-8 w-8 min-h-0 bg-surface-1 border-border-subtle text-text-primary">
                   <Menu className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
               <SheetContent
                 side="left"
-                className="w-72 bg-[#0c0d0e] border-r border-[#27282b] text-[#ededed] p-0 flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] min-h-[100dvh]"
+                className="w-72 bg-canvas border-r border-border-subtle text-text-primary p-0 flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] min-h-[100dvh]"
               >
-                <SheetHeader className="p-4 border-b border-[#27282b]">
-                  <SheetTitle className="flex items-center space-x-2 text-sm text-[#ededed]">
-                    <div className="h-5 w-5 rounded bg-[#1c1d20] border border-[#27282b] flex items-center justify-center text-[#ff6363]">
+                <SheetHeader className="p-4 border-b border-border-subtle">
+                  <SheetTitle className="flex items-center space-x-2 text-sm text-text-primary">
+                    <div className="h-5 w-5 rounded bg-surface-2 border border-border-subtle flex items-center justify-center text-[#ff6363]">
                       <Zap className="h-3 w-3 fill-current" />
                     </div>
                     <span className="font-mono font-bold">classic.et</span>
@@ -186,8 +186,8 @@ export function DashboardHeader() {
                         onClick={() => setMobileOpen(false)}
                         className={`flex items-center px-3 py-2.5 rounded-md text-xs font-medium min-h-[44px] transition-colors ${
                           active
-                            ? 'bg-[#1c1d20] text-[#ededed] border border-[#27282b]'
-                            : 'text-[#8c8d91] hover:text-[#ededed] hover:bg-[#141517]'
+                            ? 'bg-surface-2 text-text-primary border border-border-subtle'
+                            : 'text-text-muted hover:text-text-primary hover:bg-surface-1'
                         }`}
                       >
                         <Icon className="h-4 w-4 mr-2.5 flex-shrink-0" />
@@ -197,15 +197,15 @@ export function DashboardHeader() {
                   })}
                 </nav>
 
-                <div className="p-4 border-t border-[#27282b] space-y-2">
-                  <div className="text-xs font-mono text-[#8c8d91]">
-                    Plan: <span className="text-[#ededed] uppercase">{user?.tier || 'FREE'}</span>
+                <div className="p-4 border-t border-border-subtle space-y-2">
+                  <div className="text-xs font-mono text-text-muted">
+                    Plan: <span className="text-text-primary uppercase">{user?.tier || 'FREE'}</span>
                   </div>
                   <Button
                     variant="outline"
                     onClick={handleLogout}
                     disabled={isLoggingOut}
-                    className="w-full h-10 text-xs text-[#ff6363] bg-[#141517] border-[#27282b] min-h-[44px]"
+                    className="w-full h-10 text-xs text-[#ff6363] bg-surface-1 border-border-subtle min-h-[44px]"
                   >
                     <LogOut className="mr-2 h-3.5 w-3.5" />
                     <span>Sign Out</span>
@@ -218,7 +218,7 @@ export function DashboardHeader() {
       </div>
 
       {/* Sub-navbar Navigation Tabs (Desktop / Tablet) */}
-      <div className="hidden md:block border-t border-[#27282b]/60">
+      <div className="hidden md:block border-t border-border-subtle/60">
         <div className="max-w-5xl mx-auto px-4 flex items-center space-x-1">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -228,7 +228,7 @@ export function DashboardHeader() {
                 key={item.name}
                 href={item.href}
                 className={`relative py-2.5 px-3 text-xs font-medium transition-colors flex items-center space-x-1.5 ${
-                  active ? 'text-[#ededed]' : 'text-[#8c8d91] hover:text-[#ededed]'
+                  active ? 'text-text-primary' : 'text-text-muted hover:text-text-primary'
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />
