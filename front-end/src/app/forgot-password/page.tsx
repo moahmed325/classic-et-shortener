@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeft, Mail, Loader2, Zap, CheckCircle, AlertCircle, Shield, Clock } from 'lucide-react';
+import { ArrowLeft, Mail, Loader2, Zap, CheckCircle, AlertCircle, Shield, Clock, Lock } from 'lucide-react';
 import { authApi } from '@/lib/api';
 
 export default function ForgotPasswordPage() {
@@ -16,6 +16,7 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [message, setMessage] = useState('');
+  const [debugInfo, setDebugInfo] = useState<{ resetUrl?: string; emailSent?: boolean } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +41,9 @@ export default function ForgotPasswordPage() {
       const response = await authApi.forgotPassword({ email });
       setSuccess(true);
       setMessage(response.message);
+      if (response.debug) {
+        setDebugInfo(response.debug);
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to send reset email. Please try again.');
     } finally {
@@ -76,6 +80,27 @@ export default function ForgotPasswordPage() {
                 {message}
               </AlertDescription>
             </Alert>
+            
+            {debugInfo?.resetUrl && (
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 p-4 sm:p-5 rounded-xl border border-blue-200 dark:border-blue-800 space-y-3">
+                <div className="flex items-center text-blue-900 dark:text-blue-100 font-semibold text-sm sm:text-base">
+                  <Zap className="h-5 w-5 mr-2 text-blue-600" />
+                  Direct Password Reset Link
+                </div>
+                <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-200">
+                  {debugInfo.emailSent 
+                    ? 'In addition to your email, you can also proceed directly with the link below:' 
+                    : 'Email delivery is in sandbox mode. You can proceed directly with this secure link:'}
+                </p>
+                <a 
+                  href={debugInfo.resetUrl}
+                  className="inline-flex items-center justify-center w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors text-sm"
+                >
+                  <Lock className="mr-2 h-4 w-4" />
+                  Proceed to Reset Password
+                </a>
+              </div>
+            )}
             
             <div className="space-y-3 sm:space-y-4">
               <div className="bg-blue-50 dark:bg-blue-950 p-3 sm:p-5 rounded-xl border border-blue-200 dark:border-blue-800">

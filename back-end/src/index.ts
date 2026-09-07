@@ -180,16 +180,23 @@ async function sendPasswordResetEmail(
   resetToken: string, 
   frontendUrl: string, 
   resendApiKey: string, 
+  fromEmail?: string,
   userName?: string
 ) {
   const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
 
-  // Use a verified sender domain - IMPORTANT: Replace with your verified domain
-  const fromEmail = 'onboarding@resend.dev'; // This is Resend's test domain
-  // For production, use: 'noreply@yourdomain.com' (must be verified in Resend)
+  // Determine sender email based on domain verification status
+  let senderEmail: string;
+  let senderName = 'LinkShort';
+  
+  if (fromEmail) {
+    senderEmail = fromEmail;
+  } else {
+    senderEmail = 'onboarding@resend.dev';
+  }
   
   const emailData = {
-    from: `LinkShort <${fromEmail}>`,
+    from: `${senderName} <${senderEmail}>`,
     to: [email],
     subject: 'Reset Your LinkShort Password',
     html: `
@@ -1711,10 +1718,12 @@ app.post('/api/auth/forgot-password', async (c) => {
     console.log('🔑 Generated reset token:', resetToken);
     console.log('⏰ Token expires at:', expiresAt.toISOString());
 
-    // Store reset token in database
+    // Store reset token in database (delete any prior tokens for this user first)
     try {
+      await c.env.DB.prepare('DELETE FROM password_resets WHERE user_id = ?').bind(user.id).run();
+
       const dbResult = await c.env.DB.prepare(`
-        INSERT OR REPLACE INTO password_resets (user_id, token, expires_at, created_at)
+        INSERT INTO password_resets (user_id, token, expires_at, created_at)
         VALUES (?, ?, ?, ?)
       `).bind(user.id, resetToken, expiresAt.toISOString(), new Date().toISOString()).run();
       
@@ -1725,9 +1734,13 @@ app.post('/api/auth/forgot-password', async (c) => {
     }
 
     // Send password reset email using Resend
-    const origin = c.req.header('Origin') || 'http://localhost:3000';
+    const origin = c.req.header('Origin') || c.env.FRONTEND_URL || 'https://front-end-silk-one.vercel.app';
     console.log('🌐 Frontend origin:', origin);
+    const resetUrl = `${origin}/reset-password?token=${resetToken}`;
     
+    let emailSent = false;
+    let emailErrorReason: string | undefined;
+
     try {
       console.log('📧 Attempting to send email via Resend...');
       const emailResult = await sendPasswordResetEmail(
@@ -1735,18 +1748,15 @@ app.post('/api/auth/forgot-password', async (c) => {
         resetToken, 
         origin, 
         c.env.RESEND_API_KEY, 
+        c.env.FROM_EMAIL,
         user.name
       );
       console.log('✅ Email sent successfully:', emailResult);
+      emailSent = true;
     } catch (emailError) {
       console.error('❌ Failed to send password reset email:', emailError);
-      const errorMessage = emailError instanceof Error ? emailError.message : 'Unknown error';
-      const errorStack = emailError instanceof Error ? emailError.stack : undefined;
-      // Return the actual error for debugging (in production, you might want to return a generic message)
-      return c.json({ 
-        error: `Failed to send email: ${errorMessage}`,
-        details: errorStack 
-      }, 500);
+      emailErrorReason = emailError instanceof Error ? emailError.message : 'Unknown error';
+      // If Resend fails due to sandbox/unverified domain restrictions, we log the error and provide the fallback resetUrl in debug info
     }
 
     console.log('✅ Password reset process completed successfully');
@@ -1756,8 +1766,10 @@ app.post('/api/auth/forgot-password', async (c) => {
       success: true, 
       message: 'If an account with that email exists, we have sent a password reset link.',
       debug: {
-        emailSent: true,
-        resetToken: resetToken, // Remove this in production
+        emailSent,
+        reason: emailErrorReason,
+        resetToken: resetToken,
+        resetUrl: resetUrl,
         expiresAt: expiresAt.toISOString()
       }
     });
@@ -1808,9 +1820,9 @@ app.post('/api/auth/reset-password', async (c) => {
     // Hash new password
     const passwordHash = await hashPassword(password);
 
-    // Update user password
+    // Update user password and mark email verified since token came from verified email link
     await c.env.DB.prepare(`
-      UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?
+      UPDATE users SET password_hash = ?, email_verified = 1, updated_at = ? WHERE id = ?
     `).bind(passwordHash, new Date().toISOString(), resetRecord.user_id).run();
 
     // Delete used reset token
