@@ -242,7 +242,7 @@ export const globalAnalyticsApi = {
       clicksByCountry: { [key: string]: number };
       clicksByDevice: { [key: string]: number };
       clicksByBrowser: { [key: string]: number };
-
+      clicksByReferrer?: { [key: string]: number };
       clicksByReferrerPath?: { [key: string]: number };
       clicksByHour?: { [key: string]: number };
       totalClicks: number;

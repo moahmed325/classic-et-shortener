@@ -35,7 +35,7 @@ interface GlobalAnalytics {
   clicksByCountry: { [key: string]: number };
   clicksByDevice: { [key: string]: number };
   clicksByBrowser: { [key: string]: number };
-  
+  clicksByReferrer?: { [key: string]: number };
   clicksByReferrerPath?: { [key: string]: number };
   clicksByHour?: { [key: string]: number };
   totalClicks: number;
@@ -113,7 +113,7 @@ export default function AnalyticsPage() {
 
   // Prepare data for advanced charts
   const prepareChartData = () => {
-    if (!analytics) return { clicksByDate: [], clicksByCountry: [], clicksByDevice: [], clicksByBrowser: [] };
+    if (!analytics) return { clicksByDate: [], clicksByCountry: [], clicksByDevice: [], clicksByBrowser: [], clicksByReferrer: [] };
 
     const clicksByDate = Object.entries(analytics.clicksByDate || {})
       .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
@@ -133,7 +133,12 @@ export default function AnalyticsPage() {
       .slice(0, 8)
       .map(([browser, clicks]) => ({ browser, clicks }));
 
-    return { clicksByDate, clicksByCountry, clicksByDevice, clicksByBrowser };
+    const clicksByReferrer = Object.entries(analytics.clicksByReferrer || {})
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 8)
+      .map(([referrer, clicks]) => ({ referrer: referrer || 'Direct', clicks }));
+
+    return { clicksByDate, clicksByCountry, clicksByDevice, clicksByBrowser, clicksByReferrer };
   };
 
   const downloadPDF = async () => {
@@ -614,22 +619,25 @@ export default function AnalyticsPage() {
                     ) : (
                       // Simple bar chart for all users
                       <div className="space-y-2">
-                        {chartData.clicksByDate.map((item) => (
-                          <div key={item.date} className="flex items-center justify-between py-2">
-                            <span className="text-sm min-w-0 flex-1 pr-2">{item.date}</span>
-                            <div className="flex items-center space-x-2 flex-shrink-0">
-                              <div className="w-20 sm:w-32 bg-gray-200 rounded-full h-2">
-                                <div 
-                                  className="bg-blue-600 h-2 rounded-full" 
-                                  style={{ 
-                                    width: `${Math.max(10, chartData.clicksByDate.length > 0 ? (item.clicks / Math.max(...chartData.clicksByDate.map(d => d.clicks))) * 100 : 0)}%` 
-                                  }}
-                                ></div>
+                        {(() => {
+                          const maxClicks = Math.max(1, ...chartData.clicksByDate.map(d => d.clicks));
+                          return chartData.clicksByDate.map((item) => (
+                            <div key={item.date} className="flex items-center justify-between py-2">
+                              <span className="text-sm min-w-0 flex-1 pr-2">{item.date}</span>
+                              <div className="flex items-center space-x-2 flex-shrink-0">
+                                <div className="w-20 sm:w-32 bg-gray-200 dark:bg-neutral-800 rounded-full h-2">
+                                  <div 
+                                    className="bg-blue-600 h-2 rounded-full" 
+                                    style={{ 
+                                      width: `${Math.max(item.clicks > 0 ? 8 : 0, (item.clicks / maxClicks) * 100)}%` 
+                                    }}
+                                  ></div>
+                                </div>
+                                <span className="text-sm font-medium w-12 text-right tabular-nums">{item.clicks}</span>
                               </div>
-                              <span className="text-sm font-medium w-12 text-right">{item.clicks}</span>
                             </div>
-                          </div>
-                        ))}
+                          ));
+                        })()}
                       </div>
                     )}
                   </>
@@ -660,7 +668,7 @@ export default function AnalyticsPage() {
                           </div>
                         </div>
                         <div className="text-right flex-shrink-0 ml-2">
-                          <p className="text-sm font-medium">{link.clickCount}</p>
+                          <p className="text-sm font-medium tabular-nums">{link.clickCount}</p>
                           <p className="text-xs text-muted-foreground">clicks</p>
                         </div>
                       </div>
@@ -676,7 +684,7 @@ export default function AnalyticsPage() {
                 <CardDescription className="text-sm">Clicks by country</CardDescription>
               </CardHeader>
               <CardContent>
-                {Object.keys(analytics.clicksByCountry).length === 0 ? (
+                {Object.keys(analytics.clicksByCountry || {}).length === 0 ? (
                   <div className="text-center py-8">
                     <Globe className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                     <p className="text-sm text-gray-600 dark:text-gray-400">No geographic data available</p>
@@ -693,9 +701,9 @@ export default function AnalyticsPage() {
                             <span className="text-sm truncate">{countryCodeToName(country)}</span>
                           </div>
                           <div className="text-right flex-shrink-0 ml-2">
-                            <p className="text-sm font-medium">{clicks}</p>
+                            <p className="text-sm font-medium tabular-nums">{clicks}</p>
                             <p className="text-xs text-muted-foreground">
-                              {Math.round((clicks / analytics.totalClicks) * 100)}%
+                              {analytics.totalClicks > 0 ? `${Math.round((clicks / analytics.totalClicks) * 100)}%` : '0%'}
                             </p>
                           </div>
                         </div>
@@ -726,11 +734,11 @@ export default function AnalyticsPage() {
                       </div>
                       <div className="flex items-center space-x-4 text-sm">
                         <div className="text-center">
-                          <p className="font-medium">{link.clickCount}</p>
+                          <p className="font-medium tabular-nums">{link.clickCount}</p>
                           <p className="text-xs text-muted-foreground">Total</p>
                         </div>
                         <div className="text-center">
-                          <p className="font-medium">{link.clicksInPeriod}</p>
+                          <p className="font-medium tabular-nums">{link.clicksInPeriod}</p>
                           <p className="text-xs text-muted-foreground">Period</p>
                         </div>
                       </div>
@@ -750,7 +758,7 @@ export default function AnalyticsPage() {
                 <CardDescription className="text-sm">Clicks by device type</CardDescription>
               </CardHeader>
               <CardContent>
-                {Object.keys(analytics.clicksByDevice).length === 0 ? (
+                {Object.keys(analytics.clicksByDevice || {}).length === 0 ? (
                   <div className="text-center py-8">
                     <Smartphone className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                     <p className="text-sm text-gray-600 dark:text-gray-400">No device data available</p>
@@ -766,9 +774,9 @@ export default function AnalyticsPage() {
                             <span className="text-sm capitalize truncate">{device}</span>
                           </div>
                           <div className="text-right flex-shrink-0 ml-2">
-                            <p className="text-sm font-medium">{clicks}</p>
+                            <p className="text-sm font-medium tabular-nums">{clicks}</p>
                             <p className="text-xs text-muted-foreground">
-                              {Math.round((clicks / analytics.totalClicks) * 100)}%
+                              {analytics.totalClicks > 0 ? `${Math.round((clicks / analytics.totalClicks) * 100)}%` : '0%'}
                             </p>
                           </div>
                         </div>
@@ -785,7 +793,7 @@ export default function AnalyticsPage() {
                 <CardDescription className="text-sm">Clicks by browser</CardDescription>
               </CardHeader>
               <CardContent>
-                {Object.keys(analytics.clicksByBrowser).length === 0 ? (
+                {Object.keys(analytics.clicksByBrowser || {}).length === 0 ? (
                   <div className="text-center py-8">
                     <Globe className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                     <p className="text-sm text-gray-600 dark:text-gray-400">No browser data available</p>
@@ -802,9 +810,46 @@ export default function AnalyticsPage() {
                             <span className="text-sm truncate">{browser}</span>
                           </div>
                           <div className="text-right flex-shrink-0 ml-2">
-                            <p className="text-sm font-medium">{clicks}</p>
+                            <p className="text-sm font-medium tabular-nums">{clicks}</p>
                             <p className="text-xs text-muted-foreground">
-                              {Math.round((clicks / analytics.totalClicks) * 100)}%
+                              {analytics.totalClicks > 0 ? `${Math.round((clicks / analytics.totalClicks) * 100)}%` : '0%'}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Referrer Distribution */}
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="text-xl">Top Referrers</CardTitle>
+                <CardDescription className="text-sm">Traffic sources and origins</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {Object.keys(analytics.clicksByReferrer || {}).length === 0 ? (
+                  <div className="text-center py-8">
+                    <Globe className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                    <p className="text-sm text-gray-600 dark:text-gray-400">No referrer data available</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {Object.entries(analytics.clicksByReferrer || {})
+                      .sort(([,a], [,b]) => b - a)
+                      .slice(0, 10)
+                      .map(([referrer, clicks]) => (
+                        <div key={referrer} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div className="flex items-center space-x-3 min-w-0 flex-1">
+                            <span className="font-mono text-xs truncate max-w-[280px] sm:max-w-[500px]">
+                              {referrer || 'Direct'}
+                            </span>
+                          </div>
+                          <div className="text-right flex-shrink-0 ml-2">
+                            <p className="text-sm font-medium tabular-nums">{clicks}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {analytics.totalClicks > 0 ? `${Math.round((clicks / analytics.totalClicks) * 100)}%` : '0%'}
                             </p>
                           </div>
                         </div>

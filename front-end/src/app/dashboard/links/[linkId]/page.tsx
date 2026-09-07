@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { linksApi } from '@/lib/api';
 import { useAuth } from '@/contexts/auth-context';
 import Link from 'next/link';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip } from 'recharts';
 
 interface LinkData {
   id: string;
@@ -328,39 +329,39 @@ export default function LinkDetailsPage() {
 
           {/* Quick Stats */}
           {analytics && (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+              <Card className="rounded-md border border-neutral-200 dark:border-neutral-800">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Clicks</CardTitle>
                   <BarChart3 className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{analytics.totalClicks}</div>
+                  <div className="text-2xl font-bold tabular-nums">{analytics.totalClicks || 0}</div>
                   <p className="text-xs text-muted-foreground">Last 30 days</p>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="rounded-md border border-neutral-200 dark:border-neutral-800">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Countries</CardTitle>
                   <Globe className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
-                    {Object.keys(analytics.clicksByCountry).length}
+                  <div className="text-2xl font-bold tabular-nums">
+                    {Object.keys(analytics.clicksByCountry || {}).length}
                   </div>
                   <p className="text-xs text-muted-foreground">Unique countries</p>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="rounded-md border border-neutral-200 dark:border-neutral-800">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Top Device</CardTitle>
                   <Monitor className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
-                    {Object.keys(analytics.clicksByDevice).length > 0
+                  <div className="text-2xl font-bold capitalize">
+                    {Object.keys(analytics.clicksByDevice || {}).length > 0
                       ? Object.entries(analytics.clicksByDevice)
                           .sort(([,a], [,b]) => b - a)[0][0]
                       : 'N/A'
@@ -370,14 +371,14 @@ export default function LinkDetailsPage() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="rounded-md border border-neutral-200 dark:border-neutral-800">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Top Browser</CardTitle>
                   <Globe className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {Object.keys(analytics.clicksByBrowser).length > 0
+                    {Object.keys(analytics.clicksByBrowser || {}).length > 0
                       ? Object.entries(analytics.clicksByBrowser)
                           .sort(([,a], [,b]) => b - a)[0][0]
                       : 'N/A'
@@ -393,93 +394,186 @@ export default function LinkDetailsPage() {
         <TabsContent value="analytics" className="space-y-6">
           {analyticsLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin" />
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : analytics ? (
             <div className="space-y-6">
               {/* Clicks by Date */}
-              <Card>
+              <Card className="rounded-md border border-neutral-200 dark:border-neutral-800">
                 <CardHeader>
-                  <CardTitle>Clicks Over Time</CardTitle>
-                  <CardDescription>Daily click count for the last 30 days</CardDescription>
+                  <CardTitle className="text-base font-semibold">Clicks Over Time</CardTitle>
+                  <CardDescription className="text-xs">Daily click trends for the last 30 days</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
-                    {Object.entries(analytics.clicksByDate)
-                      .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
-                      .map(([date, clicks]) => (
-                        <div key={date} className="flex items-center justify-between py-2">
-                          <span className="text-sm">{new Date(date).toLocaleDateString()}</span>
-                          <div className="flex items-center space-x-2">
-                            <div className="w-32 bg-gray-200 rounded-full h-2">
-                              <div 
-                                className="bg-blue-600 h-2 rounded-full" 
-                                style={{ 
-                                  width: `${Math.max(10, (clicks / Math.max(...Object.values(analytics.clicksByDate))) * 100)}%` 
-                                }}
-                              ></div>
-                            </div>
-                            <span className="text-sm font-medium w-8 text-right">{clicks}</span>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
+                  {Object.keys(analytics.clicksByDate || {}).length === 0 ? (
+                    <div className="py-12 text-center border border-dashed border-neutral-200 dark:border-neutral-800 rounded-md">
+                      <Calendar className="h-8 w-8 mx-auto mb-2 text-neutral-400" />
+                      <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">No clicks recorded yet</p>
+                      <p className="text-xs text-neutral-500 mt-1">Daily trends will appear here once visitors start clicking your link.</p>
+                    </div>
+                  ) : (
+                    <div className="h-64 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart
+                          data={Object.entries(analytics.clicksByDate)
+                            .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
+                            .map(([date, clicks]) => ({
+                              date: new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+                              clicks
+                            }))}
+                          margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" className="dark:stroke-neutral-800" />
+                          <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="#9ca3af" />
+                          <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" allowDecimals={false} />
+                          <RechartsTooltip contentStyle={{ backgroundColor: 'rgba(255,255,255,0.95)', border: '1px solid #e5e7eb', borderRadius: '6px' }} />
+                          <Line type="monotone" dataKey="clicks" stroke="#2563eb" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
-              <div className="grid gap-6 md:grid-cols-2">
+              <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
                 {/* Countries */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Top Countries</CardTitle>
-                    <CardDescription>Clicks by country</CardDescription>
+                <Card className="rounded-md border border-neutral-200 dark:border-neutral-800">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base font-semibold">Top Countries</CardTitle>
+                    <CardDescription className="text-xs">Clicks by geographic location</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2">
-                      {Object.entries(analytics.clicksByCountry)
-                        .sort(([,a], [,b]) => b - a)
-                        .slice(0, 10)
-                        .map(([country, clicks]) => (
-                          <div key={country} className="flex items-center justify-between py-2">
-                            <span className="text-sm">{country || 'Unknown'}</span>
-                            <span className="text-sm font-medium">{clicks}</span>
-                          </div>
-                        ))}
-                    </div>
+                    {Object.keys(analytics.clicksByCountry || {}).length === 0 ? (
+                      <div className="py-8 text-center text-xs text-neutral-500 border border-dashed border-neutral-200 dark:border-neutral-800 rounded-md">
+                        No geographic data available
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {Object.entries(analytics.clicksByCountry)
+                          .sort(([,a], [,b]) => b - a)
+                          .slice(0, 8)
+                          .map(([country, clicks]) => (
+                            <div key={country} className="flex items-center justify-between py-1.5 border-b border-neutral-100 dark:border-neutral-800 last:border-0 text-sm">
+                              <span className="font-medium text-xs truncate">{country || 'Unknown'}</span>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xs font-semibold tabular-nums">{clicks}</span>
+                                <span className="text-[11px] text-neutral-400 w-10 text-right">
+                                  {analytics.totalClicks > 0 ? `${Math.round((clicks / analytics.totalClicks) * 100)}%` : '0%'}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
-
+                {/* Referrers */}
+                <Card className="rounded-md border border-neutral-200 dark:border-neutral-800">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base font-semibold">Top Referrers</CardTitle>
+                    <CardDescription className="text-xs">Traffic sources and origins</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {Object.keys(analytics.clicksByReferrer || {}).length === 0 ? (
+                      <div className="py-8 text-center text-xs text-neutral-500 border border-dashed border-neutral-200 dark:border-neutral-800 rounded-md">
+                        No referrer data available
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {Object.entries(analytics.clicksByReferrer)
+                          .sort(([,a], [,b]) => b - a)
+                          .slice(0, 8)
+                          .map(([referrer, clicks]) => (
+                            <div key={referrer} className="flex items-center justify-between py-1.5 border-b border-neutral-100 dark:border-neutral-800 last:border-0 text-sm">
+                              <span className="font-mono text-xs truncate max-w-[200px] text-neutral-800 dark:text-neutral-200">
+                                {referrer || 'Direct'}
+                              </span>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xs font-semibold tabular-nums">{clicks}</span>
+                                <span className="text-[11px] text-neutral-400 w-10 text-right">
+                                  {analytics.totalClicks > 0 ? `${Math.round((clicks / analytics.totalClicks) * 100)}%` : '0%'}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
 
                 {/* Devices */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Device Types</CardTitle>
-                    <CardDescription>Clicks by device type</CardDescription>
+                <Card className="rounded-md border border-neutral-200 dark:border-neutral-800">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base font-semibold">Device Types</CardTitle>
+                    <CardDescription className="text-xs">Clicks by device category</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2">
-                      {Object.entries(analytics.clicksByDevice)
-                        .sort(([,a], [,b]) => b - a)
-                        .map(([device, clicks]) => (
-                          <div key={device} className="flex items-center justify-between py-2">
-                            <div className="flex items-center space-x-2">
-                              {getDeviceIcon(device)}
-                              <span className="text-sm capitalize">{device}</span>
+                    {Object.keys(analytics.clicksByDevice || {}).length === 0 ? (
+                      <div className="py-8 text-center text-xs text-neutral-500 border border-dashed border-neutral-200 dark:border-neutral-800 rounded-md">
+                        No device data available
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {Object.entries(analytics.clicksByDevice)
+                          .sort(([,a], [,b]) => b - a)
+                          .map(([device, clicks]) => (
+                            <div key={device} className="flex items-center justify-between py-1.5 border-b border-neutral-100 dark:border-neutral-800 last:border-0 text-sm">
+                              <div className="flex items-center space-x-2">
+                                {getDeviceIcon(device)}
+                                <span className="text-xs capitalize font-medium">{device}</span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xs font-semibold tabular-nums">{clicks}</span>
+                                <span className="text-[11px] text-neutral-400 w-10 text-right">
+                                  {analytics.totalClicks > 0 ? `${Math.round((clicks / analytics.totalClicks) * 100)}%` : '0%'}
+                                </span>
+                              </div>
                             </div>
-                            <span className="text-sm font-medium">{clicks}</span>
-                          </div>
-                        ))}
-                    </div>
+                          ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
-                {/* Referrer paths (Premium) */}
-                {user?.tier === 'premium' && analytics.clicksByReferrerPath && Object.keys(analytics.clicksByReferrerPath).length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Referrer Paths</CardTitle>
-                      <CardDescription>Top referring hostnames and paths</CardDescription>
+                {/* Browsers */}
+                <Card className="rounded-md border border-neutral-200 dark:border-neutral-800">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base font-semibold">Top Browsers</CardTitle>
+                    <CardDescription className="text-xs">Clicks by browser software</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {Object.keys(analytics.clicksByBrowser || {}).length === 0 ? (
+                      <div className="py-8 text-center text-xs text-neutral-500 border border-dashed border-neutral-200 dark:border-neutral-800 rounded-md">
+                        No browser data available
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {Object.entries(analytics.clicksByBrowser)
+                          .sort(([,a], [,b]) => b - a)
+                          .slice(0, 8)
+                          .map(([browser, clicks]) => (
+                            <div key={browser} className="flex items-center justify-between py-1.5 border-b border-neutral-100 dark:border-neutral-800 last:border-0 text-sm">
+                              <span className="text-xs font-medium">{browser}</span>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xs font-semibold tabular-nums">{clicks}</span>
+                                <span className="text-[11px] text-neutral-400 w-10 text-right">
+                                  {analytics.totalClicks > 0 ? `${Math.round((clicks / analytics.totalClicks) * 100)}%` : '0%'}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Referrer paths (Advanced) */}
+                {analytics.clicksByReferrerPath && Object.keys(analytics.clicksByReferrerPath).length > 0 && (
+                  <Card className="rounded-md border border-neutral-200 dark:border-neutral-800 md:col-span-2">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base font-semibold">Detailed Referrer Paths</CardTitle>
+                      <CardDescription className="text-xs">Full hostnames and landing pathways</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2">
@@ -487,9 +581,9 @@ export default function LinkDetailsPage() {
                           .sort(([,a], [,b]) => b - a)
                           .slice(0, 10)
                           .map(([path, clicks]) => (
-                            <div key={path} className="flex items-center justify-between py-2">
-                              <span className="text-sm truncate max-w-[220px]">{path}</span>
-                              <span className="text-sm font-medium">{clicks}</span>
+                            <div key={path} className="flex items-center justify-between py-1.5 border-b border-neutral-100 dark:border-neutral-800 last:border-0 text-sm">
+                              <span className="font-mono text-xs truncate max-w-[280px] sm:max-w-[450px]">{path}</span>
+                              <span className="text-xs font-semibold tabular-nums">{clicks}</span>
                             </div>
                           ))}
                       </div>
@@ -497,73 +591,32 @@ export default function LinkDetailsPage() {
                   </Card>
                 )}
 
-                {/* Browsers */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Top Browsers</CardTitle>
-                    <CardDescription>Clicks by browser</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {Object.entries(analytics.clicksByBrowser)
-                        .sort(([,a], [,b]) => b - a)
-                        .slice(0, 10)
-                        .map(([browser, clicks]) => (
-                          <div key={browser} className="flex items-center justify-between py-2">
-                            <span className="text-sm">{browser}</span>
-                            <span className="text-sm font-medium">{clicks}</span>
-                          </div>
-                        ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Referrers */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Top Referrers</CardTitle>
-                    <CardDescription>Traffic sources</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {Object.entries(analytics.clicksByReferrer)
-                        .sort(([,a], [,b]) => b - a)
-                        .slice(0, 10)
-                        .map(([referrer, clicks]) => (
-                          <div key={referrer} className="flex items-center justify-between py-2">
-                            <span className="text-sm truncate">{referrer || 'Direct'}</span>
-                            <span className="text-sm font-medium">{clicks}</span>
-                          </div>
-                        ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Hourly breakdown (Premium) */}
-                {user?.tier === 'premium' && analytics.clicksByHour && Object.keys(analytics.clicksByHour).length > 0 && (
-                  <Card className="md:col-span-2">
-                    <CardHeader>
-                      <CardTitle>Hourly Clicks</CardTitle>
-                      <CardDescription>Time-based breakdown</CardDescription>
+                {/* Hourly breakdown (Advanced) */}
+                {analytics.clicksByHour && Object.keys(analytics.clicksByHour).length > 0 && (
+                  <Card className="rounded-md border border-neutral-200 dark:border-neutral-800 md:col-span-2">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base font-semibold">Hourly Activity Breakdown</CardTitle>
+                      <CardDescription className="text-xs">Recent time-based click frequency</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-2">
-                        {Object.entries(analytics.clicksByHour)
-                          .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
-                          .map(([hour, clicks]) => (
-                            <div key={hour} className="flex items-center justify-between py-2">
-                              <span className="text-sm">{new Date(hour).toLocaleString()}</span>
-                              <div className="flex items-center space-x-2">
-                                <div className="w-32 bg-gray-200 rounded-full h-2">
-                                  <div
-                                    className="bg-indigo-600 h-2 rounded-full"
-                                    style={{ width: `${Math.max(10, (clicks / Math.max(...Object.values(analytics.clicksByHour!))) * 100)}%` }}
-                                  ></div>
-                                </div>
-                                <span className="text-sm font-medium w-8 text-right">{clicks}</span>
-                              </div>
-                            </div>
-                          ))}
+                      <div className="h-56 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart
+                            data={Object.entries(analytics.clicksByHour)
+                              .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
+                              .map(([hour, clicks]) => ({
+                                hour: new Date(hour).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
+                                clicks
+                              }))}
+                            margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" className="dark:stroke-neutral-800" />
+                            <XAxis dataKey="hour" tick={{ fontSize: 11 }} stroke="#9ca3af" />
+                            <YAxis tick={{ fontSize: 11 }} stroke="#9ca3af" allowDecimals={false} />
+                            <RechartsTooltip contentStyle={{ backgroundColor: 'rgba(255,255,255,0.95)', border: '1px solid #e5e7eb', borderRadius: '6px' }} />
+                            <Line type="monotone" dataKey="clicks" stroke="#4f46e5" strokeWidth={2} dot={{ r: 2 }} />
+                          </LineChart>
+                        </ResponsiveContainer>
                       </div>
                     </CardContent>
                   </Card>
