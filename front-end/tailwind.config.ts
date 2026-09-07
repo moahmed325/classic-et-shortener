@@ -36,12 +36,35 @@ const config: Config = {
       "2xl": "1400px",
     },
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Geist Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        canvas: "var(--canvas)",
+        surface: {
+          1: "var(--surface-1)",
+          2: "var(--surface-2)",
+        },
+        'border-subtle': "var(--border-subtle)",
+        coral: {
+          DEFAULT: "var(--accent-coral)",
+          hover: "#f85353",
+        },
+        emerald: {
+          DEFAULT: "var(--accent-emerald)",
+        },
+        amber: {
+          DEFAULT: "var(--accent-amber)",
+        },
+        cyan: {
+          DEFAULT: "var(--accent-cyan)",
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -72,9 +95,9 @@ const config: Config = {
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "0.5rem",
+        md: "0.375rem",
+        sm: "0.25rem",
       },
       keyframes: {
         "accordion-down": {

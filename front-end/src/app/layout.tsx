@@ -1,16 +1,26 @@
 // Root application layout - verified for automated Vercel CI/CD deployment
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/contexts/auth-context';
 import { ThemeProvider } from '@/contexts/theme-context';
 import { Toaster } from '@/components/ui/toaster';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  display: 'swap',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-mono',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
-  title: 'LinkShort - URL Shortening Platform',
-  description: 'Professional URL shortening with analytics and custom domains',
+  title: 'classic.et - URL Shortening Platform',
+  description: 'Fast, reliable URL shortening with link analytics and custom domains',
 };
 
 export default function RootLayout({
@@ -19,8 +29,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" className="dark">
+      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased bg-background text-foreground min-h-[100dvh]`}>
         <ThemeProvider>
           <AuthProvider>
             {children}
